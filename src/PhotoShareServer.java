@@ -163,7 +163,7 @@ public class PhotoShareServer {
 				frase= "CREATE";
 				outStream.writeObject(frase);
 				if (inStream.equals("y")) {
-					user user = new user(inUser, inPasswd);
+					User user = new User(inUser, inPasswd);
 					catUser.lista().add(user);
 					frase= "CREATED";
 					outStream.writeObject(frase);

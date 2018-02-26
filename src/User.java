@@ -1,4 +1,4 @@
-+public class user {
+public class User {
 
 	private String UserName;
 	private String password;
@@ -8,7 +8,7 @@
 	 * @param userName
 	 * @param password
 	 */
-	public user(String userName,String password ) {
+	public User(String userName,String password ) {
 		this.UserName = userName;
 		this.password = password;
 

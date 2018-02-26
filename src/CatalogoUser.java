@@ -1,4 +1,4 @@
-+import java.io.BufferedReader;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -8,17 +8,17 @@ import java.util.HashMap;
 
 public class CatalogoUser {
 	
-	private  ArrayList<user> users; 
+	private  ArrayList<User> users; 
 	
 	/**
 	 * Construtor
 	 */
 	public CatalogoUser(){
-		users = new ArrayList<user>();
+		users = new ArrayList<User>();
 	}
 	
 	
-	public ArrayList<user> lista() {
+	public ArrayList<User> lista() {
 		return users;
 		
 	}
@@ -63,10 +63,10 @@ public class CatalogoUser {
 		BufferedReader reader = new BufferedReader(new FileReader(utilizadores));
 		String line="";
 
-		user user;
+		User user;
 		while((line = reader.readLine()) != null){
 			String[] split = line.split(":");
-			user = new user(split[0], split[1]);
+			user = new User(split[0], split[1]);
 			users.add(user);
 		}
 	}
