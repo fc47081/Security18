@@ -1,0 +1,5 @@
+goncalo:1234
+madalena:5678
+pedro:0000
+joao:benfica
+miguel:sporting
