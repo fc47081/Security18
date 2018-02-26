@@ -17,42 +17,27 @@ public class CatalogoUser {
 		users = new ArrayList<User>();
 	}
 	
-	
 	public ArrayList<User> lista() {
-		return users;
-		
+		return users;	
 	}
-	
 
 	public boolean find(String user) {
-		
 		for (int i = 0; i < users.size(); i++) {
-
-			if (user.equals(users.get(i).getUserName())) {
-				
+			if (user.equals(users.get(i).getUserName()))
 					return true;
-			}	
 		}
 		return false;
-		
-		
 	}
 	
 	public boolean pwdCerta(String user,String pwd) {
-		
 		for (int i = 0; i < users.size(); i++) {
-
 			if (user.equals(users.get(i).getUserName())) {
-				
 				if (pwd.equals(users.get(i).getPassword())) 
 					return true;	
 			}
 		}
 		return false;
-		
-		
 	}
-	
 	
 	/**
 	 * Popular o catalogo com users
@@ -62,8 +47,8 @@ public class CatalogoUser {
 	public void populate(File utilizadores) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(utilizadores));
 		String line="";
-
 		User user;
+		
 		while((line = reader.readLine()) != null){
 			String[] split = line.split(":");
 			user = new User(split[0], split[1]);

@@ -16,31 +16,26 @@ import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 import java.util.Scanner;
 public class PhotoShare {
+	
 	private static final String IPPort ="(\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}):(\\d{1,5})";
 	private static final Pattern PATTERN = Pattern.compile(IPPort);
 
-
 	public static void main(String[] args){
-
 		//socket,argumentos, arguments, serverAdress, scanner		
 		Socket listeningSocket = null;
 		String [] argumentos = args;
 		Scanner input = new Scanner(System.in);
 		String [] arguments = verificaArgs(argumentos,input);
 		String [] serverAdress = arguments[2].split(":");
-
+		
 		try {
-
-
 			listeningSocket = new Socket(serverAdress[0],Integer.parseInt(serverAdress[1]));
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
 		}
-
-
+		
 		try {
-
 			ObjectInputStream in = new ObjectInputStream(listeningSocket.getInputStream());
 			ObjectOutputStream out = new ObjectOutputStream(listeningSocket.getOutputStream());
 			out.writeObject(arguments[0]);
@@ -75,19 +70,9 @@ public class PhotoShare {
 			//TODO tentar a criacao de um cliente novo
 			//TODO Escrever no ficheiro
 			//TODO
-			//TODO
-			//TODO horario , EC as tercas e CSS a quinta depois de seguranca
-			 
 			
 			
 			
-			
-			
-			
-			
-			
-
-
 			in.close();
 			out.close();
 		} catch (Exception e) {
@@ -97,14 +82,11 @@ public class PhotoShare {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-
 		}
+		
 		//Colocar objects no socket
-
-
-
+		
 		//1-envio de user e password para autenticacao
-
 
 		//		File file = new File("slb.jpg");
 		//		long size = file.length();
@@ -120,10 +102,6 @@ public class PhotoShare {
 		//			size -=count;
 		//			out.flush();
 		//		}
-
-
-
-
 
 	}
 
@@ -164,14 +142,9 @@ public class PhotoShare {
 			result[1] = args[1];
 			result[2] = args[2];
 		}
-
 		in.close();
 		return result;
 	}
-
-
-
-
 
 	/**
 	 * validacao de pattern
@@ -181,7 +154,4 @@ public class PhotoShare {
 	public static boolean validate(final String ip) {
 		return PATTERN.matcher(ip).matches();
 	}
-
-
-
 }

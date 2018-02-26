@@ -11,7 +11,6 @@ public class User {
 	public User(String userName,String password ) {
 		this.UserName = userName;
 		this.password = password;
-
 	}
 
 	/**

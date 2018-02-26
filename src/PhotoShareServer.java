@@ -31,14 +31,12 @@ public class PhotoShareServer {
 	 */
 	public void startServer (){
 		ServerSocket sSoc = null;
-
 		try {
 			sSoc = new ServerSocket(23232);
 		} catch (IOException e) {
 			System.out.println("O servidor PhotoShare so aceita ligacoes do porto : 23232");
 			System.exit(-1);
 		}
-
 		while(true) {
 			try {
 				Socket inSoc = sSoc.accept();
@@ -48,13 +46,9 @@ public class PhotoShareServer {
 			catch (IOException e) {
 				e.printStackTrace();
 			}
-
 		}
 		//sSoc.close();
 	}
-
-
-
 
 	//Threads utilizadas para comunicacao com os clientes
 	class ServerThread extends Thread {
@@ -66,7 +60,6 @@ public class PhotoShareServer {
 			System.out.println("thread para cada cliente");
 		}
 
-
 		/**
 		 * Run do server
 		 */
@@ -74,7 +67,6 @@ public class PhotoShareServer {
 			try {
 				ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream inStream = new ObjectInputStream(socket.getInputStream());
-
 				String inUser = "";
 				String inPasswd = "";
 
@@ -102,18 +94,11 @@ public class PhotoShareServer {
 
 				outStream.close();
 				inStream.close();
-
 				socket.close();
-
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
-
-
 		}
-
-
 
 		/**
 		 * Autenticacao do user
@@ -128,22 +113,17 @@ public class PhotoShareServer {
 			String frase="";
 			BufferedReader reader = null;
 			File utilizadores = new File ("info.txt");
-
 			CatalogoUser catUser = new CatalogoUser();
-
 
 			if(!utilizadores.exists())
 				utilizadores.createNewFile();
-
 			else
 				catUser.populate(utilizadores);
-
 			try {
 				reader = new BufferedReader(new FileReader("info.txt"));
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
-
 
 			if (catUser.find(inUser)) {
 				if (catUser.pwdCerta(inUser,inPasswd)) {
@@ -152,12 +132,9 @@ public class PhotoShareServer {
 				}else {
 
 					while (!inPasswd.equals(inStream.toString())){
-
 						frase= "WRONG";
 						outStream.writeObject(frase);
-
 					}		
-
 				}
 			}else {
 				frase= "CREATE";
@@ -177,24 +154,17 @@ public class PhotoShareServer {
 
 								frase= "WRONG";
 								outStream.writeObject(frase);
-
 							}	
-
 						}
 					}
-
 				}
-
 				BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
 				writer.write(inUser + ":" + inPasswd);
 				writer.newLine();
 				writer.close();
 				reader.close();
-
 			}
 			return frase;			
-
 		}
 	}
-
 }
