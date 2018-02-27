@@ -39,6 +39,15 @@ public class CatalogoUser {
 		return false;
 	}
 	
+	public String getUserPwd(String user) {
+		for (int i = 0; i < users.size(); i++) {
+			if (user.equals(users.get(i).getUserName())) {
+				return users.get(i).getPassword();
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Popular o catalogo com users
 	 * @param utilizadores - ficheiro de users
