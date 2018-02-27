@@ -108,8 +108,9 @@ public class PhotoShareServer {
 		 * @param inStream - stream in
 		 * @return frase - retorno a dar ao client
 		 * @throws IOException
+		 * @throws ClassNotFoundException 
 		 */
-		private String autenticarUser(String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException {
+		private String autenticarUser(String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
 			String frase="";
 			BufferedReader reader = null;
 			File utilizadores = new File ("info.txt");
@@ -124,26 +125,33 @@ public class PhotoShareServer {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
-
+			
+			
+			//user existe
 			if (catUser.find(inUser)) {
 				if (catUser.pwdCerta(inUser,inPasswd)) {
 					frase= "LOGGED";
 					outStream.writeObject(frase);
-				}else {
+				}else {// password errada
 
-					while (!inPasswd.equals(inStream.toString())){
+					
 						frase= "WRONG";
 						outStream.writeObject(frase);
-					}		
+							
 				}
-			}else {
+			}else {//user não existe
 				frase= "CREATE";
 				outStream.writeObject(frase);
-				if (inStream.equals("y")) {
+				String stream = (String) inStream.readObject();
+				if (stream .equals("y")) {
 					User user = new User(inUser, inPasswd);
 					catUser.lista().add(user);
 					frase= "CREATED";
 					outStream.writeObject(frase);
+					BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
+					writer.write(inUser + ":" + inPasswd);
+					writer.newLine();
+					writer.close();
 				}else {
 					if (catUser.find(inUser)) {
 						if (catUser.pwdCerta(inUser,inPasswd)) {
@@ -151,17 +159,14 @@ public class PhotoShareServer {
 							outStream.writeObject(frase);
 						}else {
 							while (!inPasswd.equals(inStream.toString())){
-
 								frase= "WRONG";
 								outStream.writeObject(frase);
 							}	
 						}
 					}
 				}
-				BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
-				writer.write(inUser + ":" + inPasswd);
-				writer.newLine();
-				writer.close();
+				
+
 				reader.close();
 			}
 			return frase;			

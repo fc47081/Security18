@@ -1,0 +1,4 @@
+goncalo:1234
+madalena:1234
+jose:funus
+maria:funus

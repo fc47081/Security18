@@ -41,35 +41,35 @@ public class PhotoShare {
 			out.writeObject(arguments[0]);
 			out.writeObject(arguments[1]);
 			String var = (String) in.readObject();
-
+			
+			//cliente logado
 			if(var.equals("LOGGED")) {
 				System.out.println("Bem Vindo!");
-				
+			//cliente pass incorrecta	
 			}else if (var.equals("WRONG")) {
-				while(!var.equals("WRONG")) {
 					System.out.println("palavra passe incorrecta");
 					String password = input.nextLine();
 					out.writeObject(password);
-				}
-			}else {
+				
+				//criar cliente
+			}else if(var.equals("CREATE")) {
 				System.out.println("deseja criar uma nova conta? (y/n)");
-				String confirmacao = input.nextLine();
+				String confirmacao = input.nextLine();	
 				if(confirmacao.equals("y")) {
 					out.writeObject("y");
 				}else {
 					out.writeObject("n");
 				}
 			}
-			if(var.equals("CREATED")){
+			
+			String create = (String) in.readObject();
+			System.out.println(create);
+			//criado
+			if(create.equals("CREATED")){
 				System.out.println("Foi criado");
 			}
 
-			
-			
-			//TODO nao desligar o cliente
-			//TODO tentar a criacao de um cliente novo
-			//TODO Escrever no ficheiro
-			//TODO
+			input.close();
 			
 			
 			
@@ -142,7 +142,7 @@ public class PhotoShare {
 			result[1] = args[1];
 			result[2] = args[2];
 		}
-		in.close();
+		
 		return result;
 	}
 
