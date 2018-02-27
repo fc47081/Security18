@@ -57,7 +57,7 @@ public class PhotoShareServer {
 
 		ServerThread(Socket inSoc) {
 			socket = inSoc;
-			System.out.println("thread para cada cliente");
+			System.out.println("Entrou novo cliente");
 		}
 
 		/**
@@ -73,8 +73,8 @@ public class PhotoShareServer {
 				try {
 					inUser = (String)inStream.readObject();
 					inPasswd = (String)inStream.readObject();
-					String frase = autenticarUser(inUser, inPasswd, outStream, inStream);
-					outStream.writeObject(frase);
+					autenticarUser(inUser, inPasswd, outStream, inStream);
+
 
 				}catch (ClassNotFoundException e1) {
 					e1.printStackTrace();
@@ -110,7 +110,7 @@ public class PhotoShareServer {
 		 * @throws IOException
 		 * @throws ClassNotFoundException 
 		 */
-		private String autenticarUser(String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
+		private void autenticarUser(String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
 			String frase="";
 			BufferedReader reader = null;
 			File utilizadores = new File ("info.txt");
@@ -125,51 +125,41 @@ public class PhotoShareServer {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
-			
-			
+
+
 			//user existe
 			if (catUser.find(inUser)) {
 				if (catUser.pwdCerta(inUser,inPasswd)) {
 					frase= "LOGGED";
 					outStream.writeObject(frase);
 				}else {// password errada
-
-					
+					frase= "WRONG";
+					outStream.writeObject(frase);
+					while (!catUser.getUserPwd(inUser).equals(inStream.readObject())){
 						frase= "WRONG";
 						outStream.writeObject(frase);
-							
+					}
+					outStream.writeObject("LOGGED");
+
+
 				}
 			}else {//user não existe
 				frase= "CREATE";
 				outStream.writeObject(frase);
-				String stream = (String) inStream.readObject();
-				if (stream .equals("y")) {
-					User user = new User(inUser, inPasswd);
-					catUser.lista().add(user);
-					frase= "CREATED";
-					outStream.writeObject(frase);
-					BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
-					writer.write(inUser + ":" + inPasswd);
-					writer.newLine();
-					writer.close();
-				}else {
-					if (catUser.find(inUser)) {
-						if (catUser.pwdCerta(inUser,inPasswd)) {
-							frase= "LOGGED";
-							outStream.writeObject(frase);
-						}else {
-							while (!inPasswd.equals(inStream.toString())){
-								frase= "WRONG";
-								outStream.writeObject(frase);
-							}	
-						}
-					}
-				}
+				//String stream = (String) inStream.readObject();
+				User user = new User(inUser, inPasswd);
+				catUser.lista().add(user);
+				BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
+				writer.write(inUser + ":" + inPasswd);
+				writer.newLine();
+				writer.close();
+				File dir = new File(inUser);
+				dir.mkdir();
 				
-
-				reader.close();
 			}
-			return frase;			
+
+			reader.close();
 		}
+
 	}
 }
