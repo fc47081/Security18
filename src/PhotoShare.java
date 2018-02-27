@@ -21,6 +21,11 @@ public class PhotoShare {
 	private static final Pattern PATTERN = Pattern.compile(IPPort);
 
 	public static void main(String[] args){
+		
+		File pasta = new File("Clientes");
+		if (!pasta.exists()) {
+			pasta.mkdir();
+		}
 		//socket,argumentos, arguments, serverAdress, scanner		
 		Socket listeningSocket = null;
 		String [] argumentos = args;
@@ -70,9 +75,43 @@ public class PhotoShare {
 						+ "| -c <comment> <userId> <photo> | -L <userId> <photo> | \n -D <userId> <photo> | -f <followUserIds> | -r <followUserIds> ]");
 			
 				String operacao = input.nextLine();
+				out.writeObject(operacao);
 				switch(operacao) {
 				   case "-a" :
-				      // Statements
+					   //argumento da foto
+					   File foto = new File("Clientes/foto"); 
+					   if(foto.exists()) {
+						   
+						   //lançar a foto do cliente para o servidor
+						   FileInputStream fileInputStream = new FileInputStream(foto);
+							BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+
+							byte[] array = new byte[1024];
+							int n;
+							while((n=bufferedInputStream.read(array,0,1024)) != -1){
+								out.write(array, 0, n);
+								out.flush();
+							}
+
+							bufferedInputStream.close();
+							fileInputStream.close();
+
+						  
+					   }
+					   
+					    
+//						FileOutputStream outStream1 = new FileOutputStream("slbcopia.jpg");
+						//				OutputStream outStream2 = new BufferedOutputStream(outStream1);
+						//				byte buffer[] = new byte [1024];
+						//				int count;
+						//				long size = (long) inStream.readObject();
+						//
+						//				while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+						//					outStream1.write(buffer, 0, count);
+						//					size -=count;
+						//					outStream2.flush();
+						//				}
+
 				      break; // optional
 				   
 				   case "-l" :

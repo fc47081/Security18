@@ -21,6 +21,10 @@ import java.net.Socket;
 public class PhotoShareServer {
 
 	public static void main(String[] args) throws java.net.SocketException{
+		File pasta = new File("servidor");
+		if (!pasta.exists()) {
+			pasta.mkdir();
+		}
 		System.out.println("Ligado , a espera de ligacao");
 		PhotoShareServer server = new PhotoShareServer();
 		server.startServer();
@@ -74,8 +78,89 @@ public class PhotoShareServer {
 					inUser = (String)inStream.readObject();
 					inPasswd = (String)inStream.readObject();
 					autenticarUser(inUser, inPasswd, outStream, inStream);
+					
+					//le  a operação do ouro lado
+					String operacao =(String)inStream.readObject();  
+	
+					switch(operacao) {
+					   case "-a" :
+						   //argumento da foto
+						   File foto = new File("Clientes/foto"); 
+						   if(foto.exists()) {
+							   //lançar a foto do cliente para o servidor
+							   	FileInputStream fileInputStream = new FileInputStream(foto);
+								BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
 
+								byte[] array = new byte[1024];
+								int n;
+								while((n=bufferedInputStream.read(array,0,1024)) != -1){
+									outStream.write(array, 0, n);
+									outStream.flush();
+								}
 
+								bufferedInputStream.close();
+								fileInputStream.close();
+
+							  
+						   }
+						   
+						    
+//							FileOutputStream outStream1 = new FileOutputStream("slbcopia.jpg");
+							//				OutputStream outStream2 = new BufferedOutputStream(outStream1);
+							//				byte buffer[] = new byte [1024];
+							//				int count;
+							//				long size = (long) inStream.readObject();
+							//
+							//				while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+							//					outStream1.write(buffer, 0, count);
+							//					size -=count;
+							//					outStream2.flush();
+							//				}
+
+					      break; // optional
+					   
+					   case "-l" :
+					      // Statements
+					      break; // optional
+					      
+					   case "-i" :
+						      // Statements
+						      break; // optional
+					   case "-g" :
+						      // Statements
+						      break; // optional
+						      
+					   case "-c" :
+						      // Statements
+						      break; // optional     
+						      
+					   case "-L" :
+						      // Statements
+						      break; // optional
+						      
+					   case "-D" :
+						      // Statements
+						      break; // optional      
+						      
+					   case "-f" :
+						      // Statements
+						      break; // optional
+						      
+					   case "-r" :
+						      // Statements
+						      break; // optional
+					   // You can have any number of case statements.
+					   default : // Optional
+					      // Statements
+					}
+				
+				
+				
+				
+					
+					
+
+					
 				}catch (ClassNotFoundException e1) {
 					e1.printStackTrace();
 				}
@@ -153,9 +238,8 @@ public class PhotoShareServer {
 				writer.write(inUser + ":" + inPasswd);
 				writer.newLine();
 				writer.close();
-				File dir = new File(inUser);
+				File dir = new File("servidor/"+inUser);
 				dir.mkdir();
-				
 			}
 
 			reader.close();
