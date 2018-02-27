@@ -27,7 +27,7 @@ public class PhotoShare {
 		Scanner input = new Scanner(System.in);
 		String [] arguments = verificaArgs(argumentos,input);
 		String [] serverAdress = arguments[2].split(":");
-		
+
 		try {
 			listeningSocket = new Socket(serverAdress[0],Integer.parseInt(serverAdress[1]));
 		} catch (IOException e) {
@@ -50,25 +50,80 @@ public class PhotoShare {
 					System.out.println("palavra passe incorrecta");
 					String password = input.nextLine();
 					out.writeObject(password);
+					while (!((String)in.readObject()).equals("LOGGED")) {
+						System.out.println("falhei");
+						password = input.nextLine();
+						out.writeObject(password);
+					}
+					
 				
 				//criar cliente
 			}else if(var.equals("CREATE")) {
-				System.out.println("deseja criar uma nova conta? (y/n)");
-				String confirmacao = input.nextLine();	
-				if(confirmacao.equals("y")) {
-					out.writeObject("y");
-				}else {
-					out.writeObject("n");
-				}
+				System.out.println(" O user novo foi criado");
 			}
 			
-			String create = (String) in.readObject();
-			System.out.println(create);
-			//criado
-			if(create.equals("CREATED")){
-				System.out.println("Foi criado");
+			System.out.println("Deseja realizar operações ? (y/n)" );
+			String confirmacao = input.nextLine();
+			if (confirmacao.equals("y")) {
+				System.out.println("escolha uma operacao:");
+				System.out.println( "[ -a <photos> | -l <userId> | -i <userId> <photo> | -g <userId> \n"
+						+ "| -c <comment> <userId> <photo> | -L <userId> <photo> | \n -D <userId> <photo> | -f <followUserIds> | -r <followUserIds> ]");
+			
+				String operacao = input.nextLine();
+				switch(operacao) {
+				   case "-a" :
+				      // Statements
+				      break; // optional
+				   
+				   case "-l" :
+				      // Statements
+				      break; // optional
+				      
+				   case "-i" :
+					      // Statements
+					      break; // optional
+				   case "-g" :
+					      // Statements
+					      break; // optional
+					      
+				   case "-c" :
+					      // Statements
+					      break; // optional     
+					      
+				   case "-L" :
+					      // Statements
+					      break; // optional
+					      
+				   case "-D" :
+					      // Statements
+					      break; // optional      
+					      
+				   case "-f" :
+					      // Statements
+					      break; // optional
+					      
+				   case "-r" :
+					      // Statements
+					      break; // optional
+				   // You can have any number of case statements.
+				   default : // Optional
+				      // Statements
+				}
+			
+			
 			}
-
+			
+			                    		  
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 			input.close();
 			
 			
