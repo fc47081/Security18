@@ -16,12 +16,12 @@ import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 import java.util.Scanner;
 public class PhotoShare {
-	
+
 	private static final String IPPort ="(\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}):(\\d{1,5})";
 	private static final Pattern PATTERN = Pattern.compile(IPPort);
 
 	public static void main(String[] args){
-		
+
 		File pasta = new File("Clientes");
 		if (!pasta.exists()) {
 			pasta.mkdir();
@@ -39,134 +39,147 @@ public class PhotoShare {
 			System.err.println(e.getMessage());
 			System.exit(-1);
 		}
-		
+
 		try {
 			ObjectInputStream in = new ObjectInputStream(listeningSocket.getInputStream());
 			ObjectOutputStream out = new ObjectOutputStream(listeningSocket.getOutputStream());
 			out.writeObject(arguments[0]);
 			out.writeObject(arguments[1]);
 			String var = (String) in.readObject();
-			
+
 			//cliente logado
 			if(var.equals("LOGGED")) {
 				System.out.println("Bem Vindo!");
-			//cliente pass incorrecta	
+				//cliente pass incorrecta	
 			}else if (var.equals("WRONG")) {
-					System.out.println("palavra passe incorrecta");
-					String password = input.nextLine();
+				System.out.println("palavra passe incorrecta");
+				String password = input.nextLine();
+				out.writeObject(password);
+				while (!((String)in.readObject()).equals("LOGGED")) {
+					System.out.println("falhei");
+					password = input.nextLine();
 					out.writeObject(password);
-					while (!((String)in.readObject()).equals("LOGGED")) {
-						System.out.println("falhei");
-						password = input.nextLine();
-						out.writeObject(password);
-					}
-					
+				}
 				
 				//criar cliente
 			}else if(var.equals("CREATE")) {
 				System.out.println(" O user novo foi criado");
 			}
-			
+
 			System.out.println("Deseja realizar operações ? (y/n)" );
 			String confirmacao = input.nextLine();
 			if (confirmacao.equals("y")) {
 				System.out.println("escolha uma operacao:");
 				System.out.println( "[ -a <photos> | -l <userId> | -i <userId> <photo> | -g <userId> \n"
 						+ "| -c <comment> <userId> <photo> | -L <userId> <photo> | \n -D <userId> <photo> | -f <followUserIds> | -r <followUserIds> ]");
-			
+
 				String operacao = input.nextLine();
-				out.writeObject(operacao);
-				switch(operacao) {
-				   case "-a" :
-					   //argumento da foto
-					   File foto = new File("Clientes/foto"); 
-					   if(foto.exists()) {
-						   
-						   //lançar a foto do cliente para o servidor
-						   FileInputStream fileInputStream = new FileInputStream(foto);
-							BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+				//operacoes args- [0] -> -a [1],[2],...restantes
 
-							byte[] array = new byte[1024];
-							int n;
-							while((n=bufferedInputStream.read(array,0,1024)) != -1){
-								out.write(array, 0, n);
-								out.flush();
-							}
+				String[]  operacoesArgs = operacao.split(" ");
+				out.writeObject(operacoesArgs[1]);
+				out.writeObject(operacoesArgs[0]);
+				
+				String recebeOpServer = (String) in.readObject();
+				
+				
+				switch(recebeOpServer) {
+				case "-a" :
+					System.out.println("Entrei -a");
+					
+					//argumento da foto
+					File foto = new File("Clientes/"+operacoesArgs[1]); 
+					if(foto.exists()) {
+						System.out.println("A foto existe");
+						//lançar a foto do cliente para o servidor
+						FileInputStream fileInputStream = new FileInputStream(foto);
+						BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+						out.writeLong(foto.length());
+						byte[] array = new byte[1024];
+						int n;
+						while((n=bufferedInputStream.read(array,0,1024)) != -1){
+							out.write(array, 0, n);
+							out.flush();
+						}
 
-							bufferedInputStream.close();
-							fileInputStream.close();
+						bufferedInputStream.close();
+						fileInputStream.close();
+						//lançar o user
 
-						  
-					   }
-					   
-					    
-//						FileOutputStream outStream1 = new FileOutputStream("slbcopia.jpg");
-						//				OutputStream outStream2 = new BufferedOutputStream(outStream1);
-						//				byte buffer[] = new byte [1024];
-						//				int count;
-						//				long size = (long) inStream.readObject();
-						//
-						//				while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
-						//					outStream1.write(buffer, 0, count);
-						//					size -=count;
-						//					outStream2.flush();
-						//				}
+						
 
-				      break; // optional
-				   
-				   case "-l" :
-				      // Statements
-				      break; // optional
-				      
-				   case "-i" :
-					      // Statements
-					      break; // optional
-				   case "-g" :
-					      // Statements
-					      break; // optional
-					      
-				   case "-c" :
-					      // Statements
-					      break; // optional     
-					      
-				   case "-L" :
-					      // Statements
-					      break; // optional
-					      
-				   case "-D" :
-					      // Statements
-					      break; // optional      
-					      
-				   case "-f" :
-					      // Statements
-					      break; // optional
-					      
-				   case "-r" :
-					      // Statements
-					      break; // optional
-				   // You can have any number of case statements.
-				   default : // Optional
-				      // Statements
+					}else {
+						System.out.println("Entrei aqui para fazer nada");
+					}
+
+
+					//				FileOutputStream outStream1 = new FileOutputStream("slbcopia.jpg");
+					//				OutputStream outStream2 = new BufferedOutputStream(outStream1);
+					//				byte buffer[] = new byte [1024];
+					//				int count;
+					//				long size = (long) inStream.readObject();
+					//
+					//				while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+					//					outStream1.write(buffer, 0, count);
+					//					size -=count;
+					//					outStream2.flush();
+					//				}
+
+					break; // optional
+
+				case "-l" :
+					// Statements
+					break; // optional
+
+				case "-i" :
+					// Statements
+					break; // optional
+				case "-g" :
+					// Statements
+					break; // optional
+
+				case "-c" :
+					// Statements
+					break; // optional     
+
+				case "-L" :
+					// Statements
+					break; // optional
+
+				case "-D" :
+					// Statements
+					break; // optional      
+
+				case "-f" :
+					// Statements
+					break; // optional
+
+				case "-r" :
+					// Statements
+					break; // optional
+					// You can have any number of case statements.
+				default : // Optional
+					// Statements
 				}
-			
-			
+
+
 			}
-			
-			                    		  
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+
+
+
+
+
+
+
+
+
+
+
+
 			input.close();
-			
-			
-			
+
+
+
 			in.close();
 			out.close();
 		} catch (Exception e) {
@@ -177,9 +190,9 @@ public class PhotoShare {
 				e1.printStackTrace();
 			}
 		}
-		
+
 		//Colocar objects no socket
-		
+
 		//1-envio de user e password para autenticacao
 
 		//		File file = new File("slb.jpg");
@@ -219,7 +232,7 @@ public class PhotoShare {
 				if(validate(args[1])){
 					result[2] = args[1];
 					String pass = "";
-					
+
 					while(pass.equals("")){
 						System.out.println("Falta a password volte a inserir:");
 						pass = in.nextLine();
@@ -236,7 +249,7 @@ public class PhotoShare {
 			result[1] = args[1];
 			result[2] = args[2];
 		}
-		
+
 		return result;
 	}
 

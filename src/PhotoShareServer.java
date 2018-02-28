@@ -79,88 +79,82 @@ public class PhotoShareServer {
 					inPasswd = (String)inStream.readObject();
 					autenticarUser(inUser, inPasswd, outStream, inStream);
 					
-					//le  a operação do ouro lado
-					String operacao =(String)inStream.readObject();  
-	
+					String photo = (String) inStream.readObject();
+					System.out.println(photo);
+					//ler  a operação do ouro lado
+					String operacao =(String)inStream.readObject();
 					switch(operacao) {
-					   case "-a" :
-						   //argumento da foto
-						   File foto = new File("Clientes/foto"); 
-						   if(foto.exists()) {
-							   //lançar a foto do cliente para o servidor
-							   	FileInputStream fileInputStream = new FileInputStream(foto);
-								BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+					case "-a" :
+						System.out.println("Entrei server -a");
+						//lançar para o cliente a operação
+						outStream.writeObject(operacao);
+						//argumento da foto
+						File foto = new File("servidor/"+inUser+"/"+photo); 
+						if(!foto.exists() && !foto.isDirectory()) {
+							//lançar a foto do cliente para o servidor
+							FileInputStream fileInputStream = new FileInputStream(foto);
+							BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
 
-								byte[] array = new byte[1024];
-								int n;
-								while((n=bufferedInputStream.read(array,0,1024)) != -1){
-									outStream.write(array, 0, n);
-									outStream.flush();
-								}
+							byte[] array = new byte[1024];
+							int n;
+							int size = (int)  inStream.readLong();
+							while((n = inStream.read(array, 0,(int) (size<1024 ? size:1024))) >0 ){
+								outStream.write(array, 0, n);
+								size -= n;
+								outStream.flush();
+							}
+							
+							foto.createNewFile();
+						
+							bufferedInputStream.close();
+							fileInputStream.close();
+							
 
-								bufferedInputStream.close();
-								fileInputStream.close();
+						}
+						break; // optional
 
-							  
-						   }
-						   
-						    
-//							FileOutputStream outStream1 = new FileOutputStream("slbcopia.jpg");
-							//				OutputStream outStream2 = new BufferedOutputStream(outStream1);
-							//				byte buffer[] = new byte [1024];
-							//				int count;
-							//				long size = (long) inStream.readObject();
-							//
-							//				while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
-							//					outStream1.write(buffer, 0, count);
-							//					size -=count;
-							//					outStream2.flush();
-							//				}
+					case "-l" :
+						// Statements
+						break; // optional
 
-					      break; // optional
-					   
-					   case "-l" :
-					      // Statements
-					      break; // optional
-					      
-					   case "-i" :
-						      // Statements
-						      break; // optional
-					   case "-g" :
-						      // Statements
-						      break; // optional
-						      
-					   case "-c" :
-						      // Statements
-						      break; // optional     
-						      
-					   case "-L" :
-						      // Statements
-						      break; // optional
-						      
-					   case "-D" :
-						      // Statements
-						      break; // optional      
-						      
-					   case "-f" :
-						      // Statements
-						      break; // optional
-						      
-					   case "-r" :
-						      // Statements
-						      break; // optional
-					   // You can have any number of case statements.
-					   default : // Optional
-					      // Statements
+					case "-i" :
+						// Statements
+						break; // optional
+					case "-g" :
+						// Statements
+						break; // optional
+
+					case "-c" :
+						// Statements
+						break; // optional     
+
+					case "-L" :
+						// Statements
+						break; // optional
+
+					case "-D" :
+						// Statements
+						break; // optional      
+
+					case "-f" :
+						// Statements
+						break; // optional
+
+					case "-r" :
+						// Statements
+						break; // optional
+						// You can have any number of case statements.
+					default : // Optional
+						// Statements
 					}
-				
-				
-				
-				
-					
-					
 
-					
+
+
+
+
+
+
+
 				}catch (ClassNotFoundException e1) {
 					e1.printStackTrace();
 				}
