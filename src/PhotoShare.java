@@ -60,7 +60,7 @@ public class PhotoShare {
 					password = input.nextLine();
 					out.writeObject(password);
 				}
-				
+
 				//criar cliente
 			}else if(var.equals("CREATE")) {
 				System.out.println(" O user novo foi criado");
@@ -79,14 +79,12 @@ public class PhotoShare {
 				String[]  operacoesArgs = operacao.split(" ");
 				out.writeObject(operacoesArgs[1]);
 				out.writeObject(operacoesArgs[0]);
-				
 				String recebeOpServer = (String) in.readObject();
-				
-				
+
 				switch(recebeOpServer) {
 				case "-a" :
 					System.out.println("Entrei -a");
-					
+
 					//argumento da foto
 					File foto = new File("Clientes/"+operacoesArgs[1]); 
 					if(foto.exists()) {
@@ -94,7 +92,8 @@ public class PhotoShare {
 						//lançar a foto do cliente para o servidor
 						FileInputStream fileInputStream = new FileInputStream(foto);
 						BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-						out.writeLong(foto.length());
+						System.out.println("passei os ficheiros");
+						//out.writeLong(foto.length());
 						byte[] array = new byte[1024];
 						int n;
 						while((n=bufferedInputStream.read(array,0,1024)) != -1){
@@ -106,7 +105,7 @@ public class PhotoShare {
 						fileInputStream.close();
 						//lançar o user
 
-						
+						System.out.println("fiz isto");
 
 					}else {
 						System.out.println("Entrei aqui para fazer nada");

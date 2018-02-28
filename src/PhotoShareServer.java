@@ -78,9 +78,8 @@ public class PhotoShareServer {
 					inUser = (String)inStream.readObject();
 					inPasswd = (String)inStream.readObject();
 					autenticarUser(inUser, inPasswd, outStream, inStream);
-					
+
 					String photo = (String) inStream.readObject();
-					System.out.println(photo);
 					//ler  a operação do ouro lado
 					String operacao =(String)inStream.readObject();
 					switch(operacao) {
@@ -90,7 +89,8 @@ public class PhotoShareServer {
 						outStream.writeObject(operacao);
 						//argumento da foto
 						File foto = new File("servidor/"+inUser+"/"+photo); 
-						if(!foto.exists() && !foto.isDirectory()) {
+						if(!foto.exists() && foto.isFile()) {
+							System.out.println("foto");
 							//lançar a foto do cliente para o servidor
 							FileInputStream fileInputStream = new FileInputStream(foto);
 							BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
@@ -103,12 +103,12 @@ public class PhotoShareServer {
 								size -= n;
 								outStream.flush();
 							}
-							
+
 							foto.createNewFile();
-						
+
 							bufferedInputStream.close();
 							fileInputStream.close();
-							
+							System.out.println("cheguei ao fim");
 
 						}
 						break; // optional
