@@ -87,27 +87,24 @@ public class PhotoShareServer {
 						System.out.println("Entrei server -a");
 						//lançar para o cliente a operação
 						outStream.writeObject(operacao);
+						
 						//argumento da foto
 						File foto = new File("servidor/"+inUser+"/"+photo); 
 						if(!foto.exists() && foto.isFile()) {
 							System.out.println("foto");
 							//lançar a foto do cliente para o servidor
-							FileInputStream fileInputStream = new FileInputStream(foto);
-							BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-
-							byte[] array = new byte[1024];
-							int n;
-							int size = (int)  inStream.readLong();
-							while((n = inStream.read(array, 0,(int) (size<1024 ? size:1024))) >0 ){
-								outStream.write(array, 0, n);
-								size -= n;
-								outStream.flush();
-							}
-
+							FileOutputStream outStream1 = new FileOutputStream(foto);
+							OutputStream outStream2 = new BufferedOutputStream(outStream1);
+							byte buffer[] = new byte [1024];
+							int count;
+							long size = (long) inStream.readObject();
+							
+							 while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+								 outStream1.write(buffer, 0, count);
+								 size -=count;
+								 outStream2.flush();
+							 }
 							foto.createNewFile();
-
-							bufferedInputStream.close();
-							fileInputStream.close();
 							System.out.println("cheguei ao fim");
 
 						}

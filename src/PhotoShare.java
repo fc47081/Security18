@@ -1,4 +1,5 @@
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -10,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -90,23 +92,20 @@ public class PhotoShare {
 					if(foto.exists()) {
 						System.out.println("A foto existe");
 						//lançar a foto do cliente para o servidor
-						FileInputStream fileInputStream = new FileInputStream(foto);
-						BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-						System.out.println("passei os ficheiros");
-						//out.writeLong(foto.length());
-						byte[] array = new byte[1024];
-						int n;
-						while((n=bufferedInputStream.read(array,0,1024)) != -1){
-							out.write(array, 0, n);
-							out.flush();
+						FileOutputStream outStream1 = new FileOutputStream(foto);
+						OutputStream outStream2 = new BufferedOutputStream(outStream1);
+						byte buffer[] = new byte [1024];
+						int count;
+						long size = foto.length();
+						out.writeObject(foto.length());
+
+						while((count = in.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+							outStream1.write(buffer, 0, count);
+							size -=count;
+							outStream2.flush();
 						}
-
-						bufferedInputStream.close();
-						fileInputStream.close();
 						//lançar o user
-
 						System.out.println("fiz isto");
-
 					}else {
 						System.out.println("Entrei aqui para fazer nada");
 					}
