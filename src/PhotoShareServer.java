@@ -84,30 +84,33 @@ public class PhotoShareServer {
 					String operacao = (String)inStream.readObject();
 					switch(operacao) {
 					case "-a" :
-						System.out.println("Entrei server -a");
+
 						//lançar para o cliente a operação
 						outStream.writeObject(operacao);
-						
+
 						//argumento da foto
-						File foto = new File("servidor/"+inUser+"/"+photo); 
-						if(!foto.exists() && foto.isFile()) {
-							System.out.println("foto");
+						String dirName = "servidor/"+inUser;
+						File dir = new File(dirName);
+						String temp = dirName+"/"+photo;
+						boolean check = new File(temp).exists();
+						if(!check) {
 							//lançar a foto do cliente para o servidor
-							FileOutputStream outStream1 = new FileOutputStream(foto);
+							FileOutputStream outStream1 = new FileOutputStream(temp);
 							OutputStream outStream2 = new BufferedOutputStream(outStream1);
-							System.out.println(" depois dos outStream");
 							byte buffer[] = new byte [1024];
 							int count;
 							long size = (long) inStream.readObject();
-							System.out.println("chegou com"+ size);
-							 while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
-								 outStream1.write(buffer, 0, count);
-								 size -=count;
-								 outStream2.flush();
-							 }
-							foto.createNewFile();
-							System.out.println("cheguei ao fim");
+							while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+								outStream1.write(buffer, 0, count);
+								size -=count;
+								outStream2.flush();
+							}
+							dir.createNewFile();
 
+						}else {
+							
+							//outStream.writeObject("A foto já existe!");
+							
 						}
 						break; // optional
 

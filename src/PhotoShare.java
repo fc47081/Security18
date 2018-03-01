@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -79,56 +80,39 @@ public class PhotoShare {
 				//operacoes args- [0] -> -a [1],[2],...restantes
 
 				String[]  operacoesArgs = operacao.split(" ");
-				out.writeObject(operacoesArgs[1]);
-				out.writeObject(operacoesArgs[0]);
+				out.writeObject(operacoesArgs[1]);//manda a foto
+				out.writeObject(operacoesArgs[0]);//manda  a  operacao
 				String recebeOpServer = (String) in.readObject();
 
 				switch(recebeOpServer) {
 				case "-a" :
-					System.out.println("Entrei -a");
-
 					//argumento da foto
 					File foto = new File("Clientes/"+operacoesArgs[1]);
 					long size = foto.length();
 					if(foto.exists()) {
-						System.out.println("A foto existe");
 						//lançar a foto do cliente para o servidor
-						FileOutputStream outStream1 = new FileOutputStream(foto);
-						OutputStream outStream2 = new BufferedOutputStream(outStream1);
-						System.out.println("passei os outStream");
-						System.out.println("depois dos outs"+size);
+						FileInputStream inStream1 = new FileInputStream(foto);
+						InputStream inStream2 = new BufferedInputStream(inStream1);
 						byte buffer[] = new byte [1024];
-						System.out.println("depois do array"+size);
-						int count;
-						System.out.println("depois do count"+size);
+						int count=1024;
 						out.writeObject(foto.length());
-						System.out.println("depois do write"+size);
-						while((count = in.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
-							System.out.println(size);
-							outStream1.write(buffer, 0, count);
+						
+						while((count = inStream1.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+							out.write(buffer, 0, count);
 							size -=count;
-							outStream2.flush();
-							System.out.println("tou dentro do ciclo");
+							out.flush();
+							
 						}
+						
 						//lançar o user
-						System.out.println("fiz isto");
 					}else {
-						System.out.println("Entrei aqui para fazer nada");
+						
+						System.out.println("A foto que quer enviar não existe");
 					}
-
-
-					//				FileOutputStream outStream1 = new FileOutputStream("slbcopia.jpg");
-					//				OutputStream outStream2 = new BufferedOutputStream(outStream1);
-					//				byte buffer[] = new byte [1024];
-					//				int count;
-					//				long size = (long) inStream.readObject();
-					//
-					//				while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
-					//					outStream1.write(buffer, 0, count);
-					//					size -=count;
-					//					outStream2.flush();
-					//				}
-
+					
+					
+					
+		
 					break; // optional
 
 				case "-l" :
@@ -167,8 +151,14 @@ public class PhotoShare {
 				}
 
 
+			}else {
+				System.out.println("fiz não");
+				
 			}
-
+			/*
+			String recebe = (String) in.readObject();
+			System.out.println(recebe);
+			*/
 
 
 
