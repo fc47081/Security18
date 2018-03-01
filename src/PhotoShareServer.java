@@ -169,7 +169,7 @@ public class PhotoShareServer {
 							String reportDate = df.format(today);
 							String dateToPrintToFile = reportDate;
 							BufferedWriter writer = new BufferedWriter(new FileWriter(dirName+"/"+getNameFile(photo)+".txt", true));
-							writer.write(dateToPrintToFile);
+							writer.write("Data:"+dateToPrintToFile);
 							writer.newLine();
 							writer.close();
 						}else {
@@ -182,7 +182,10 @@ public class PhotoShareServer {
 						break; // optional
 
 					case "-l" :
-						// Statements
+						
+						
+						
+						
 						break; // optional
 
 					case "-i" :

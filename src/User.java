@@ -1,7 +1,10 @@
+import java.util.ArrayList;
+
 public class User {
 
 	private String UserName;
 	private String password;
+	private ArrayList<String> followers;
 
 	/**
 	 * Construtor
@@ -11,8 +14,10 @@ public class User {
 	public User(String userName,String password ) {
 		this.UserName = userName;
 		this.password = password;
+		followers = new ArrayList<String>();
+		
 	}
-
+	
 	/**
 	 * Get nome do user
 	 * @return UserName 
@@ -29,4 +34,12 @@ public class User {
 		return password;
 		
 	}
+	
+	public ArrayList<String> getFollowers() {
+		return followers;	
+	}
+	
+	
+	
+	
 }
