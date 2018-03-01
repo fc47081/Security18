@@ -81,7 +81,7 @@ public class PhotoShareServer {
 
 					String photo = (String) inStream.readObject();
 					//ler  a operação do ouro lado
-					String operacao =(String)inStream.readObject();
+					String operacao = (String)inStream.readObject();
 					switch(operacao) {
 					case "-a" :
 						System.out.println("Entrei server -a");
@@ -95,10 +95,11 @@ public class PhotoShareServer {
 							//lançar a foto do cliente para o servidor
 							FileOutputStream outStream1 = new FileOutputStream(foto);
 							OutputStream outStream2 = new BufferedOutputStream(outStream1);
+							System.out.println(" depois dos outStream");
 							byte buffer[] = new byte [1024];
 							int count;
 							long size = (long) inStream.readObject();
-							
+							System.out.println("chegou com"+ size);
 							 while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
 								 outStream1.write(buffer, 0, count);
 								 size -=count;

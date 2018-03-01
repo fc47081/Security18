@@ -88,21 +88,27 @@ public class PhotoShare {
 					System.out.println("Entrei -a");
 
 					//argumento da foto
-					File foto = new File("Clientes/"+operacoesArgs[1]); 
+					File foto = new File("Clientes/"+operacoesArgs[1]);
+					long size = foto.length();
 					if(foto.exists()) {
 						System.out.println("A foto existe");
 						//lançar a foto do cliente para o servidor
 						FileOutputStream outStream1 = new FileOutputStream(foto);
 						OutputStream outStream2 = new BufferedOutputStream(outStream1);
+						System.out.println("passei os outStream");
+						System.out.println("depois dos outs"+size);
 						byte buffer[] = new byte [1024];
+						System.out.println("depois do array"+size);
 						int count;
-						long size = foto.length();
+						System.out.println("depois do count"+size);
 						out.writeObject(foto.length());
-
+						System.out.println("depois do write"+size);
 						while((count = in.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+							System.out.println(size);
 							outStream1.write(buffer, 0, count);
 							size -=count;
 							outStream2.flush();
+							System.out.println("tou dentro do ciclo");
 						}
 						//lançar o user
 						System.out.println("fiz isto");
