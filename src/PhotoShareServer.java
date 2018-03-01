@@ -85,14 +85,18 @@ public class PhotoShareServer {
 				
 					
 				String clienteAsw = (String) inStream.readObject();
-				
+				//recebe a confirmacao
+				outStream.writeObject(clienteAsw); 
 				if (clienteAsw.equals("y")) {
+					
 					String operacao = (String)inStream.readObject();
+					System.out.println(operacao);
 					String photo = (String) inStream.readObject();
 					
+					System.out.println("passou1");
 					switch(operacao) {
 					case "-a" :
-						
+						System.out.println("passou2");
 						//lançar para o cliente a operação
 						outStream.writeObject(operacao);
 
@@ -101,7 +105,9 @@ public class PhotoShareServer {
 						File dir = new File(dirName);
 						String temp = dirName+"/"+photo;
 						boolean check = new File(temp).exists();
+						System.out.println("passou3");
 						if(!check) {
+							System.out.println("passo4");
 							//lançar a foto do cliente para o servidor
 							FileOutputStream outStream1 = new FileOutputStream(temp);
 							OutputStream outStream2 = new BufferedOutputStream(outStream1);

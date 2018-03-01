@@ -70,9 +70,10 @@ public class PhotoShare {
 			}
 
 			System.out.println("Deseja realizar operações ? (y/n)" );
+			//lança a confirmacao
 			String confirmacao = input.nextLine();
 			out.writeObject(confirmacao);
-			
+			String  clienteAsw = (String) in.readObject(); 
 			if (confirmacao.equals("y")) {
 					
 				
@@ -84,10 +85,11 @@ public class PhotoShare {
 				//operacoes args- [0] -> -a [1],[2],...restantes
 
 				String[]  operacoesArgs = operacao.split(" ");
+				out.writeObject(operacoesArgs[0]);
 				out.writeObject(operacoesArgs[1]);//manda a foto
-				out.writeObject(operacoesArgs[0]);//manda  a  operacao
+				//manda  a  operacao
 				String recebeOpServer = (String) in.readObject();
-
+				
 				switch(recebeOpServer) {
 				case "-a" :
 					//argumento da foto
@@ -97,7 +99,7 @@ public class PhotoShare {
 						//lançar a foto do cliente para o servidor
 						FileInputStream inStream1 = new FileInputStream(foto);
 						InputStream inStream2 = new BufferedInputStream(inStream1);
-						byte buffer[] = new byte [1024];
+						byte buffer[] = new byte[1024];
 						int count=1024;
 						out.writeObject(foto.length());
 						
