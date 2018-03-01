@@ -78,13 +78,21 @@ public class PhotoShareServer {
 					inUser = (String)inStream.readObject();
 					inPasswd = (String)inStream.readObject();
 					autenticarUser(inUser, inPasswd, outStream, inStream);
-
-					String photo = (String) inStream.readObject();
+					
+					
+					
 					//ler  a operação do ouro lado
+				
+					
+				String clienteAsw = (String) inStream.readObject();
+				
+				if (clienteAsw.equals("y")) {
 					String operacao = (String)inStream.readObject();
+					String photo = (String) inStream.readObject();
+					
 					switch(operacao) {
 					case "-a" :
-
+						
 						//lançar para o cliente a operação
 						outStream.writeObject(operacao);
 
@@ -148,13 +156,7 @@ public class PhotoShareServer {
 					default : // Optional
 						// Statements
 					}
-
-
-
-
-
-
-
+				}	
 
 				}catch (ClassNotFoundException e1) {
 					e1.printStackTrace();

@@ -71,7 +71,11 @@ public class PhotoShare {
 
 			System.out.println("Deseja realizar operações ? (y/n)" );
 			String confirmacao = input.nextLine();
+			out.writeObject(confirmacao);
+			
 			if (confirmacao.equals("y")) {
+					
+				
 				System.out.println("escolha uma operacao:");
 				System.out.println( "[ -a <photos> | -l <userId> | -i <userId> <photo> | -g <userId> \n"
 						+ "| -c <comment> <userId> <photo> | -L <userId> <photo> | \n -D <userId> <photo> | -f <followUserIds> | -r <followUserIds> ]");
@@ -152,7 +156,7 @@ public class PhotoShare {
 
 
 			}else {
-				System.out.println("fiz não");
+				System.out.println("Não pode realizar mais operações");
 				
 			}
 			/*
