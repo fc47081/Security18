@@ -16,36 +16,48 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 //Servidor PhotoShareServer
 public class PhotoShareServer {
 
 	public static boolean existsNameFile(File[] listOfFiles,String nome) {
-		 for (int i = 0; i < listOfFiles.length; i++) {
-			 
-			 if (listOfFiles[i].getName().endsWith(".png") ||
-					 listOfFiles[i].getName().endsWith(".jpg")
-					 && listOfFiles[i].getName().equals(nome)) {
-		    	  	
-		    	  	return true;
-		      } 
-		    }
-		 return false;
+		for (int i = 0; i < listOfFiles.length; i++) {
+
+			if (listOfFiles[i].getName().endsWith(".png") ||
+					listOfFiles[i].getName().endsWith(".jpg")
+					&& listOfFiles[i].getName().equals(nome)) {
+
+				return true;
+			} 
+		}
+		return false;
 	}
-	
-	
-//	public String getExtension(String nome) {
-//		int indice = nome.indexOf(".");
-//		String str = null;
-//		for (int i = indice+1; i < nome.length(); i++) {
-//			str+= nome.charAt(i);
-//		}
-//	return str;
-//	}
-	
-	
-	
-	
+
+	public static String getNameFile(String photo) {
+		int ind = photo.indexOf(".");
+		String str = photo.substring(0,ind);
+		return str;
+
+	}
+
+
+
+	//	public String getExtension(String nome) {
+	//		int indice = nome.indexOf(".");
+	//		String str = null;
+	//		for (int i = indice+1; i < nome.length(); i++) {
+	//			str+= nome.charAt(i);
+	//		}
+	//	return str;
+	//	}
+
+
+
+
 	public static void main(String[] args) throws java.net.SocketException{
 		File pasta = new File("servidor");
 		if (!pasta.exists()) {
@@ -104,20 +116,20 @@ public class PhotoShareServer {
 					inUser = (String)inStream.readObject();
 					inPasswd = (String)inStream.readObject();
 					autenticarUser(inUser, inPasswd, outStream, inStream);
-					
-					
-					
+
+
+
 					//ler  a operação do ouro lado
-				
-					
-				//String clienteAsw = (String) inStream.readObject();
-				//recebe a confirmacao
-				//outStream.writeObject(clienteAsw); 	
+
+
+					//String clienteAsw = (String) inStream.readObject();
+					//recebe a confirmacao
+					//outStream.writeObject(clienteAsw); 	
 					String photo = (String) inStream.readObject();
-					
+
 					String operacao = (String)inStream.readObject();
-					
-				
+
+
 					switch(operacao) {
 					case "-a" :
 						//lançar para o cliente a operação
@@ -129,7 +141,7 @@ public class PhotoShareServer {
 						String temp = dirName+"/"+photo;
 						boolean check = new File(temp).exists();
 						File[] listOfFiles = dir.listFiles();
-						
+
 						//System.out.println(check);
 						//boolean checkClient = inStream.readBoolean();
 						//System.out.println("passei o read");
@@ -138,7 +150,7 @@ public class PhotoShareServer {
 							//outStream.writeObject(new Boolean(true));
 							//lançar a foto do cliente para o servidor
 							outStream.writeObject("NAO EXISTE");
-							
+
 							FileOutputStream outStream1 = new FileOutputStream(temp);
 							OutputStream outStream2 = new BufferedOutputStream(outStream1);
 							byte buffer[] = new byte [1024];
@@ -150,14 +162,23 @@ public class PhotoShareServer {
 								outStream2.flush();
 							}
 							dir.createNewFile();
-
+							File ficheiro = new File(dirName+"/"+getNameFile(photo)+".txt");
+							ficheiro.createNewFile();
+							DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+							Date today = Calendar.getInstance().getTime();
+							String reportDate = df.format(today);
+							String dateToPrintToFile = reportDate;
+							BufferedWriter writer = new BufferedWriter(new FileWriter(dirName+"/"+getNameFile(photo)+".txt", true));
+							writer.write(dateToPrintToFile);
+							writer.newLine();
+							writer.close();
 						}else {
-							
+
 							if (existsNameFile(listOfFiles, photo)){
 								outStream.writeObject("EXISTE");
 							}
 						}
-							
+
 						break; // optional
 
 					case "-l" :
@@ -192,9 +213,9 @@ public class PhotoShareServer {
 						break; // optional
 						// You can have any number of case statements.
 					default : 
-						
+
 					}
-					
+
 
 				}catch (ClassNotFoundException e1) {
 					e1.printStackTrace();
