@@ -20,6 +20,32 @@ import java.net.Socket;
 //Servidor PhotoShareServer
 public class PhotoShareServer {
 
+	public static boolean existsNameFile(File[] listOfFiles,String nome) {
+		 for (int i = 0; i < listOfFiles.length; i++) {
+			 
+			 if (listOfFiles[i].getName().endsWith(".png") ||
+					 listOfFiles[i].getName().endsWith(".jpg")
+					 && listOfFiles[i].getName().equals(nome)) {
+		    	  	
+		    	  	return true;
+		      } 
+		    }
+		 return false;
+	}
+	
+	
+//	public String getExtension(String nome) {
+//		int indice = nome.indexOf(".");
+//		String str = null;
+//		for (int i = indice+1; i < nome.length(); i++) {
+//			str+= nome.charAt(i);
+//		}
+//	return str;
+//	}
+	
+	
+	
+	
 	public static void main(String[] args) throws java.net.SocketException{
 		File pasta = new File("servidor");
 		if (!pasta.exists()) {
@@ -84,31 +110,35 @@ public class PhotoShareServer {
 					//ler  a operação do ouro lado
 				
 					
-				String clienteAsw = (String) inStream.readObject();
+				//String clienteAsw = (String) inStream.readObject();
 				//recebe a confirmacao
-				outStream.writeObject(clienteAsw); 
-				if (clienteAsw.equals("y")) {
-					
-					String operacao = (String)inStream.readObject();
-					System.out.println(operacao);
+				//outStream.writeObject(clienteAsw); 	
 					String photo = (String) inStream.readObject();
 					
-					System.out.println("passou1");
+					String operacao = (String)inStream.readObject();
+					
+				
 					switch(operacao) {
 					case "-a" :
-						System.out.println("passou2");
 						//lançar para o cliente a operação
-						outStream.writeObject(operacao);
+						//outStream.writeObject(operacao);
 
 						//argumento da foto
 						String dirName = "servidor/"+inUser;
 						File dir = new File(dirName);
 						String temp = dirName+"/"+photo;
 						boolean check = new File(temp).exists();
-						System.out.println("passou3");
-						if(!check) {
-							System.out.println("passo4");
+						File[] listOfFiles = dir.listFiles();
+						
+						//System.out.println(check);
+						//boolean checkClient = inStream.readBoolean();
+						//System.out.println("passei o read");
+						//boolean client = inStream.readBoolean();
+						if(check == false) {
+							//outStream.writeObject(new Boolean(true));
 							//lançar a foto do cliente para o servidor
+							outStream.writeObject("NAO EXISTE");
+							
 							FileOutputStream outStream1 = new FileOutputStream(temp);
 							OutputStream outStream2 = new BufferedOutputStream(outStream1);
 							byte buffer[] = new byte [1024];
@@ -123,9 +153,11 @@ public class PhotoShareServer {
 
 						}else {
 							
-							//outStream.writeObject("A foto já existe!");
-							
+							if (existsNameFile(listOfFiles, photo)){
+								outStream.writeObject("EXISTE");
+							}
 						}
+							
 						break; // optional
 
 					case "-l" :
@@ -159,10 +191,10 @@ public class PhotoShareServer {
 						// Statements
 						break; // optional
 						// You can have any number of case statements.
-					default : // Optional
-						// Statements
+					default : 
+						
 					}
-				}	
+					
 
 				}catch (ClassNotFoundException e1) {
 					e1.printStackTrace();
