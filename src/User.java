@@ -34,7 +34,10 @@ public class User {
 		return password;
 		
 	}
-	
+	/**
+	 * Get followers do user
+	 * @return followers
+	 */
 	public ArrayList<String> getFollowers() {
 		return followers;	
 	}

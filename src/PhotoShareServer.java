@@ -24,6 +24,12 @@ import java.util.Date;
 //Servidor PhotoShareServer
 public class PhotoShareServer {
 
+	/**
+	 * Verificar se o nome do ficheiro jah existe no Servidor
+	 * @param listOfFiles - lista de ficheiros existentes
+	 * @param nome - nome do ficheiros
+	 * @return boolean de verificacao
+	 */
 	public static boolean existsNameFile(File[] listOfFiles,String nome) {
 		for (int i = 0; i < listOfFiles.length; i++) {
 
@@ -37,6 +43,11 @@ public class PhotoShareServer {
 		return false;
 	}
 
+	/**
+	 * Get nome do file
+	 * @param photo
+	 * @return
+	 */
 	public static String getNameFile(String photo) {
 		int ind = photo.indexOf(".");
 		String str = photo.substring(0,ind);
@@ -44,20 +55,7 @@ public class PhotoShareServer {
 
 	}
 
-
-
-	//	public String getExtension(String nome) {
-	//		int indice = nome.indexOf(".");
-	//		String str = null;
-	//		for (int i = indice+1; i < nome.length(); i++) {
-	//			str+= nome.charAt(i);
-	//		}
-	//	return str;
-	//	}
-
-
-
-
+	
 	public static void main(String[] args) throws java.net.SocketException{
 		File pasta = new File("servidor");
 		if (!pasta.exists()) {
@@ -113,44 +111,27 @@ public class PhotoShareServer {
 				String inPasswd = "";
 
 				try {
+					//Autenticacao do user + password que vem do cliente
 					inUser = (String)inStream.readObject();
 					inPasswd = (String)inStream.readObject();
 					autenticarUser(inUser, inPasswd, outStream, inStream);
-
-
-
-					//ler  a operação do ouro lado
-
-
-					//String clienteAsw = (String) inStream.readObject();
-					//recebe a confirmacao
-					//outStream.writeObject(clienteAsw); 	
 					String photo = (String) inStream.readObject();
-
 					String operacao = (String)inStream.readObject();
 
-
+					//operacao do client
 					switch(operacao) {
 					case "-a" :
-						//lançar para o cliente a operação
-						//outStream.writeObject(operacao);
-
 						//argumento da foto
 						String dirName = "servidor/"+inUser;
 						File dir = new File(dirName);
 						String temp = dirName+"/"+photo;
 						boolean check = new File(temp).exists();
 						File[] listOfFiles = dir.listFiles();
-
-						//System.out.println(check);
-						//boolean checkClient = inStream.readBoolean();
-						//System.out.println("passei o read");
-						//boolean client = inStream.readBoolean();
+						
 						if(check == false) {
-							//outStream.writeObject(new Boolean(true));
-							//lançar a foto do cliente para o servidor
+							//Se nao existe, criar e guardar na pasta
 							outStream.writeObject("NAO EXISTE");
-
+							//receber o necessario do cliente e criar
 							FileOutputStream outStream1 = new FileOutputStream(temp);
 							OutputStream outStream2 = new BufferedOutputStream(outStream1);
 							byte buffer[] = new byte [1024];
@@ -164,28 +145,25 @@ public class PhotoShareServer {
 							dir.createNewFile();
 							File ficheiro = new File(dirName+"/"+getNameFile(photo)+".txt");
 							ficheiro.createNewFile();
+							//Data da publicacao da foto 
 							DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 							Date today = Calendar.getInstance().getTime();
 							String reportDate = df.format(today);
 							String dateToPrintToFile = reportDate;
 							BufferedWriter writer = new BufferedWriter(new FileWriter(dirName+"/"+getNameFile(photo)+".txt", true));
 							writer.write("Data:"+dateToPrintToFile);
+							//Fim data
 							writer.newLine();
 							writer.close();
 						}else {
-
+							//Se ja existe , envia para o cliente que ja existe e da exit
 							if (existsNameFile(listOfFiles, photo)){
 								outStream.writeObject("EXISTE");
 							}
 						}
-
 						break; // optional
 
 					case "-l" :
-						
-						
-						
-						
 						break; // optional
 
 					case "-i" :

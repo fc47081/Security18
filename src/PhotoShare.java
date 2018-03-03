@@ -29,7 +29,7 @@ public class PhotoShare {
 		if (!pasta.exists()) {
 			pasta.mkdir();
 		}
-		//socket,argumentos, arguments, serverAdress, scanner		
+		//socket, argumentos, arguments, serverAdress
 		Socket listeningSocket = null;
 		String [] argumentos = args;
 		Scanner input = new Scanner(System.in);
@@ -50,11 +50,12 @@ public class PhotoShare {
 			out.writeObject(arguments[1]);
 			String var = (String) in.readObject();
 
-			//cliente logado
+			// user e pass -> OK
 			if(var.equals("LOGGED")) {
 				System.out.println("Bem Vindo!");
-				//cliente pass incorrecta	
+				//user OK mas password NOK	
 			}else if (var.equals("WRONG")) {
+				//pede a pass ate ficar correta
 				System.out.println("palavra passe incorrecta");
 				String password = input.nextLine();
 				out.writeObject(password);
@@ -64,32 +65,22 @@ public class PhotoShare {
 					out.writeObject(password);
 				}
 
-				//criar cliente
+				//user NOK , entao criar um user novo
 			}else if(var.equals("CREATE")) {
 				System.out.println(" O user novo foi criado");
 			}
 
-			System.out.println("Deseja realizar operações ? (y/n)" );
-			//lança a confirmacao
+			System.out.println("Deseja realizar opera��es ? (y/n)" );
 			String confirmacao = input.nextLine();
-			//out.writeObject(confirmacao);
-			//String  clienteAsw = (String) in.readObject(); 
 			if (confirmacao.equals("y")) {
-					
-				
 				System.out.println("escolha uma operacao:");
 				System.out.println( "[ -a <photos> | -l <userId> | -i <userId> <photo> | -g <userId> \n"
 						+ "| -c <comment> <userId> <photo> | -L <userId> <photo> | \n -D <userId> <photo> | -f <followUserIds> | -r <followUserIds> ]");
 
 				String operacao = input.nextLine();
-				//operacoes args- [0] -> -a [1],[2],...restantes
-
 				String[]  operacoesArgs = operacao.split(" ");
-				//manda a operacao 
-				out.writeObject(operacoesArgs[1]);//manda a foto
-				//recebe  a  operacao
-				//String recebeOpServer = (String) in.readObject();
-				
+				//envia nome do ficheiro(exemplo: a.jpg)
+				out.writeObject(operacoesArgs[1]);
 				switch(operacoesArgs[0]) {
 				case "-a" :
 					//argumento da foto
@@ -97,11 +88,7 @@ public class PhotoShare {
 					long size = foto.length();
 					if(foto.exists()) {
 						out.writeObject(operacoesArgs[0]);
-						System.out.println("passei");
-						//lançar a foto do cliente para o servidor
-						
-						String existe = (String) in.readObject();
-						
+						String existe = (String) in.readObject();				
 						if (existe.equals("NAO EXISTE")) {
 							FileInputStream inStream1 = new FileInputStream(foto);
 							InputStream inStream2 = new BufferedInputStream(inStream1);
@@ -112,26 +99,17 @@ public class PhotoShare {
 							while((count = inStream1.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
 								out.write(buffer, 0, count);
 								size -=count;
-								out.flush();
-								
+								out.flush();	
 							}
 						}else{
 							System.out.println("ja existe a foto");
 						}
-						
-						//lançar o user
 					}else {
+						//envia uma operacao que nao existe para poder dar exit
 						out.writeObject("--");
-						//out.writeBoolean(false);
 						System.out.println("A foto que quer enviar não existe");
 						
 					}
-					
-					
-					
-					
-					
-		
 					break; // optional
 
 				case "-l" :
@@ -239,14 +217,11 @@ public class PhotoShare {
 		if(args.length < 3){ //nao contiver o necessario
 			if(args.length <= 1){
 				System.out.println(" PhotoShare <localUserID> <password> <serverAdress>");
-
 			}else if(args.length == 2){
 				result[0] = args[0];
-
 				if(validate(args[1])){
 					result[2] = args[1];
 					String pass = "";
-
 					while(pass.equals("")){
 						System.out.println("Falta a password volte a inserir:");
 						pass = in.nextLine();
@@ -263,14 +238,13 @@ public class PhotoShare {
 			result[1] = args[1];
 			result[2] = args[2];
 		}
-
 		return result;
 	}
 
 	/**
-	 * validacao de pattern
+	 * Validacao de pattern
 	 * @param ip - ip introduzido
-	 * @return
+	 * @return pattern
 	 */
 	public static boolean validate(final String ip) {
 		return PATTERN.matcher(ip).matches();

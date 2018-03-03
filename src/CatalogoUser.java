@@ -17,10 +17,19 @@ public class CatalogoUser {
 		users = new ArrayList<User>();
 	}
 	
+	/**
+	 * Lista de users
+	 * @return users
+	 */
 	public ArrayList<User> lista() {
 		return users;	
 	}
 
+	/**
+	 * Find user name
+	 * @param user - nome do user
+	 * @return boolean de verificacao
+	 */
 	public boolean find(String user) {
 		for (int i = 0; i < users.size(); i++) {
 			if (user.equals(users.get(i).getUserName()))
@@ -29,6 +38,12 @@ public class CatalogoUser {
 		return false;
 	}
 	
+	/**
+	 * Verifica se password esta correta
+	 * @param user - user name
+	 * @param pwd - passwrod
+	 * @return boolean de verificacao
+	 */
 	public boolean pwdCerta(String user,String pwd) {
 		for (int i = 0; i < users.size(); i++) {
 			if (user.equals(users.get(i).getUserName())) {
@@ -39,6 +54,11 @@ public class CatalogoUser {
 		return false;
 	}
 	
+	/**
+	 * Get password do user user
+	 * @param user - user name
+	 * @return users.get(i).getPassword()
+	 */
 	public String getUserPwd(String user) {
 		for (int i = 0; i < users.size(); i++) {
 			if (user.equals(users.get(i).getUserName())) {
