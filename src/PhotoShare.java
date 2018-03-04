@@ -73,7 +73,7 @@ public class PhotoShare {
 				dir.mkdir();
 			}
 
-			System.out.println("Deseja realizar operações ? (y/n)" );
+			System.out.println("Deseja realizar operacoes ? (y/n)" );
 			String confirmacao = input.nextLine();
 			if (confirmacao.equals("y")) {
 				System.out.println("escolha uma operacao:");
@@ -139,13 +139,12 @@ public class PhotoShare {
 					break; // optional      
 
 				case "-f" :
-					System.out.println("ENTREI NA CONA DA RITA");
-					//envia nome do user a dar follow
+					//envia nome do user a dar follow + op
+					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
 					//Ler reposta do server : adicionado ou ja existente
 					String respostaAdd = (String)in.readObject();
 					if(respostaAdd.equals("Follower adicionado") ) {
-						System.out.println("ENTREI NA CONA DA RITa mas fundo");
 						System.out.println(respostaAdd);
 					}else
 						System.out.println(respostaAdd);
@@ -154,6 +153,7 @@ public class PhotoShare {
 				case "-r" :
 					System.out.println("ENTREI NA CONA DA MARIA");
 					//envia nome do user a remover
+					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
 					//Ler reposta do server : removido ou nunca existiu
 					String respostaRem = (String)in.readObject();

@@ -15,9 +15,9 @@ public class User {
 		this.UserName = userName;
 		this.password = password;
 		followers = new ArrayList<String>();
-		
+
 	}
-	
+
 	/**
 	 * Get nome do user
 	 * @return UserName 
@@ -32,17 +32,17 @@ public class User {
 	 */
 	public String getPassword() {
 		return password;
-		
+
 	}
-	
+
 	/**
 	 * Get followers do user
 	 * @return followers
 	 */
-	public ArrayList<String> getFollowersList() {
+	public ArrayList<String> getFollowersList() {//String UserName
 		return followers;	
 	}
-	
+
 	/**
 	 * existsFollower
 	 * @param username - nome do user a procurar
@@ -51,8 +51,14 @@ public class User {
 	public boolean existsFollower(String username) {
 		for (int i = 0; i < followers.size(); i++) {
 			if (username.equals(followers.get(i)))
-					return true;
+				return true;
 		}
 		return false;
+	}
+	public void Follower() {
+		for (int i = 0; i < followers.size(); i++) {
+			System.out.println("LISTA:   " + followers.get(i));
+		}
+
 	}
 }

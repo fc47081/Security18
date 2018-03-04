@@ -116,16 +116,15 @@ public class PhotoShareServer {
 					inPasswd = (String)inStream.readObject();			
 					CatalogoUser catUser = new CatalogoUser();
 					autenticarUser(catUser,inUser, inPasswd, outStream, inStream);
-					String photo = (String) inStream.readObject();
 					String operacao = (String)inStream.readObject();
-
 					//operacao do client
 					switch(operacao) {
 					case "-a" :
 						//argumento da foto
 						String dirName = "servidor/"+inUser;
-						File dir = new File(dirName);
-						String temp = dirName+"/"+photo;
+						File dir = new File(dirName);					
+						String photo = (String) inStream.readObject();
+						String temp = dirName+"/"+ photo;
 						boolean check = new File(temp).exists();
 						File[] listOfFiles = dir.listFiles();
 
@@ -188,106 +187,105 @@ public class PhotoShareServer {
 
 					case "-f" :
 						//ler o nome de quem da follow
-						System.out.println("ENTREI NA CONA DA RITA");
 						String followerAdd = (String) inStream.readObject();
-						User uAdd = catUser.getUser(followerAdd);
-						
-						if(catUser.find(followerAdd)) { //encontrar se o user exist na lista users
-							uAdd.getFollowersList().add(followerAdd);
-							outStream.writeObject("Follower adicionado");
-						}else if (uAdd.existsFollower(followerAdd)) {
-							outStream.writeObject("Follower ja existe");
+						if(catUser.find(followerAdd) == true) {//encontrar se o user exist na lista users
+							User uAdd = catUser.getUser(inUser);
+							uAdd.Follower();
+							if (uAdd.existsFollower(followerAdd) ==true) {
+								System.out.println("ENTREI NO EXISTSFOLLOWER");
+								outStream.writeObject("Follower ja existe");
+							}else{ 
+								uAdd.getFollowersList().add(followerAdd);
+								outStream.writeObject("Follower adicionado");
+							}
 						}
-						break; 
+					break; 
 
-					case "-r" :
-						//ler o nome de quem da follow
-						System.out.println("ENTREI NA CONA DA MARIA");
-						String followerRemove = (String) inStream.readObject();
-						User uRemove = catUser.getUser(followerRemove);	
-							
-						if(catUser.find(followerRemove)) { //encontrar se o user exist na lista users
-							uRemove.getFollowersList().remove((followerRemove));
-							outStream.writeObject("Follower removido");
-						}else if (!uRemove.existsFollower(followerRemove)) {
-							outStream.writeObject("Follower nao esta na lista");
-						}
-						break;
-					default : 
-
+				case "-r" :
+					//ler o nome de quem da follow
+					System.out.println("ENTREI NA CONA DA MARIA");
+					String followerRemove = (String) inStream.readObject();
+					User uRemove = catUser.getUser(inUser);								
+					if(catUser.find(followerRemove)) { //encontrar se o user exist na lista users
+						uRemove.getFollowersList().remove((followerRemove));
+						outStream.writeObject("Follower removido");
+					}else if (!uRemove.existsFollower(followerRemove)) {
+						outStream.writeObject("Follower nao esta na lista");
 					}
+					break;
+				default : 
 
-
-				}catch (ClassNotFoundException e1) {
-					e1.printStackTrace();
 				}
 
-				outStream.close();
-				inStream.close();
-				socket.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+
+			}catch (ClassNotFoundException e1) {
+				e1.printStackTrace();
 			}
+
+			outStream.close();
+			inStream.close();
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+	}
 
-		/**
-		 * Autenticacao do user
-		 * @param inUser - user name
-		 * @param inPasswd - user password
-		 * @param outStream - stream out
-		 * @param inStream - stream in
-		 * @return frase - retorno a dar ao client
-		 * @throws IOException
-		 * @throws ClassNotFoundException 
-		 */
-		private void autenticarUser(CatalogoUser catUser ,String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
-			String frase="";
-			BufferedReader reader = null;
-			File utilizadores = new File ("info.txt");
+	/**
+	 * Autenticacao do user
+	 * @param inUser - user name
+	 * @param inPasswd - user password
+	 * @param outStream - stream out
+	 * @param inStream - stream in
+	 * @return frase - retorno a dar ao client
+	 * @throws IOException
+	 * @throws ClassNotFoundException 
+	 */
+	private void autenticarUser(CatalogoUser catUser ,String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
+		String frase="";
+		BufferedReader reader = null;
+		File utilizadores = new File ("info.txt");
 
-			if(!utilizadores.exists())
-				utilizadores.createNewFile();
-			else
-				catUser.populate(utilizadores);
-			try {
-				reader = new BufferedReader(new FileReader("info.txt"));
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-
-
-			//user existe
-			if (catUser.find(inUser)) {
-				if (catUser.pwdCerta(inUser,inPasswd)) {
-					frase= "LOGGED";
-					outStream.writeObject(frase);
-				}else {// password errada
+		if(!utilizadores.exists())
+			utilizadores.createNewFile();
+		else
+			catUser.populate(utilizadores);
+		try {
+			reader = new BufferedReader(new FileReader("info.txt"));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		//user existe
+		if (catUser.find(inUser)) {
+			if (catUser.pwdCerta(inUser,inPasswd)) {
+				frase= "LOGGED";
+				outStream.writeObject(frase);
+			}else {// password errada
+				frase= "WRONG";
+				outStream.writeObject(frase);
+				while (!catUser.getUserPwd(inUser).equals(inStream.readObject())){
 					frase= "WRONG";
 					outStream.writeObject(frase);
-					while (!catUser.getUserPwd(inUser).equals(inStream.readObject())){
-						frase= "WRONG";
-						outStream.writeObject(frase);
-					}
-					outStream.writeObject("LOGGED");
-
-
 				}
-			}else {//user nao existe
-				frase= "CREATE";
-				outStream.writeObject(frase);
-				//String stream = (String) inStream.readObject();
-				User user = new User(inUser, inPasswd);
-				catUser.lista().add(user);
-				BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
-				writer.write(inUser + ":" + inPasswd);
-				writer.newLine();
-				writer.close();
-				File dir = new File("servidor/"+inUser);
-				dir.mkdir();
-			}
+				outStream.writeObject("LOGGED");
 
-			reader.close();
+
+			}
+		}else {//user nao existe
+			frase= "CREATE";
+			outStream.writeObject(frase);
+			//String stream = (String) inStream.readObject();
+			User user = new User(inUser, inPasswd);
+			catUser.lista().add(user);
+			BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
+			writer.write(inUser + ":" + inPasswd);
+			writer.newLine();
+			writer.close();
+			File dir = new File("servidor/"+inUser);
+			dir.mkdir();
 		}
 
+		reader.close();
 	}
+
+}
 }

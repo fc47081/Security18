@@ -32,7 +32,7 @@ public class CatalogoUser {
 	 */
 	public boolean find(String user) {
 		for (int i = 0; i < users.size(); i++) {
-			if (user.equals(users.get(i).getUserName()))
+			if (user.equals(users.get(i).getUserName()))				
 					return true;
 		}
 		return false;
