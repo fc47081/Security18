@@ -1,3 +1,7 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class User {
@@ -61,4 +65,17 @@ public class User {
 		}
 
 	}
+	
+	
+	public void populateFollowers(File follow) throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader(follow));
+		String line="";
+		
+		while((line = reader.readLine()) != null){
+			followers.add(line);
+		}
+	}
 }
+	
+	
+	
