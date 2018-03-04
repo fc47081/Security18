@@ -52,7 +52,7 @@ public class PhotoShare {
 
 			// user e pass -> OK
 			if(var.equals("LOGGED")) {
-				System.out.println("Bem Vindo!");
+				System.out.println("Bem Vindo "+ arguments [0]  + "!");
 				//user OK mas password NOK	
 			}else if (var.equals("WRONG")) {
 				//pede a pass ate ficar correta
@@ -139,17 +139,20 @@ public class PhotoShare {
 					break; // optional      
 
 				case "-f" :
+					System.out.println("ENTREI NA CONA DA RITA");
 					//envia nome do user a dar follow
 					out.writeObject(operacoesArgs[1]);
 					//Ler reposta do server : adicionado ou ja existente
 					String respostaAdd = (String)in.readObject();
-					if(respostaAdd.equals("Follower adicionado") ) 
+					if(respostaAdd.equals("Follower adicionado") ) {
+						System.out.println("ENTREI NA CONA DA RITa mas fundo");
 						System.out.println(respostaAdd);
-					else
+					}else
 						System.out.println(respostaAdd);
 					break; // optional
 
 				case "-r" :
+					System.out.println("ENTREI NA CONA DA MARIA");
 					//envia nome do user a remover
 					out.writeObject(operacoesArgs[1]);
 					//Ler reposta do server : removido ou nunca existiu

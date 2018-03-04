@@ -188,6 +188,7 @@ public class PhotoShareServer {
 
 					case "-f" :
 						//ler o nome de quem da follow
+						System.out.println("ENTREI NA CONA DA RITA");
 						String followerAdd = (String) inStream.readObject();
 						User uAdd = catUser.getUser(followerAdd);
 						
@@ -201,6 +202,7 @@ public class PhotoShareServer {
 
 					case "-r" :
 						//ler o nome de quem da follow
+						System.out.println("ENTREI NA CONA DA MARIA");
 						String followerRemove = (String) inStream.readObject();
 						User uRemove = catUser.getUser(followerRemove);	
 							
