@@ -190,12 +190,14 @@ public class PhotoShareServer {
 						String followerAdd = (String) inStream.readObject();
 						if(catUser.find(followerAdd) == true) {//encontrar se o user exist na lista users
 							User uAdd = catUser.getUser(inUser);
-							uAdd.Follower();
+							//uAdd.Follower();
 							if (uAdd.existsFollower(followerAdd) ==true) {
 								System.out.println("ENTREI NO EXISTSFOLLOWER");
 								outStream.writeObject("Follower ja existe");
 							}else{ 
 								uAdd.getFollowersList().add(followerAdd);
+								File followers = new File("servidor/"+inUser+"/"+"followers.txt");
+								followers.create;
 								outStream.writeObject("Follower adicionado");
 							}
 						}
