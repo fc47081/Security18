@@ -34,15 +34,25 @@ public class User {
 		return password;
 		
 	}
+	
 	/**
 	 * Get followers do user
 	 * @return followers
 	 */
-	public ArrayList<String> getFollowers() {
+	public ArrayList<String> getFollowersList() {
 		return followers;	
 	}
 	
-	
-	
-	
+	/**
+	 * existsFollower
+	 * @param username - nome do user a procurar
+	 * @return true or false
+	 */
+	public boolean existsFollower(String username) {
+		for (int i = 0; i < followers.size(); i++) {
+			if (username.equals(followers.get(i)))
+					return true;
+		}
+		return false;
+	}
 }

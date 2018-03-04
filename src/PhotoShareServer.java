@@ -55,7 +55,7 @@ public class PhotoShareServer {
 
 	}
 
-	
+
 	public static void main(String[] args) throws java.net.SocketException{
 		File pasta = new File("servidor");
 		if (!pasta.exists()) {
@@ -113,8 +113,9 @@ public class PhotoShareServer {
 				try {
 					//Autenticacao do user + password que vem do cliente
 					inUser = (String)inStream.readObject();
-					inPasswd = (String)inStream.readObject();
-					autenticarUser(inUser, inPasswd, outStream, inStream);
+					inPasswd = (String)inStream.readObject();			
+					CatalogoUser catUser = new CatalogoUser();
+					autenticarUser(catUser,inUser, inPasswd, outStream, inStream);
 					String photo = (String) inStream.readObject();
 					String operacao = (String)inStream.readObject();
 
@@ -127,7 +128,7 @@ public class PhotoShareServer {
 						String temp = dirName+"/"+photo;
 						boolean check = new File(temp).exists();
 						File[] listOfFiles = dir.listFiles();
-						
+
 						if(check == false) {
 							//Se nao existe, criar e guardar na pasta
 							outStream.writeObject("NAO EXISTE");
@@ -186,13 +187,30 @@ public class PhotoShareServer {
 						break; // optional      
 
 					case "-f" :
-						// Statements
-						break; // optional
+						//ler o nome de quem da follow
+						String followerAdd = (String) inStream.readObject();
+						User uAdd = catUser.getUser(followerAdd);
+						
+						if(catUser.find(followerAdd)) { //encontrar se o user exist na lista users
+							uAdd.getFollowersList().add(followerAdd);
+							outStream.writeObject("Follower adicionado");
+						}else if (uAdd.existsFollower(followerAdd)) {
+							outStream.writeObject("Follower ja existe");
+						}
+						break; 
 
 					case "-r" :
-						// Statements
-						break; // optional
-						// You can have any number of case statements.
+						//ler o nome de quem da follow
+						String followerRemove = (String) inStream.readObject();
+						User uRemove = catUser.getUser(followerRemove);	
+							
+						if(catUser.find(followerRemove)) { //encontrar se o user exist na lista users
+							uRemove.getFollowersList().remove((followerRemove));
+							outStream.writeObject("Follower removido");
+						}else if (!uRemove.existsFollower(followerRemove)) {
+							outStream.writeObject("Follower nao esta na lista");
+						}
+						break;
 					default : 
 
 					}
@@ -201,18 +219,6 @@ public class PhotoShareServer {
 				}catch (ClassNotFoundException e1) {
 					e1.printStackTrace();
 				}
-				//
-				//				FileOutputStream outStream1 = new FileOutputStream("slbcopia.jpg");
-				//				OutputStream outStream2 = new BufferedOutputStream(outStream1);
-				//				byte buffer[] = new byte [1024];
-				//				int count;
-				//				long size = (long) inStream.readObject();
-				//
-				//				while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
-				//					outStream1.write(buffer, 0, count);
-				//					size -=count;
-				//					outStream2.flush();
-				//				}
 
 				outStream.close();
 				inStream.close();
@@ -232,11 +238,10 @@ public class PhotoShareServer {
 		 * @throws IOException
 		 * @throws ClassNotFoundException 
 		 */
-		private void autenticarUser(String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
+		private void autenticarUser(CatalogoUser catUser ,String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
 			String frase="";
 			BufferedReader reader = null;
 			File utilizadores = new File ("info.txt");
-			CatalogoUser catUser = new CatalogoUser();
 
 			if(!utilizadores.exists())
 				utilizadores.createNewFile();
@@ -265,7 +270,7 @@ public class PhotoShareServer {
 
 
 				}
-			}else {//user não existe
+			}else {//user nao existe
 				frase= "CREATE";
 				outStream.writeObject(frase);
 				//String stream = (String) inStream.readObject();

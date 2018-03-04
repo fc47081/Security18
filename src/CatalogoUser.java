@@ -39,6 +39,18 @@ public class CatalogoUser {
 	}
 	
 	/**
+	 * Get nome do user
+	 * @return UserName 
+	 */
+	public User getUser(String username) {
+		for (int i = 0; i < users.size(); i++) {
+			if (username.equals(users.get(i).getUserName()))
+					return users.get(i);
+		}
+		return null;
+	}
+	
+	/**
 	 * Verifica se password esta correta
 	 * @param user - user name
 	 * @param pwd - passwrod

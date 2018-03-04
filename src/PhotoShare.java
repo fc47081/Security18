@@ -68,6 +68,9 @@ public class PhotoShare {
 				//user NOK , entao criar um user novo
 			}else if(var.equals("CREATE")) {
 				System.out.println(" O user novo foi criado");
+				String dirName = "Clientes/"+ arguments[0];
+				File dir = new File(dirName);
+				dir.mkdir();
 			}
 
 			System.out.println("Deseja realizar opera��es ? (y/n)" );
@@ -79,12 +82,12 @@ public class PhotoShare {
 
 				String operacao = input.nextLine();
 				String[]  operacoesArgs = operacao.split(" ");
-				//envia nome do ficheiro(exemplo: a.jpg)
-				out.writeObject(operacoesArgs[1]);
 				switch(operacoesArgs[0]) {
 				case "-a" :
+					//envia nome do ficheiro(exemplo: a.jpg)
+					out.writeObject(operacoesArgs[1]);
 					//argumento da foto
-					File foto = new File("Clientes/"+operacoesArgs[1]);
+					File foto = new File("Clientes/"+ arguments[0]+"/" +operacoesArgs[1]);
 					long size = foto.length();
 					if(foto.exists()) {
 						out.writeObject(operacoesArgs[0]);
@@ -95,7 +98,7 @@ public class PhotoShare {
 							byte buffer[] = new byte[1024];
 							int count=1024;
 							out.writeObject(foto.length());
-							
+
 							while((count = inStream1.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
 								out.write(buffer, 0, count);
 								size -=count;
@@ -107,8 +110,8 @@ public class PhotoShare {
 					}else {
 						//envia uma operacao que nao existe para poder dar exit
 						out.writeObject("--");
-						System.out.println("A foto que quer enviar não existe");
-						
+						System.out.println("A foto que quer enviar nao existe");
+
 					}
 					break; // optional
 
@@ -136,42 +139,34 @@ public class PhotoShare {
 					break; // optional      
 
 				case "-f" :
-					// Statements
+					//envia nome do user a dar follow
+					out.writeObject(operacoesArgs[1]);
+					//Ler reposta do server : adicionado ou ja existente
+					String respostaAdd = (String)in.readObject();
+					if(respostaAdd.equals("Follower adicionado") ) 
+						System.out.println(respostaAdd);
+					else
+						System.out.println(respostaAdd);
 					break; // optional
 
 				case "-r" :
-					// Statements
+					//envia nome do user a remover
+					out.writeObject(operacoesArgs[1]);
+					//Ler reposta do server : removido ou nunca existiu
+					String respostaRem = (String)in.readObject();
+					if(respostaRem.equals("Follower removido") ) 
+						System.out.println(respostaRem);
+					else
+						System.out.println(respostaRem);
 					break; // optional
-					// You can have any number of case statements.
-				default : // Optional
-					// Statements
+				default : 
 				}
-
-
 			}else {
-				
-				System.out.println("Não pode realizar mais operações");
-				
+
+				System.out.println("Nao pode realizar mais operacoes");
+
 			}
-			/*
-			String recebe = (String) in.readObject();
-			System.out.println(recebe);
-			*/
-
-
-
-
-
-
-
-
-
-
-
 			input.close();
-
-
-
 			in.close();
 			out.close();
 		} catch (Exception e) {
@@ -182,26 +177,6 @@ public class PhotoShare {
 				e1.printStackTrace();
 			}
 		}
-
-		//Colocar objects no socket
-
-		//1-envio de user e password para autenticacao
-
-		//		File file = new File("slb.jpg");
-		//		long size = file.length();
-		//		out.writeObject(size);
-		//		FileInputStream inStream = new FileInputStream(file);
-		//		InputStream inStream1 = new BufferedInputStream(inStream);
-		//		byte buffer [] = new byte [1024];
-		//		int count = 1024;
-		//
-		//
-		//		while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
-		//			out.write(buffer, 0, count);
-		//			size -=count;
-		//			out.flush();
-		//		}
-
 	}
 
 	/**
