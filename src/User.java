@@ -80,18 +80,21 @@ public class User {
 
 
 	
-	public void removeFollowers(File follow) throws IOException {
+	public void removeFollowers(File follow,String follower) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(follow));
 		String line="";
 		
 		while((line = reader.readLine()) != null){
-			followers.remove(line);
+			if (follower.equals(line)) {
+				followers.remove(line);
+			}
+			
 		}
 	}
 	
 	public void CreateFileRemoved(File removed,String inUser) throws IOException {
 		
-		BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/followers.txt", true)); 
+		BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/"+removed.getName(), true)); 
 		
 		for (int i = 0; i < followers.size(); i++) {
 			writer.write(followers.get(i));
@@ -101,6 +104,20 @@ public class User {
 	
 		writer.close();
 	}
+	
+	
+	
+	public void imprime() {
+		for (int i = 0; i < followers.size(); i++) {
+			System.out.println(followers.get(i));
+		}
+		
+		
+	}
+	
+	
+	
+	
 
 }
 	

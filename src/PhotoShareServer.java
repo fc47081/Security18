@@ -124,10 +124,10 @@ public class PhotoShareServer {
 						String dirName = "servidor/"+inUser;
 						File dir = new File(dirName);					
 						String photo = (String) inStream.readObject();
-						String temp = dirName+"/"+ photo;
+						String temp = dirName+"/"+photo;
 						boolean check = new File(temp).exists();
 						File[] listOfFiles = dir.listFiles();
-
+						
 						if(check == false) {
 							//Se nao existe, criar e guardar na pasta
 							outStream.writeObject("NAO EXISTE");
@@ -192,12 +192,10 @@ public class PhotoShareServer {
 						File follow = new File("servidor/"+inUser+"/followers.txt");
 						uAdd.populateFollowers(follow);
 						if(catUser.find(followerAdd) == true) {//encontrar se o user exist na lista users
-							
 							//uAdd.Follower();
 							if (uAdd.existsFollower(followerAdd) ==true) {
 								outStream.writeObject("Follower ja existe");
 							}else{ 
-								
 								BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/followers.txt", true)); 
 								writer.write(followerAdd);
 								writer.newLine();
@@ -213,9 +211,10 @@ public class PhotoShareServer {
 					User uRemove = catUser.getUser(inUser);								
 					File followRem = new File("servidor/"+inUser+"/followers.txt");
 					uRemove.populateFollowers(followRem);
-					if(catUser.find(followerRemove)) { //encontrar se o user exist na lista users
+
+					if(catUser.find(followerRemove) == true) { //encontrar se o user exist na lista user
 						if (uRemove.existsFollower(followerRemove) ==true) {
-							uRemove.removeFollowers(followRem);
+							uRemove.removeFollowers(followRem,followerRemove);
 							followRem.delete();
 							File removidos = new File("servidor/"+inUser+"/followers.txt");
 							removidos.createNewFile();

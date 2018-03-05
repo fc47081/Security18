@@ -85,20 +85,19 @@ public class PhotoShare {
 				switch(operacoesArgs[0]) {
 				case "-a" :
 					//envia nome do ficheiro(exemplo: a.jpg)
-					out.writeObject(operacoesArgs[1]);
+					out.writeObject(operacoesArgs[0]);
 					//argumento da foto
-					File foto = new File("Clientes/"+ arguments[0]+"/" +operacoesArgs[1]);
+					File foto = new File("Clientes/"+arguments[0]+"/"+operacoesArgs[1]);
 					long size = foto.length();
 					if(foto.exists()) {
-						out.writeObject(operacoesArgs[0]);
-						String existe = (String) in.readObject();				
+						out.writeObject(operacoesArgs[1]);
+						String existe = (String) in.readObject();
 						if (existe.equals("NAO EXISTE")) {
 							FileInputStream inStream1 = new FileInputStream(foto);
 							InputStream inStream2 = new BufferedInputStream(inStream1);
 							byte buffer[] = new byte[1024];
 							int count=1024;
 							out.writeObject(foto.length());
-
 							while((count = inStream1.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
 								out.write(buffer, 0, count);
 								size -=count;
