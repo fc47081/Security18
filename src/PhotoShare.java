@@ -115,7 +115,9 @@ public class PhotoShare {
 					break;
 
 				case "-l" :
+					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
+					System.out.println(operacoesArgs[1]);
 					int tamanho = in.readInt();
 					String segue = (String) in.readObject();
 					if (segue.equals("Existe")) {

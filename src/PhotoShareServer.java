@@ -118,6 +118,7 @@ public class PhotoShareServer {
 					CatalogoUser catUser = new CatalogoUser();
 					autenticarUser(catUser,inUser, inPasswd, outStream, inStream);
 					String operacao = (String)inStream.readObject();
+					System.out.println("operacao "+operacao);
 					//operacao do client
 					switch(operacao) {
 					case "-a" :
@@ -162,31 +163,32 @@ public class PhotoShareServer {
 						break; // optional
 
 					case "-l" :
+						
 						String userPhotos = (String) inStream.readObject();
+						System.out.println("user "+userPhotos);
 						File followers = new File("servidor/"+userPhotos+"/followers.txt");
 						//catalogo para fotos
 						User userPhoto = catUser.getUser(userPhotos);	 
 						//popular os followers
 						userPhoto.populateFollowers(followers);
-						File photoList = new File("servidor/"+userPhotos+"listaFotos.txt");
+						File photoList = new File("servidor/"+userPhotos+"/listaFotos.txt");
 						//catalogo fotos
 						CatalogoPhotos photos = new CatalogoPhotos();
 						//popular o catalogo das fotos
 						photos.populate(photoList);
 						ArrayList<Photo> fotos = photos.listaFotos();
 						if(catUser.find(userPhotos) == true) {
+							System.out.println("aqui");
 							if(userPhoto.existsFollower(inUser) == true) {
+								//verificar este if nao entendo 
+								System.out.println("aqui2");
 								outStream.write(photos.listaFotos().size());
 								outStream.writeObject("EXISTE");
-								
 								for (int i = 0; i < photos.listaFotos().size(); i++) {
-									outStream.writeObject(fotos.get(i).getNome()+"-"+fotos.get(i).getData());	
-									
+									outStream.writeObject(fotos.get(i).getNome()+"-"+fotos.get(i).getData());			
 								}
-
 							}else {
-								outStream.writeObject("NAO EXISTE");
-								
+									outStream.writeObject("NAO EXISTE");
 							}
 						}
 
