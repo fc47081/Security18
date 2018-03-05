@@ -195,7 +195,6 @@ public class PhotoShareServer {
 							
 							//uAdd.Follower();
 							if (uAdd.existsFollower(followerAdd) ==true) {
-								System.out.println("ENTREI NO EXISTSFOLLOWER");
 								outStream.writeObject("Follower ja existe");
 							}else{ 
 								
@@ -210,15 +209,24 @@ public class PhotoShareServer {
 
 				case "-r" :
 					//ler o nome de quem da follow
-					System.out.println("ENTREI NA CONA DA MARIA");
 					String followerRemove = (String) inStream.readObject();
 					User uRemove = catUser.getUser(inUser);								
+					File followRem = new File("servidor/"+inUser+"/followers.txt");
+					uRemove.populateFollowers(followRem);
 					if(catUser.find(followerRemove)) { //encontrar se o user exist na lista users
-						uRemove.getFollowersList().remove((followerRemove));
-						outStream.writeObject("Follower removido");
-					}else if (!uRemove.existsFollower(followerRemove)) {
-						outStream.writeObject("Follower nao esta na lista");
-					}
+						if (uRemove.existsFollower(followerRemove) ==true) {
+							uRemove.removeFollowers(followRem);
+							followRem.delete();
+							File removidos = new File("servidor/"+inUser+"/followers.txt");
+							removidos.createNewFile();
+							uRemove.CreateFileRemoved(removidos, inUser);
+							outStream.writeObject("Follower removido");
+						}else {
+							outStream.writeObject("Follower nao esta na lista");
+						}
+						
+
+					} 	
 					break;
 				default : 
 

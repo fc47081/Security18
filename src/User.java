@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -75,6 +77,31 @@ public class User {
 			followers.add(line);
 		}
 	}
+
+
+	
+	public void removeFollowers(File follow) throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader(follow));
+		String line="";
+		
+		while((line = reader.readLine()) != null){
+			followers.remove(line);
+		}
+	}
+	
+	public void CreateFileRemoved(File removed,String inUser) throws IOException {
+		
+		BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/followers.txt", true)); 
+		
+		for (int i = 0; i < followers.size(); i++) {
+			writer.write(followers.get(i));
+			writer.newLine();
+		}
+		
+	
+		writer.close();
+	}
+
 }
 	
 	

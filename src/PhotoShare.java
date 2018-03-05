@@ -151,7 +151,6 @@ public class PhotoShare {
 					break; // optional
 
 				case "-r" :
-					System.out.println("ENTREI NA CONA DA MARIA");
 					//envia nome do user a remover
 					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
@@ -161,7 +160,7 @@ public class PhotoShare {
 						System.out.println(respostaRem);
 					else
 						System.out.println(respostaRem);
-					break; // optional
+					break;
 				default : 
 				}
 			}else {
