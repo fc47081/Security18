@@ -71,8 +71,7 @@ public class User {
 	
 	public void populateFollowers(File follow) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(follow));
-		String line="";
-		
+		String line="";	
 		while((line = reader.readLine()) != null){
 			followers.add(line);
 		}
@@ -114,6 +113,8 @@ public class User {
 		
 		
 	}
+	
+
 	
 	
 	

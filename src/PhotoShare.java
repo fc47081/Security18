@@ -112,11 +112,27 @@ public class PhotoShare {
 						System.out.println("A foto que quer enviar nao existe");
 
 					}
-					break; // optional
+					break;
 
 				case "-l" :
-					// Statements
-					break; // optional
+					out.writeObject(operacoesArgs[1]);
+					int tamanho = in.readInt();
+					String segue = (String) in.readObject();
+					if (segue.equals("Existe")) {
+						for (int i = 0; i < tamanho; i++) {
+							String nomeData = (String) in.readObject(); 
+							System.out.println(nomeData);
+						}
+						
+					}else {
+						System.out.println("O user que introduziu nao existe");
+						
+						
+					}
+					
+					
+					
+					break;
 
 				case "-i" :
 					// Statements

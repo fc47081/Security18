@@ -18,6 +18,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -127,7 +128,7 @@ public class PhotoShareServer {
 						String temp = dirName+"/"+photo;
 						boolean check = new File(temp).exists();
 						File[] listOfFiles = dir.listFiles();
-						
+
 						if(check == false) {
 							//Se nao existe, criar e guardar na pasta
 							outStream.writeObject("NAO EXISTE");
@@ -143,16 +144,13 @@ public class PhotoShareServer {
 								outStream2.flush();
 							}
 							dir.createNewFile();
-							File ficheiro = new File(dirName+"/"+getNameFile(photo)+".txt");
-							ficheiro.createNewFile();
 							//Data da publicacao da foto 
 							DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 							Date today = Calendar.getInstance().getTime();
 							String reportDate = df.format(today);
 							String dateToPrintToFile = reportDate;
-							BufferedWriter writer = new BufferedWriter(new FileWriter(dirName+"/"+getNameFile(photo)+".txt", true));
-							writer.write("Data:"+dateToPrintToFile);
-							//Fim data
+							BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/listaFotos.txt", true));
+							writer.write(photo+":"+dateToPrintToFile);
 							writer.newLine();
 							writer.close();
 						}else {
@@ -164,6 +162,36 @@ public class PhotoShareServer {
 						break; // optional
 
 					case "-l" :
+						String userPhotos = (String) inStream.readObject();
+						File followers = new File("servidor/"+userPhotos+"/followers.txt");
+						//catalogo para fotos
+						User userPhoto = catUser.getUser(userPhotos);	 
+						//popular os followers
+						userPhoto.populateFollowers(followers);
+						File photoList = new File("servidor/"+userPhotos+"listaFotos.txt");
+						//catalogo fotos
+						CatalogoPhotos photos = new CatalogoPhotos();
+						//popular o catalogo das fotos
+						photos.populate(photoList);
+						ArrayList<Photo> fotos = photos.listaFotos();
+						if(catUser.find(userPhotos) == true) {
+							if(userPhoto.existsFollower(inUser) == true) {
+								outStream.write(photos.listaFotos().size());
+								outStream.writeObject("EXISTE");
+								
+								for (int i = 0; i < photos.listaFotos().size(); i++) {
+									outStream.writeObject(fotos.get(i).getNome()+"-"+fotos.get(i).getData());	
+									
+								}
+
+							}else {
+								outStream.writeObject("NAO EXISTE");
+								
+							}
+						}
+
+
+
 						break; // optional
 
 					case "-i" :
@@ -203,107 +231,109 @@ public class PhotoShareServer {
 								outStream.writeObject("Follower adicionado");
 							}
 						}
-					break; 
+						break; 
 
-				case "-r" :
-					//ler o nome de quem da follow
-					String followerRemove = (String) inStream.readObject();
-					User uRemove = catUser.getUser(inUser);								
-					File followRem = new File("servidor/"+inUser+"/followers.txt");
-					uRemove.populateFollowers(followRem);
+					case "-r" :
+						//ler o nome de quem da follow
+						String followerRemove = (String) inStream.readObject();
+						User uRemove = catUser.getUser(inUser);								
+						File followRem = new File("servidor/"+inUser+"/followers.txt");
+						uRemove.populateFollowers(followRem);
 
-					if(catUser.find(followerRemove) == true) { //encontrar se o user exist na lista user
-						if (uRemove.existsFollower(followerRemove) ==true) {
-							uRemove.removeFollowers(followRem,followerRemove);
-							followRem.delete();
-							File removidos = new File("servidor/"+inUser+"/followers.txt");
-							removidos.createNewFile();
-							uRemove.CreateFileRemoved(removidos, inUser);
-							outStream.writeObject("Follower removido");
-						}else {
-							outStream.writeObject("Follower nao esta na lista");
-						}
-						
+						if(catUser.find(followerRemove) == true) { //encontrar se o user exist na lista user
+							if (uRemove.existsFollower(followerRemove) ==true) {
+								uRemove.removeFollowers(followRem,followerRemove);
+								followRem.delete();
+								File removidos = new File("servidor/"+inUser+"/followers.txt");
+								removidos.createNewFile();
+								uRemove.CreateFileRemoved(removidos, inUser);
+								outStream.writeObject("Follower removido");
+							}else {
+								outStream.writeObject("Follower nao esta na lista");
+							}
 
-					} 	
-					break;
-				default : 
 
+						} 	
+						break;
+					default : 
+
+					}
+
+
+				}catch (ClassNotFoundException e1) {
+					e1.printStackTrace();
 				}
 
-
-			}catch (ClassNotFoundException e1) {
-				e1.printStackTrace();
+				outStream.close();
+				inStream.close();
+				socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-
-			outStream.close();
-			inStream.close();
-			socket.close();
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
-	}
 
-	/**
-	 * Autenticacao do user
-	 * @param inUser - user name
-	 * @param inPasswd - user password
-	 * @param outStream - stream out
-	 * @param inStream - stream in
-	 * @return frase - retorno a dar ao client
-	 * @throws IOException
-	 * @throws ClassNotFoundException 
-	 */
-	private void autenticarUser(CatalogoUser catUser ,String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
-		String frase="";
-		BufferedReader reader = null;
-		File utilizadores = new File ("info.txt");
+		/**
+		 * Autenticacao do user
+		 * @param inUser - user name
+		 * @param inPasswd - user password
+		 * @param outStream - stream out
+		 * @param inStream - stream in
+		 * @return frase - retorno a dar ao client
+		 * @throws IOException
+		 * @throws ClassNotFoundException 
+		 */
+		private void autenticarUser(CatalogoUser catUser ,String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
+			String frase="";
+			BufferedReader reader = null;
+			File utilizadores = new File ("info.txt");
 
-		if(!utilizadores.exists())
-			utilizadores.createNewFile();
-		else
-			catUser.populate(utilizadores);
-		try {
-			reader = new BufferedReader(new FileReader("info.txt"));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		//user existe
-		if (catUser.find(inUser)) {
-			if (catUser.pwdCerta(inUser,inPasswd)) {
-				frase= "LOGGED";
-				outStream.writeObject(frase);
-			}else {// password errada
-				frase= "WRONG";
-				outStream.writeObject(frase);
-				while (!catUser.getUserPwd(inUser).equals(inStream.readObject())){
+			if(!utilizadores.exists())
+				utilizadores.createNewFile();
+			else
+				catUser.populate(utilizadores);
+			try {
+				reader = new BufferedReader(new FileReader("info.txt"));
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			//user existe
+			if (catUser.find(inUser)) {
+				if (catUser.pwdCerta(inUser,inPasswd)) {
+					frase= "LOGGED";
+					outStream.writeObject(frase);
+				}else {// password errada
 					frase= "WRONG";
 					outStream.writeObject(frase);
+					while (!catUser.getUserPwd(inUser).equals(inStream.readObject())){
+						frase= "WRONG";
+						outStream.writeObject(frase);
+					}
+					outStream.writeObject("LOGGED");
+
+
 				}
-				outStream.writeObject("LOGGED");
+			}else {//user nao existe
+				frase= "CREATE";
+				outStream.writeObject(frase);
+				//String stream = (String) inStream.readObject();
+				User user = new User(inUser, inPasswd);
+				catUser.lista().add(user);
+				BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
+				writer.write(inUser + ":" + inPasswd);
+				writer.newLine();
+				writer.close();
+				File dir = new File("servidor/"+inUser);
+				dir.mkdir();
+				File followers = new File("servidor/"+inUser+"/"+"followers.txt");
+				followers.createNewFile();
+				File listPhotos = new File("servidor/"+inUser+"/"+"listaFotos.txt");
+				listPhotos.createNewFile();
 
 
 			}
-		}else {//user nao existe
-			frase= "CREATE";
-			outStream.writeObject(frase);
-			//String stream = (String) inStream.readObject();
-			User user = new User(inUser, inPasswd);
-			catUser.lista().add(user);
-			BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
-			writer.write(inUser + ":" + inPasswd);
-			writer.newLine();
-			writer.close();
-			File dir = new File("servidor/"+inUser);
-			dir.mkdir();
-			File followers = new File("servidor/"+inUser+"/"+"followers.txt");
-			followers.createNewFile();
-			
-			
+
+			reader.close();
 		}
 
-		reader.close();
 	}
-
-}
 }
