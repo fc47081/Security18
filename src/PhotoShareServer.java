@@ -156,6 +156,8 @@ public class PhotoShareServer {
 							writer.close();
 							File like = new File("servidor/"+inUser+"/"+getNameFile(photo) + "Likes.txt");
 							like.createNewFile();
+							File dislike = new File("servidor/"+inUser+"/"+getNameFile(photo) + "Dislikes.txt");
+							dislike.createNewFile();
 							
 						}else {
 							//Se ja existe , envia para o cliente que ja existe e da exit
@@ -246,7 +248,35 @@ public class PhotoShareServer {
 						break; // optional
 
 					case "-D" :
-						// Statements
+						String userD = (String) inStream.readObject();
+						String photoD = (String) inStream.readObject();
+						User userDislike = catUser.getUser(userD);
+						File followDislike = new File("servidor/"+userD+"/followers.txt");
+						userDislike.populateFollowers(followDislike);
+						File listFotos = new File("servidor/"+userD+"/listaFotos.txt");
+						photos.populate(listFotos);
+						//verificar se e user
+						if (catUser.find(userD) ==true) {
+							//verificamos se e follower
+							if(userDislike.existsFollower(inUser) == true) {
+								if (photos.existsPhoto(photoD) == true) {
+									BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+userD+"/"+getNameFile(photoD) + "Dislikes.txt", true)); 
+									writer.write(inUser);
+									writer.newLine();
+									writer.close();
+									outStream.writeObject("DISLIKE");
+								}else {
+									outStream.writeObject("NAO FOTO");
+
+								}
+
+								
+							}else {
+								outStream.writeObject("NAO DISLIKE");
+							}
+						}
+						
+						
 						break; // optional      
 
 					case "-f" :
@@ -363,9 +393,7 @@ public class PhotoShareServer {
 				followers.createNewFile();
 				File listPhotos = new File("servidor/"+inUser+"/"+"listaFotos.txt");
 				listPhotos.createNewFile();
-				
-				File dislike = new File("servidor/"+inUser+"/"+"dislike.txt");
-				dislike.createNewFile();
+
 				File comentarios = new File("servidor/"+inUser+"/"+"comentarios.txt");
 				comentarios.createNewFile();
 

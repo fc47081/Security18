@@ -172,7 +172,21 @@ public class PhotoShare {
 					break; // optional
 
 				case "-D" :
-					// Statements
+					out.writeObject(operacoesArgs[0]);
+					//user
+					out.writeObject(operacoesArgs[1]);
+					//photo
+					out.writeObject(operacoesArgs[2]);
+					String dislike = (String) in.readObject();
+					if (dislike.equals("DISLIKE")) {
+						System.out.println("disLike efectuado com sucesso");
+						
+					}else if(dislike.equals("NAO DISLIKE")){
+						System.out.println("disLike rejeitado");
+						
+					}else {
+						System.out.println("Nao existe foto");
+					}
 					break; // optional      
 
 				case "-f" :
