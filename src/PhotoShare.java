@@ -160,9 +160,11 @@ public class PhotoShare {
 					if (like.equals("LIKE")) {
 						System.out.println("Like efectuado com sucesso");
 						
-					}else {
+					}else if(like.equals("NAO LIKE")){
 						System.out.println("Like rejeitado");
 						
+					}else {
+						System.out.println("Nao existe foto");
 					}
 					
 					

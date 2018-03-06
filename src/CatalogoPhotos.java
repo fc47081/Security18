@@ -32,6 +32,15 @@ public class CatalogoPhotos {
 		
 	}
 	
+	public boolean existsPhoto(String foto) throws IOException {
+		for (int i = 0; i < fotos.size(); i++) {
+			if (fotos.get(i).getNome().equals(foto)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	
 	
 }

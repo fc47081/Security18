@@ -194,8 +194,6 @@ public class PhotoShareServer {
 							}
 						}
 
-
-
 						break; // optional
 
 					case "-i" :
@@ -211,19 +209,29 @@ public class PhotoShareServer {
 
 					case "-L" :
 						String user = (String) inStream.readObject();
+						System.out.println(user);
 						String photoL = (String) inStream.readObject();
+						System.out.println(photoL);
 						User userLike = catUser.getUser(user);
+						File followLike = new File("servidor/"+user+"/followers.txt");
+						userLike.populateFollowers(followLike);
+						File listaFotos = new File("servidor/"+user+"/listaFotos.txt");
+						photos.populate(listaFotos);
 						//verificar se e user
 						if (catUser.find(user) ==true) {
-							System.out.println("ENTREI IF 1");
 							//verificamos se e follower
 							if(userLike.existsFollower(inUser) == true) {
-								System.out.println("ENTREI IF 2");
-								BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/"+getNameFile(photoL) + "Likes.txt", true)); 
-								writer.write(user);
-								writer.newLine();
-								writer.close();
-								outStream.writeObject("LIKE");
+								if (photos.existsPhoto(photoL) == true) {
+									BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+user+"/"+getNameFile(photoL) + "Likes.txt", true)); 
+									writer.write(inUser);
+									writer.newLine();
+									writer.close();
+									outStream.writeObject("LIKE");
+								}else {
+									outStream.writeObject("NAO FOTO");
+
+								}
+
 								
 							}else {
 								outStream.writeObject("NAO LIKE");
