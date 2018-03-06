@@ -21,7 +21,7 @@ public class CatalogoPhotos {
 		
 		while((line = reader.readLine()) != null){
 			String[] split = line.split(":");
-			photo = new Photo(split[0], split[1]);
+			photo = new Photo(split[0], split[1]+":"+split[2]+":"+split[3]);
 			fotos.add(photo);
 		}
 	}

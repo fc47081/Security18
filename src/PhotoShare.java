@@ -117,10 +117,12 @@ public class PhotoShare {
 				case "-l" :
 					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
-					System.out.println(operacoesArgs[1]);
-					int tamanho = in.readInt();
+					//System.out.println(operacoesArgs[1]);
+					int tamanho =(int) in.readObject();
+					//System.out.println("tamanho "+tamanho);
 					String segue = (String) in.readObject();
-					if (segue.equals("Existe")) {
+					if (segue.equals("EXISTE")) {
+						System.out.println("Lista de fotos:");
 						for (int i = 0; i < tamanho; i++) {
 							String nomeData = (String) in.readObject(); 
 							System.out.println(nomeData);
@@ -148,7 +150,23 @@ public class PhotoShare {
 					break; // optional     
 
 				case "-L" :
-					// Statements
+					//operacao
+					out.writeObject(operacoesArgs[0]);
+					//user
+					out.writeObject(operacoesArgs[1]);
+					//photo
+					out.writeObject(operacoesArgs[2]);
+					String like = (String) in.readObject();
+					if (like.equals("LIKE")) {
+						System.out.println("Like efectuado com sucesso");
+						
+					}else {
+						System.out.println("Like rejeitado");
+						
+					}
+					
+					
+					
 					break; // optional
 
 				case "-D" :

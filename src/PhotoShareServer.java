@@ -116,9 +116,9 @@ public class PhotoShareServer {
 					inUser = (String)inStream.readObject();
 					inPasswd = (String)inStream.readObject();			
 					CatalogoUser catUser = new CatalogoUser();
+					CatalogoPhotos photos = new CatalogoPhotos();
 					autenticarUser(catUser,inUser, inPasswd, outStream, inStream);
 					String operacao = (String)inStream.readObject();
-					System.out.println("operacao "+operacao);
 					//operacao do client
 					switch(operacao) {
 					case "-a" :
@@ -154,6 +154,9 @@ public class PhotoShareServer {
 							writer.write(photo+":"+dateToPrintToFile);
 							writer.newLine();
 							writer.close();
+							File like = new File("servidor/"+inUser+"/"+getNameFile(photo) + "Likes.txt");
+							like.createNewFile();
+							
 						}else {
 							//Se ja existe , envia para o cliente que ja existe e da exit
 							if (existsNameFile(listOfFiles, photo)){
@@ -165,7 +168,6 @@ public class PhotoShareServer {
 					case "-l" :
 						
 						String userPhotos = (String) inStream.readObject();
-						System.out.println("user "+userPhotos);
 						File followers = new File("servidor/"+userPhotos+"/followers.txt");
 						//catalogo para fotos
 						User userPhoto = catUser.getUser(userPhotos);	 
@@ -173,19 +175,19 @@ public class PhotoShareServer {
 						userPhoto.populateFollowers(followers);
 						File photoList = new File("servidor/"+userPhotos+"/listaFotos.txt");
 						//catalogo fotos
-						CatalogoPhotos photos = new CatalogoPhotos();
+						
 						//popular o catalogo das fotos
 						photos.populate(photoList);
 						ArrayList<Photo> fotos = photos.listaFotos();
 						if(catUser.find(userPhotos) == true) {
-							System.out.println("aqui");
+							//System.out.println("aqui");
 							if(userPhoto.existsFollower(inUser) == true) {
 								//verificar este if nao entendo 
-								System.out.println("aqui2");
-								outStream.write(photos.listaFotos().size());
+								//System.out.println(photos.listaFotos().size());
+								outStream.writeObject(photos.listaFotos().size());
 								outStream.writeObject("EXISTE");
 								for (int i = 0; i < photos.listaFotos().size(); i++) {
-									outStream.writeObject(fotos.get(i).getNome()+"-"+fotos.get(i).getData());			
+									outStream.writeObject(fotos.get(i).getNome()+" - "+fotos.get(i).getData());			
 								}
 							}else {
 									outStream.writeObject("NAO EXISTE");
@@ -208,7 +210,31 @@ public class PhotoShareServer {
 						break; // optional     
 
 					case "-L" :
-						// Statements
+						String user = (String) inStream.readObject();
+						String photoL = (String) inStream.readObject();
+						User userLike = catUser.getUser(user);
+						//verificar se e user
+						if (catUser.find(user) ==true) {
+							System.out.println("ENTREI IF 1");
+							//verificamos se e follower
+							if(userLike.existsFollower(inUser) == true) {
+								System.out.println("ENTREI IF 2");
+								BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/"+getNameFile(photoL) + "Likes.txt", true)); 
+								writer.write(user);
+								writer.newLine();
+								writer.close();
+								outStream.writeObject("LIKE");
+								
+							}else {
+								outStream.writeObject("NAO LIKE");
+							}
+						}
+						
+						
+						
+						//se for entao vai as fotos do outro e da like
+						//se nao da erro
+						
 						break; // optional
 
 					case "-D" :
@@ -222,7 +248,6 @@ public class PhotoShareServer {
 						File follow = new File("servidor/"+inUser+"/followers.txt");
 						uAdd.populateFollowers(follow);
 						if(catUser.find(followerAdd) == true) {//encontrar se o user exist na lista users
-							//uAdd.Follower();
 							if (uAdd.existsFollower(followerAdd) ==true) {
 								outStream.writeObject("Follower ja existe");
 							}else{ 
@@ -330,6 +355,11 @@ public class PhotoShareServer {
 				followers.createNewFile();
 				File listPhotos = new File("servidor/"+inUser+"/"+"listaFotos.txt");
 				listPhotos.createNewFile();
+				
+				File dislike = new File("servidor/"+inUser+"/"+"dislike.txt");
+				dislike.createNewFile();
+				File comentarios = new File("servidor/"+inUser+"/"+"comentarios.txt");
+				comentarios.createNewFile();
 
 
 			}
