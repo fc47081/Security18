@@ -13,6 +13,19 @@ public class CatalogoPhotos {
 			
 	}
 	
+	public Photo getPhoto(String foto) {
+		
+		for (int i = 0; i < fotos.size(); i++) {
+			if (fotos.get(i).equals(foto)) {
+				return fotos.get(i);
+			}
+		}
+		return null;
+		
+	}
+	
+	
+	
 	
 	public void populate(File photos) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(photos));
@@ -40,6 +53,15 @@ public class CatalogoPhotos {
 		}
 		return false;
 	}
+	
+	
+	public void imprime() {
+		for (int i = 0; i < fotos.size(); i++) {
+			System.out.println(fotos.get(i).getNome());
+		}
+		
+	}
+	
 	
 	
 	
