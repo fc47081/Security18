@@ -10,11 +10,17 @@ public class Photo {
 	private String nome;
 	private String data;
 	private ArrayList<String> likes;
+	private ArrayList<String> dislikes;
+	private ArrayList<String> comentarios;
 	
 	public Photo(String nome,String data) {
 		this.nome = nome;
 		this.data = data;
 		likes = new ArrayList<String>();
+		dislikes = new ArrayList<String>();
+		comentarios = new ArrayList<String>();
+
+		
 	}
 	
 	public String getNome() {
@@ -32,15 +38,58 @@ public class Photo {
 		while((line = reader.readLine()) != null){
 			likes.add(line);
 		}
+		
+		
+	}
+	
+	
+	
+	
+	public void populateDislikes(File userLikes) throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader(userLikes));
+		String line="";
+		while((line = reader.readLine()) != null){
+			dislikes.add(line);
+		}
 				
 	}
-		
-	public ArrayList<String> getlistUserLikes(){		
+	
+	
+	
+	public void populateComments(File userLikes) throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader(userLikes));
+		String line="";
+		while((line = reader.readLine()) != null){
+			comentarios.add(line);
+		}
+				
+	}
+	
+	
+	public ArrayList<String> getlistPhotoLikes(){		
 		return likes;
 	}
 	
+	public ArrayList<String> getlistPhotoDislikes(){		
+		return dislikes;
+	}
+	
+	public ArrayList<String> getlistPhotoComments(){		
+		return comentarios;
+	}
 	
 	
+	public int  tamanholistPhotoDislikes(){		
+		return dislikes.size();
+	}
+	
+	public int  tamanholistPhotoLikes(){		
+		return likes.size();
+	}
+	
+	public int  tamanholistPhotoComments(){		
+		return comentarios.size();
+	}
 	
 	public boolean deuLike(String user) throws IOException {
 		for (int i = 0; i < likes.size(); i++) {

@@ -145,7 +145,27 @@ public class PhotoShare {
 					break;
 
 				case "-i" :
-					// Statements
+					//operacaco
+					out.writeObject(operacoesArgs[0]);
+					//user
+					out.writeObject(operacoesArgs[1]);
+					//photo
+					out.writeObject(operacoesArgs[2]);
+					
+					int commentSize = (int) in.readObject();
+					System.out.println("Lista de comentarios:");
+					for (int i = 0; i < commentSize; i++) {
+						String comentario = (String) in.readObject();
+						System.out.println(comentario);
+					}
+					
+					int likesSize = (int) in.readObject();
+					
+					int dislikeSize = (int) in.readObject();
+					
+					System.out.println("Numero de likes: " + likesSize);
+					System.out.println("Numero de dislikes: " +dislikeSize);
+					
 					break; // optional
 				case "-g" :
 					// Statements
