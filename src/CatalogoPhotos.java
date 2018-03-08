@@ -16,12 +16,12 @@ public class CatalogoPhotos {
 	public Photo getPhoto(String foto) {
 		
 		for (int i = 0; i < fotos.size(); i++) {
-			if (fotos.get(i).equals(foto)) {
+			
+			if (fotos.get(i).getNome().equals(foto)) {
 				return fotos.get(i);
 			}
 		}
-		return null;
-		
+		return null;	
 	}
 	
 	

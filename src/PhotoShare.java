@@ -23,6 +23,16 @@ public class PhotoShare {
 	private static final String IPPort ="(\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}):(\\d{1,5})";
 	private static final Pattern PATTERN = Pattern.compile(IPPort);
 
+	public  static String concatenateComment(String[] args) {
+		String comentario = "";
+		for (int i = 1; i < args.length-2; i++) {
+			comentario+= args[i]+" ";
+		}
+		
+		return comentario;
+	}
+	
+	
 	public static void main(String[] args){
 
 		File pasta = new File("Clientes");
@@ -82,6 +92,7 @@ public class PhotoShare {
 
 				String operacao = input.nextLine();
 				String[]  operacoesArgs = operacao.split(" ");
+				//String comentario = 
 				switch(operacoesArgs[0]) {
 				case "-a" :
 					//envia nome do ficheiro(exemplo: a.jpg)
@@ -129,13 +140,8 @@ public class PhotoShare {
 						}
 						
 					}else {
-						System.out.println("O user que introduziu nao existe");
-						
-						
+						System.out.println("O user que introduziu nao existe");						
 					}
-					
-					
-					
 					break;
 
 				case "-i" :
@@ -146,7 +152,28 @@ public class PhotoShare {
 					break; // optional
 
 				case "-c" :
-					// Statements
+					String comment = concatenateComment(operacoesArgs);
+					int len = operacoesArgs.length;
+					out.writeObject(operacoesArgs[0]);
+					//user
+					out.writeObject(comment);
+					
+					out.writeObject(operacoesArgs[len-2]);
+					//photo
+					out.writeObject(operacoesArgs[len-1]);
+					
+					
+					String comentario = (String) in.readObject();
+					
+					if (comentario.equals("COMMENT")) {
+						System.out.println("Comentario efectuado com sucesso");
+					}else if(comentario.equals("NAO FOLLOWER")){
+						System.out.println("Nao e follower deste user");
+					}else if(comentario.equals("NAO FOTO")){
+						System.out.println("Nao existe a foto que pretende");
+					}else {
+						System.out.println("User inválido");
+					}	
 					break; // optional     
 
 				case "-L" :
@@ -160,14 +187,17 @@ public class PhotoShare {
 					if (like.equals("LIKE")) {
 						System.out.println("Like efectuado com sucesso");
 						
+					}else if(like.equals("JADEULIKE")){
+						System.out.println("Já deu like anteriormente");		
+					
 					}else if(like.equals("NAO LIKE")){
-						System.out.println("Like rejeitado");
-						
+						System.out.println("Nao e follower deste user");
+					
+					}else if(like.equals("NAO FOTO")){
+						System.out.println("Nao existe a foto que pretende");
 					}else {
-						System.out.println("Nao existe foto");
+						System.out.println("User inválido");
 					}
-					
-					
 					
 					break; // optional
 
@@ -179,13 +209,18 @@ public class PhotoShare {
 					out.writeObject(operacoesArgs[2]);
 					String dislike = (String) in.readObject();
 					if (dislike.equals("DISLIKE")) {
-						System.out.println("disLike efectuado com sucesso");
+						System.out.println("Dislike efectuado com sucesso");
 						
+					}else if(dislike.equals("JADEUDISLIKE")){
+						System.out.println("Já deu dislike anteriormente");		
+					
 					}else if(dislike.equals("NAO DISLIKE")){
-						System.out.println("disLike rejeitado");
-						
+						System.out.println("Nao e follower deste user");
+					
+					}else if(dislike.equals("NAO FOTO")){
+						System.out.println("Nao existe a foto que pretende");
 					}else {
-						System.out.println("Nao existe foto");
+						System.out.println("User inválido");
 					}
 					break; // optional      
 
@@ -277,4 +312,9 @@ public class PhotoShare {
 	public static boolean validate(final String ip) {
 		return PATTERN.matcher(ip).matches();
 	}
+	
+
+	
+	
+	
 }

@@ -10,6 +10,7 @@ public class Photo {
 	private String nome;
 	private String data;
 	private ArrayList<String> likes;
+	
 	public Photo(String nome,String data) {
 		this.nome = nome;
 		this.data = data;
@@ -31,10 +32,7 @@ public class Photo {
 		while((line = reader.readLine()) != null){
 			likes.add(line);
 		}
-			
-		
-		
-		
+				
 	}
 		
 	public ArrayList<String> getlistUserLikes(){		
