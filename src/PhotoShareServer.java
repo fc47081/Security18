@@ -227,6 +227,7 @@ public class PhotoShareServer {
 										Photo phototemp = photos.getPhoto(photoL);
 										File ficheiroLikes = new File("servidor/"+user+"/"+getNameFile(photoL)+ "Likes.txt");
 										//System.out.println(ficheiroLikes.exists());
+										System.out.println(phototemp.getlistUserLikes().size());
 										phototemp.imprime();
 										System.out.println("antes populate");
 										phototemp.populateLikes(ficheiroLikes);
