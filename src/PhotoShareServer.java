@@ -26,10 +26,27 @@ import java.util.Date;
 public class PhotoShareServer {
 
 	/**
+	 * adiciona ficheiros imagem para um arrayList
+	 * @param ficheiros
+	 * @return files
+	 */
+	public static ArrayList<String> getPhotoFiles(String[] ficheiros) {
+		ArrayList<String> files = new ArrayList<String>();
+		for(int i = 0; i < ficheiros.length; i++) {
+			if (ficheiros[i].endsWith(".jpg")|| ficheiros[i].endsWith("Comments.txt") ) {
+				files.add(ficheiros[i]);
+			}
+
+		}
+		return files;
+	}
+
+
+	/**
 	 * Verificar se o nome do ficheiro jah existe no Servidor
 	 * @param listOfFiles - lista de ficheiros existentes
 	 * @param nome - nome do ficheiros
-	 * @return boolean de verificacao
+	 * @return true or false
 	 */
 	public static boolean existsNameFile(File[] listOfFiles,String nome) {
 		for (int i = 0; i < listOfFiles.length; i++) {
@@ -47,7 +64,7 @@ public class PhotoShareServer {
 	/**
 	 * Get nome do file
 	 * @param photo
-	 * @return
+	 * @return str
 	 */
 	public static String getNameFile(String photo) {
 		int ind = photo.indexOf(".");
@@ -211,12 +228,12 @@ public class PhotoShareServer {
 								File listaFotosC = new File("servidor/"+userID+"/listaFotos.txt");
 								photos.populate(listaFotosC);
 								if (photos.existsPhoto(foto) == true) {
-									
+									outStream.writeObject("MOSTRA");
 									//populate Likes
 									Photo phototempL = photos.getPhoto(foto);
 									File ficheiroLikes = new File("servidor/"+userID+"/"+getNameFile(foto)+ "Likes.txt");
 									phototempL.populateLikes(ficheiroLikes);
-									
+
 									//populate Dislikes
 									Photo phototempD = photos.getPhoto(foto);									
 									File ficheiroDislikes = new File("servidor/"+userID+"/"+getNameFile(foto)+ "Dislikes.txt");
@@ -225,33 +242,75 @@ public class PhotoShareServer {
 									Photo phototempC = photos.getPhoto(foto);									
 									File ficheiroComments = new File("servidor/"+userID+"/"+getNameFile(foto)+ "Comments.txt");
 									phototempC.populateComments(ficheiroComments);
-									
+
 									ArrayList<String> comentarios = phototempC.getlistPhotoComments();
 									outStream.writeObject(phototempC.tamanholistPhotoComments());
 									for (int i = 0; i < comentarios.size(); i++) {
 										outStream.writeObject(comentarios.get(i));
 									}
-									
+
 									outStream.writeObject(phototempL.tamanholistPhotoLikes());
 									outStream.writeObject(phototempD.tamanholistPhotoDislikes());
+
+
+
+								}else {
+									outStream.writeObject("NAO FOTO");
+
+								}
+							}else {
+								outStream.writeObject("NAO FOLLOWER");
+							}
+						}else {
+							outStream.writeObject("NAO USER");
+
+						}
+
+
+						break; 
+					case "-g" :
+
+						String userG = (String) inStream.readObject();
+						System.out.println(userG);
+						User u = catUser.getUser(userG);
+						if (catUser.find(userG) ==true) {
+							File followC = new File("servidor/"+userG+"/followers.txt");
+							u.populateFollowers(followC);
+							if(u.existsFollower(inUser) == true) {
+								File folderDir = new File("servidor/"+userG);
+								String[] folderFiles = folderDir.list();
+								ArrayList<String> listaDeFotos = getPhotoFiles(folderFiles);
+								outStream.write(listaDeFotos.size());
+								for (int i = 0; i < listaDeFotos.size(); i++) {
+									outStream.writeObject(listaDeFotos.get(i));
+									File file = new File("servidor/"+userG+"/"+listaDeFotos.get(i));
+									long size = file.length();
+									FileInputStream inStream1 = new FileInputStream(file);
+									InputStream inStream2 = new BufferedInputStream(inStream1);
+									byte buffer[] = new byte[1024];
+									int count=1024;
+									outStream.writeObject(file.length());
+									while((count = inStream1.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+										outStream.write(buffer, 0, count);
+										size -=count;
+										outStream.flush();	
+									}
 									
 									
 									
 								}
 							}
-						}	
+						}
 
 
-						break; 
-					case "-g" :
-						
-						
-							
-						
-						
-						
-						
-						
+
+
+
+
+
+
+
+
 						break; 
 
 
@@ -342,7 +401,7 @@ public class PhotoShareServer {
 							if(userDislike.existsFollower(inUser) == true) {
 								if (photos.existsPhoto(photoD) == true) {
 									Photo phototemp = photos.getPhoto(photoD);
-									
+
 									File ficheiroDislikes = new File("servidor/"+userD+"/"+getNameFile(photoD)+ "Dislikes.txt");
 									phototemp.populateDislikes(ficheiroDislikes);
 									if(phototemp.deuLike(inUser) == false) {
@@ -406,9 +465,9 @@ public class PhotoShareServer {
 						} 	
 						break;
 					default : 
-						
-						
-						
+
+
+
 					}
 				}catch (ClassNotFoundException e1) {
 					e1.printStackTrace();

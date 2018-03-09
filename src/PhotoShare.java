@@ -17,6 +17,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.regex.Pattern;
+
+import javax.swing.plaf.FontUIResource;
+
 import java.util.Scanner;
 public class PhotoShare {
 
@@ -28,11 +31,11 @@ public class PhotoShare {
 		for (int i = 1; i < args.length-2; i++) {
 			comentario+= args[i]+" ";
 		}
-		
+
 		return comentario;
 	}
-	
-	
+
+
 	public static void main(String[] args){
 
 		File pasta = new File("Clientes");
@@ -138,7 +141,7 @@ public class PhotoShare {
 							String nomeData = (String) in.readObject(); 
 							System.out.println(nomeData);
 						}
-						
+
 					}else {
 						System.out.println("O user que introduziu nao existe");						
 					}
@@ -151,24 +154,65 @@ public class PhotoShare {
 					out.writeObject(operacoesArgs[1]);
 					//photo
 					out.writeObject(operacoesArgs[2]);
-					
-					int commentSize = (int) in.readObject();
-					System.out.println("Lista de comentarios:");
-					for (int i = 0; i < commentSize; i++) {
-						String comentario = (String) in.readObject();
-						System.out.println(comentario);
+					String mostra = (String) in.readObject();
+					if (mostra.equals("MOSTRA")) {
+
+						int commentSize = (int) in.readObject();
+						System.out.println("Lista de comentarios:");
+						for (int i = 0; i < commentSize; i++) {
+							String comentario = (String) in.readObject();
+							System.out.println(comentario);
+						}
+
+						int likesSize = (int) in.readObject();
+
+						int dislikeSize = (int) in.readObject();
+
+						System.out.println("Numero de likes: " + likesSize);
+						System.out.println("Numero de dislikes: " +dislikeSize);
+
+					}else if (mostra.equals("NAO FOTO")) {
+
+
+					}else if(mostra.equals("NAO FOLLOWER")) {
+						System.out.println("Nao e follower deste user");
+
+					}else{
+						System.out.println("User inválido");
+
 					}
-					
-					int likesSize = (int) in.readObject();
-					
-					int dislikeSize = (int) in.readObject();
-					
-					System.out.println("Numero de likes: " + likesSize);
-					System.out.println("Numero de dislikes: " +dislikeSize);
-					
+
+
+
 					break; // optional
 				case "-g" :
-					// Statements
+
+					//op
+					out.writeObject(operacoesArgs[0]);		
+					//user
+					out.writeObject(operacoesArgs[1]);
+					int vector = in.read(); 
+					//System.out.println(vector);
+					
+					
+					
+					for (int i = 0; i < vector; i++) {
+						String fotografia = (String) in.readObject(); 
+						System.out.println(fotografia);
+						FileOutputStream outStream1 = new FileOutputStream("Clientes/"+arguments[0]+"/"+fotografia);
+						OutputStream outStream2 = new BufferedOutputStream(outStream1);
+						byte buffer[] = new byte [1024];
+						int count;
+						long leng =(long) in.readObject();
+						while((count = in.read(buffer, 0,(int) (leng<1024 ? leng:1024))) >0 ){
+							System.out.println(count);
+							outStream1.write(buffer, 0, count);
+							leng -=count;
+							outStream2.flush();
+						}
+						
+					}
+
 					break; // optional
 
 				case "-c" :
@@ -177,14 +221,14 @@ public class PhotoShare {
 					out.writeObject(operacoesArgs[0]);
 					//user
 					out.writeObject(comment);
-					
+
 					out.writeObject(operacoesArgs[len-2]);
 					//photo
 					out.writeObject(operacoesArgs[len-1]);
-					
-					
+
+
 					String comentario = (String) in.readObject();
-					
+
 					if (comentario.equals("COMMENT")) {
 						System.out.println("Comentario efectuado com sucesso");
 					}else if(comentario.equals("NAO FOLLOWER")){
@@ -206,19 +250,19 @@ public class PhotoShare {
 					String like = (String) in.readObject();
 					if (like.equals("LIKE")) {
 						System.out.println("Like efectuado com sucesso");
-						
+
 					}else if(like.equals("JADEULIKE")){
 						System.out.println("Já deu like anteriormente");		
-					
+
 					}else if(like.equals("NAO LIKE")){
 						System.out.println("Nao e follower deste user");
-					
+
 					}else if(like.equals("NAO FOTO")){
 						System.out.println("Nao existe a foto que pretende");
 					}else {
 						System.out.println("User inválido");
 					}
-					
+
 					break; // optional
 
 				case "-D" :
@@ -230,13 +274,13 @@ public class PhotoShare {
 					String dislike = (String) in.readObject();
 					if (dislike.equals("DISLIKE")) {
 						System.out.println("Dislike efectuado com sucesso");
-						
+
 					}else if(dislike.equals("JADEUDISLIKE")){
 						System.out.println("Já deu dislike anteriormente");		
-					
+
 					}else if(dislike.equals("NAO DISLIKE")){
 						System.out.println("Nao e follower deste user");
-					
+
 					}else if(dislike.equals("NAO FOTO")){
 						System.out.println("Nao existe a foto que pretende");
 					}else {
@@ -332,9 +376,9 @@ public class PhotoShare {
 	public static boolean validate(final String ip) {
 		return PATTERN.matcher(ip).matches();
 	}
-	
 
-	
-	
-	
+
+
+
+
 }

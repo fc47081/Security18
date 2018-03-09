@@ -1,4 +1,2 @@
-goncalo:1234
-vanessa:1234
-pedro:1234
-vgoncalo1234:1234
+Jose:1234
+Goncalo:1234
