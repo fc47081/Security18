@@ -48,9 +48,10 @@ public class PhotoShare {
 		Scanner input = new Scanner(System.in);
 		String [] arguments = verificaArgs(argumentos,input);
 		String [] serverAdress = arguments[2].split(":");
-
+		//System.out.println(serverAdress[1]);
 		try {
 			listeningSocket = new Socket(serverAdress[0],Integer.parseInt(serverAdress[1]));
+			
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);

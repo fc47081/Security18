@@ -79,6 +79,7 @@ public class PhotoShareServer {
 		if (!pasta.exists()) {
 			pasta.mkdir();
 		}
+		
 		System.out.println("Ligado , a espera de ligacao");
 		PhotoShareServer server = new PhotoShareServer();
 		server.startServer();
@@ -91,6 +92,9 @@ public class PhotoShareServer {
 		ServerSocket sSoc = null;
 		try {
 			sSoc = new ServerSocket(23232);
+			sSoc.getLocalPort();
+			//System.out.println(sSoc.getLocalPort());
+	
 		} catch (IOException e) {
 			System.out.println("O servidor PhotoShare so aceita ligacoes do porto : 23232");
 			System.exit(-1);
@@ -186,7 +190,6 @@ public class PhotoShareServer {
 						break; // optional
 
 					case "-l" :
-
 						String userPhotos = (String) inStream.readObject();
 						File followers = new File("servidor/"+userPhotos+"/followers.txt");
 						//catalogo para fotos
@@ -543,6 +546,7 @@ public class PhotoShareServer {
 
 			reader.close();
 		}
-
+	
+	
 	}
 }
