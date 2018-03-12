@@ -139,6 +139,12 @@ public class PhotoShareServer {
 					CatalogoUser catUser = new CatalogoUser();
 					CatalogoPhotos photos = new CatalogoPhotos();
 					autenticarUser(catUser,inUser, inPasswd, outStream, inStream);
+					String confirmacao = (String)inStream.readObject();
+					System.out.println(confirmacao);
+					while (confirmacao.equals("y")) {
+						
+					
+					
 					String operacao = (String)inStream.readObject();
 					switch(operacao) {
 					case "-a" :
@@ -231,7 +237,9 @@ public class PhotoShareServer {
 								File listaFotosC = new File("servidor/"+userID+"/listaFotos.txt");
 								photos.populate(listaFotosC);
 								if (photos.existsPhoto(foto) == true) {
+									System.out.println("Mostra");
 									outStream.writeObject("MOSTRA");
+									
 									//populate Likes
 									Photo phototempL = photos.getPhoto(foto);
 									File ficheiroLikes = new File("servidor/"+userID+"/"+getNameFile(foto)+ "Likes.txt");
@@ -430,6 +438,7 @@ public class PhotoShareServer {
 
 					case "-f" :
 						//ler o nome de quem da follow
+						System.out.println("entrei -f");
 						String followerAdd = (String) inStream.readObject();
 						User uAdd = catUser.getUser(inUser);
 						File follow = new File("servidor/"+inUser+"/followers.txt");
@@ -450,10 +459,11 @@ public class PhotoShareServer {
 					case "-r" :
 						//ler o nome de quem da follow
 						String followerRemove = (String) inStream.readObject();
+						System.out.println(followerRemove);
 						User uRemove = catUser.getUser(inUser);								
 						File followRem = new File("servidor/"+inUser+"/followers.txt");
 						uRemove.populateFollowers(followRem);
-
+						
 						if(catUser.find(followerRemove) == true) { //encontrar se o user exist na lista user
 							if (uRemove.existsFollower(followerRemove) ==true) {
 								uRemove.removeFollowers(followRem,followerRemove);
@@ -472,6 +482,12 @@ public class PhotoShareServer {
 
 
 					}
+				
+					
+					 confirmacao = (String)inStream.readObject();
+					
+					}
+				
 				}catch (ClassNotFoundException e1) {
 					e1.printStackTrace();
 				}

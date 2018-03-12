@@ -86,10 +86,13 @@ public class PhotoShare {
 				File dir = new File(dirName);
 				dir.mkdir();
 			}
-
+			
 			System.out.println("Deseja realizar operacoes ? (y/n)" );
 			String confirmacao = input.nextLine();
-			if (confirmacao.equals("y")) {
+			out.writeObject(confirmacao);
+			
+			
+			while(confirmacao.equals("y")) {
 				System.out.println("escolha uma operacao:");
 				System.out.println( "[ -a <photos> | -l <userId> | -i <userId> <photo> | -g <userId> \n"
 						+ "| -c <comment> <userId> <photo> | -L <userId> <photo> | \n -D <userId> <photo> | -f <followUserIds> | -r <followUserIds> ]");
@@ -307,6 +310,7 @@ public class PhotoShare {
 					out.writeObject(operacoesArgs[1]);
 					//Ler reposta do server : removido ou nunca existiu
 					String respostaRem = (String)in.readObject();
+					//System.out.println(respostaRem);
 					if(respostaRem.equals("Follower removido") ) 
 						System.out.println(respostaRem);
 					else
@@ -314,11 +318,16 @@ public class PhotoShare {
 					break;
 				default : 
 				}
-			}else {
+				
+				System.out.println("Deseja realizar operacoes ? (y/n)" );
+				confirmacao = input.nextLine();
+				out.writeObject(confirmacao);
+			
+			}
 
 				System.out.println("Nao pode realizar mais operacoes");
 
-			}
+			
 			input.close();
 			in.close();
 			out.close();
