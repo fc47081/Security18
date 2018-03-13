@@ -51,7 +51,7 @@ public class PhotoShare {
 		//System.out.println(serverAdress[1]);
 		try {
 			listeningSocket = new Socket(serverAdress[0],Integer.parseInt(serverAdress[1]));
-			
+
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
@@ -86,12 +86,12 @@ public class PhotoShare {
 				File dir = new File(dirName);
 				dir.mkdir();
 			}
-			
+
 			System.out.println("Deseja realizar operacoes ? (y/n)" );
 			String confirmacao = input.nextLine();
 			out.writeObject(confirmacao);
-			
-			
+
+
 			while(confirmacao.equals("y")) {
 				System.out.println("escolha uma operacao:");
 				System.out.println( "[ -a <photos> | -l <userId> | -i <userId> <photo> | -g <userId> \n"
@@ -121,9 +121,18 @@ public class PhotoShare {
 								size -=count;
 								out.flush();	
 							}
+							String transfer = (String)in.readObject();
+							if(transfer.equals("TRANSFERIDA")) {
+								System.out.println("A foto foi transferida com sucesso");
+							}
+
 						}else{
 							System.out.println("ja existe a foto");
 						}
+
+
+
+
 					}else {
 						//envia uma operacao que nao existe para poder dar exit
 						out.writeObject("--");
@@ -195,28 +204,35 @@ public class PhotoShare {
 					out.writeObject(operacoesArgs[0]);		
 					//user
 					out.writeObject(operacoesArgs[1]);
-					int vector = in.read(); 
-					//System.out.println(vector);
-					
-					
-					
-					for (int i = 0; i < vector; i++) {
-						String fotografia = (String) in.readObject(); 
-						System.out.println(fotografia);
-						FileOutputStream outStream1 = new FileOutputStream("Clientes/"+arguments[0]+"/"+fotografia);
-						OutputStream outStream2 = new BufferedOutputStream(outStream1);
-						byte buffer[] = new byte [1024];
-						int count;
-						long leng =(long) in.readObject();
-						while((count = in.read(buffer, 0,(int) (leng<1024 ? leng:1024))) >0 ){
-							System.out.println(count);
-							outStream1.write(buffer, 0, count);
-							leng -=count;
-							outStream2.flush();
-						}
-						
-					}
 
+					int vector = in.read();
+					System.out.println(vector);
+					//System.out.println(vector);
+					String msg= (String) in.readObject();
+					System.out.println("mandei isto "+msg);
+					if (msg.equals("Fotos enviadas")) {
+
+
+						for (int i = 0; i < vector; i++) {
+							String fotografia = (String) in.readObject();
+							System.out.println(fotografia);
+							FileOutputStream outStream1 = new FileOutputStream("Clientes/"+arguments[0]+"/"+fotografia);
+							OutputStream outStream2 = new BufferedOutputStream(outStream1);
+							byte buffer[] = new byte [1024];
+							int count;
+							long leng =(long) in.readObject();
+							while((count = in.read(buffer, 0,(int) (leng<1024 ? leng:1024))) >0 ){
+								System.out.println(count);
+								outStream1.write(buffer, 0, count);
+								leng -=count;
+								outStream2.flush();
+							}
+
+						}
+						System.out.println("Transferencia efectuada com sucesso");
+					}else {
+						System.out.println("Nao e follower");
+					}
 					break; // optional
 
 				case "-c" :
@@ -300,8 +316,12 @@ public class PhotoShare {
 					String respostaAdd = (String)in.readObject();
 					if(respostaAdd.equals("Follower adicionado") ) {
 						System.out.println(respostaAdd);
-					}else
+					}else if (respostaAdd.equals("Follower ja existe")) {
 						System.out.println(respostaAdd);
+					}else {
+						System.out.println(respostaAdd);
+					}
+
 					break; // optional
 
 				case "-r" :
@@ -313,21 +333,25 @@ public class PhotoShare {
 					//System.out.println(respostaRem);
 					if(respostaRem.equals("Follower removido") ) 
 						System.out.println(respostaRem);
-					else
+					else if (respostaRem.equals("Follower nao esta na lista")) {
 						System.out.println(respostaRem);
+					}else {
+						System.out.println(respostaRem);
+					}
+
 					break;
 				default : 
 				}
-				
+
 				System.out.println("Deseja realizar operacoes ? (y/n)" );
 				confirmacao = input.nextLine();
 				out.writeObject(confirmacao);
-			
+
 			}
 
-				System.out.println("Nao pode realizar mais operacoes");
+			System.out.println("Nao pode realizar mais operacoes");
 
-			
+
 			input.close();
 			in.close();
 			out.close();

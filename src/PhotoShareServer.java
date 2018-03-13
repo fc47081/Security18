@@ -52,7 +52,7 @@ public class PhotoShareServer {
 		for (int i = 0; i < listOfFiles.length; i++) {
 
 			if (listOfFiles[i].getName().endsWith(".png") ||
-					listOfFiles[i].getName().endsWith(".jpg")
+					listOfFiles[i].getName().endsWith(".jpg") ||listOfFiles[i].getName().endsWith(".jpeg")
 					&& listOfFiles[i].getName().equals(nome)) {
 
 				return true;
@@ -79,7 +79,7 @@ public class PhotoShareServer {
 		if (!pasta.exists()) {
 			pasta.mkdir();
 		}
-		
+
 		System.out.println("Ligado , a espera de ligacao");
 		PhotoShareServer server = new PhotoShareServer();
 		server.startServer();
@@ -94,7 +94,7 @@ public class PhotoShareServer {
 			sSoc = new ServerSocket(23232);
 			sSoc.getLocalPort();
 			//System.out.println(sSoc.getLocalPort());
-	
+
 		} catch (IOException e) {
 			System.out.println("O servidor PhotoShare so aceita ligacoes do porto : 23232");
 			System.exit(-1);
@@ -142,352 +142,370 @@ public class PhotoShareServer {
 					String confirmacao = (String)inStream.readObject();
 					System.out.println(confirmacao);
 					while (confirmacao.equals("y")) {
-						
-					
-					
-					String operacao = (String)inStream.readObject();
-					switch(operacao) {
-					case "-a" :
-						//argumento da foto
-						String dirName = "servidor/"+inUser;
-						File dir = new File(dirName);					
-						String photo = (String) inStream.readObject();
-						String temp = dirName+"/"+photo;
-						boolean check = new File(temp).exists();
-						File[] listOfFiles = dir.listFiles();
 
-						if(check == false) {
-							//Se nao existe, criar e guardar na pasta
-							outStream.writeObject("NAO EXISTE");
-							//receber o necessario do cliente e criar
-							FileOutputStream outStream1 = new FileOutputStream(temp);
-							OutputStream outStream2 = new BufferedOutputStream(outStream1);
-							byte buffer[] = new byte [1024];
-							int count;
-							long size = (long) inStream.readObject();
-							while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
-								outStream1.write(buffer, 0, count);
-								size -=count;
-								outStream2.flush();
-							}
-							dir.createNewFile();
-							//Data da publicacao da foto 
-							DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-							Date today = Calendar.getInstance().getTime();
-							String reportDate = df.format(today);
-							String dateToPrintToFile = reportDate;
-							BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/listaFotos.txt", true));
-							writer.write(photo+":"+dateToPrintToFile);
-							writer.newLine();
-							writer.close();
-							File like = new File("servidor/"+inUser+"/"+getNameFile(photo) + "Likes.txt");
-							like.createNewFile();
-							File dislike = new File("servidor/"+inUser+"/"+getNameFile(photo) + "Dislikes.txt");
-							dislike.createNewFile();
-							File comments = new File("servidor/"+inUser+"/"+getNameFile(photo) + "Comments.txt");
-							comments.createNewFile();
 
-						}else {
-							//Se ja existe , envia para o cliente que ja existe e da exit
-							if (existsNameFile(listOfFiles, photo)){
-								outStream.writeObject("EXISTE");
-							}
-						}
-						break; // optional
 
-					case "-l" :
-						String userPhotos = (String) inStream.readObject();
-						File followers = new File("servidor/"+userPhotos+"/followers.txt");
-						//catalogo para fotos
-						User userPhoto = catUser.getUser(userPhotos);	 
-						//popular os followers
-						userPhoto.populateFollowers(followers);
-						File photoList = new File("servidor/"+userPhotos+"/listaFotos.txt");
-						//catalogo fotos
+						String operacao = (String)inStream.readObject();
+						switch(operacao) {
+						case "-a" :
+							//argumento da foto
+							String dirName = "servidor/"+inUser;
+							File dir = new File(dirName);					
+							String photo = (String) inStream.readObject();
+							String temp = dirName+"/"+photo;
+							boolean check = new File(temp).exists();
+							System.out.println(check);
+							File[] listOfFiles = dir.listFiles();
 
-						//popular o catalogo das fotos
-						photos.populate(photoList);
-						ArrayList<Photo> fotos = photos.listaFotos();
-						if(catUser.find(userPhotos) == true) {
-							//System.out.println("aqui");
-							if(userPhoto.existsFollower(inUser) == true) {
-								//verificar este if nao entendo 
-								//System.out.println(photos.listaFotos().size());
-								outStream.writeObject(photos.listaFotos().size());
-								outStream.writeObject("EXISTE");
-								for (int i = 0; i < photos.listaFotos().size(); i++) {
-									outStream.writeObject(fotos.get(i).getNome()+" - "+fotos.get(i).getData());			
-								}
-							}else {
+							if(check == false) {
+								//Se nao existe, criar e guardar na pasta
 								outStream.writeObject("NAO EXISTE");
-							}
-						}
-
-						break; // optional
-
-					case "-i" :
-						String userID = (String) inStream.readObject();
-						String foto= (String) inStream.readObject();
-						User userCatalog = catUser.getUser(userID);
-
-						if (catUser.find(userID) ==true) {
-							File followC = new File("servidor/"+userID+"/followers.txt");
-							userCatalog.populateFollowers(followC);
-							if(userCatalog.existsFollower(inUser) == true) {
-								File listaFotosC = new File("servidor/"+userID+"/listaFotos.txt");
-								photos.populate(listaFotosC);
-								if (photos.existsPhoto(foto) == true) {
-									System.out.println("Mostra");
-									outStream.writeObject("MOSTRA");
-									
-									//populate Likes
-									Photo phototempL = photos.getPhoto(foto);
-									File ficheiroLikes = new File("servidor/"+userID+"/"+getNameFile(foto)+ "Likes.txt");
-									phototempL.populateLikes(ficheiroLikes);
-
-									//populate Dislikes
-									Photo phototempD = photos.getPhoto(foto);									
-									File ficheiroDislikes = new File("servidor/"+userID+"/"+getNameFile(foto)+ "Dislikes.txt");
-									phototempD.populateDislikes(ficheiroDislikes);
-									//populate comentarios
-									Photo phototempC = photos.getPhoto(foto);									
-									File ficheiroComments = new File("servidor/"+userID+"/"+getNameFile(foto)+ "Comments.txt");
-									phototempC.populateComments(ficheiroComments);
-
-									ArrayList<String> comentarios = phototempC.getlistPhotoComments();
-									outStream.writeObject(phototempC.tamanholistPhotoComments());
-									for (int i = 0; i < comentarios.size(); i++) {
-										outStream.writeObject(comentarios.get(i));
-									}
-
-									outStream.writeObject(phototempL.tamanholistPhotoLikes());
-									outStream.writeObject(phototempD.tamanholistPhotoDislikes());
-
-
-
-								}else {
-									outStream.writeObject("NAO FOTO");
-
+								//receber o necessario do cliente e criar
+								FileOutputStream outStream1 = new FileOutputStream(temp);
+								OutputStream outStream2 = new BufferedOutputStream(outStream1);
+								byte buffer[] = new byte [1024];
+								int count;
+								long size = (long) inStream.readObject();
+								while((count = inStream.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+									outStream1.write(buffer, 0, count);
+									size -=count;
+									outStream2.flush();
 								}
-							}else {
-								outStream.writeObject("NAO FOLLOWER");
-							}
-						}else {
-							outStream.writeObject("NAO USER");
-
-						}
-
-
-						break; 
-					case "-g" :
-
-						String userG = (String) inStream.readObject();
-						System.out.println(userG);
-						User u = catUser.getUser(userG);
-						if (catUser.find(userG) ==true) {
-							File followC = new File("servidor/"+userG+"/followers.txt");
-							u.populateFollowers(followC);
-							if(u.existsFollower(inUser) == true) {
-								File folderDir = new File("servidor/"+userG);
-								String[] folderFiles = folderDir.list();
-								ArrayList<String> listaDeFotos = getPhotoFiles(folderFiles);
-								outStream.write(listaDeFotos.size());
-								for (int i = 0; i < listaDeFotos.size(); i++) {
-									outStream.writeObject(listaDeFotos.get(i));
-									File file = new File("servidor/"+userG+"/"+listaDeFotos.get(i));
-									long size = file.length();
-									FileInputStream inStream1 = new FileInputStream(file);
-									InputStream inStream2 = new BufferedInputStream(inStream1);
-									byte buffer[] = new byte[1024];
-									int count=1024;
-									outStream.writeObject(file.length());
-									while((count = inStream1.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
-										outStream.write(buffer, 0, count);
-										size -=count;
-										outStream.flush();	
-									}
-									
-									
-									
-								}
-							}
-						}
-
-
-
-
-
-
-
-
-
-
-						break; 
-
-
-					case "-c" :
-						String comentario = (String) inStream.readObject();
-
-						String userC = (String) inStream.readObject();
-						String photoC = (String) inStream.readObject();
-						User userCcomment = catUser.getUser(userC);
-
-						//verificar se e user
-						if (catUser.find(userC) ==true) {
-							File followC = new File("servidor/"+userC+"/followers.txt");
-							userCcomment.populateFollowers(followC);
-							//verificamos se e follower	
-							if(userCcomment.existsFollower(inUser) == true) {
-								File listaFotosC = new File("servidor/"+userC+"/listaFotos.txt");
-								photos.populate(listaFotosC);
-								if (photos.existsPhoto(photoC) == true) {
-									BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+userC+"/"+getNameFile(photoC) + "Comments.txt", true)); 
-									writer.write(comentario);
-									writer.newLine();
-									writer.close();
-									outStream.writeObject("COMMENT");
-								}else {
-									outStream.writeObject("NAO FOTO");
-								}
-							}else {
-								outStream.writeObject("NAO FOLLOWER");
-							}		
-						}else {
-							outStream.writeObject("NAO USER");
-						}			
-						break; // optional     
-
-					case "-L" :
-						String user = (String) inStream.readObject();
-						String photoL = (String) inStream.readObject();
-						File followLike = new File("servidor/"+user+"/followers.txt");
-						File listaFotos = new File("servidor/"+user+"/listaFotos.txt");
-
-						//verificar se e user
-						if (catUser.find(user) ==true) {									
-							User userLike = catUser.getUser(user);
-							userLike.populateFollowers(followLike);
-
-							//verificamos se e follower	
-							if(userLike.existsFollower(inUser) == true) {
-								photos.populate(listaFotos);
-								if (photos.existsPhoto(photoL) == true) {	
-									Photo phototemp = photos.getPhoto(photoL);
-									File ficheiroLikes = new File("servidor/"+user+"/"+getNameFile(photoL)+ "Likes.txt");
-									phototemp.populateLikes(ficheiroLikes);
-									if(phototemp.deuLike(inUser) == false) {
-										BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+user+"/"+getNameFile(photoL) + "Likes.txt", true)); 
-										writer.write(inUser);
-										writer.newLine();
-										writer.close();
-										outStream.writeObject("LIKE");
-									}else {
-										outStream.writeObject("JADEULIKE");
-									}
-								}else {
-									outStream.writeObject("NAO FOTO");
-								}		
-							}else {
-								outStream.writeObject("NAO LIKE");
-							}
-						}else {
-							outStream.writeObject("NAO USER");
-						}
-
-						break; // optional
-
-					case "-D" :
-						String userD = (String) inStream.readObject();
-						String photoD = (String) inStream.readObject();
-						File followDislike = new File("servidor/"+userD+"/followers.txt");
-						File listFotos = new File("servidor/"+userD+"/listaFotos.txt");
-						photos.populate(listFotos);
-
-						//verificar se e user
-						if (catUser.find(userD) ==true) {
-							User userDislike = catUser.getUser(userD);
-							userDislike.populateFollowers(followDislike);
-
-							//verificamos se e follower
-							if(userDislike.existsFollower(inUser) == true) {
-								if (photos.existsPhoto(photoD) == true) {
-									Photo phototemp = photos.getPhoto(photoD);
-
-									File ficheiroDislikes = new File("servidor/"+userD+"/"+getNameFile(photoD)+ "Dislikes.txt");
-									phototemp.populateDislikes(ficheiroDislikes);
-									if(phototemp.deuLike(inUser) == false) {
-										BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+userD+"/"+getNameFile(photoD) + "Dislikes.txt", true)); 
-										writer.write(inUser);
-										writer.newLine();
-										writer.close();
-										outStream.writeObject("DISLIKE");
-									}else {
-										outStream.writeObject("JADEUDISLIKE");
-									}
-								}else {
-									outStream.writeObject("NAO FOTO");
-								}		
-							}else {
-								outStream.writeObject("NAO DISLIKE");
-							}
-						}else {
-							outStream.writeObject("NAO USER");
-						}
-
-						break; // optional
-
-					case "-f" :
-						//ler o nome de quem da follow
-						System.out.println("entrei -f");
-						String followerAdd = (String) inStream.readObject();
-						User uAdd = catUser.getUser(inUser);
-						File follow = new File("servidor/"+inUser+"/followers.txt");
-						uAdd.populateFollowers(follow);
-						if(catUser.find(followerAdd) == true) {//encontrar se o user exist na lista users
-							if (uAdd.existsFollower(followerAdd) ==true) {
-								outStream.writeObject("Follower ja existe");
-							}else{ 
-								BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/followers.txt", true)); 
-								writer.write(followerAdd);
+								dir.createNewFile();
+								//Data da publicacao da foto 
+								DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+								Date today = Calendar.getInstance().getTime();
+								String reportDate = df.format(today);
+								String dateToPrintToFile = reportDate;
+								BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/listaFotos.txt", true));
+								writer.write(photo+":"+dateToPrintToFile);
 								writer.newLine();
 								writer.close();
-								outStream.writeObject("Follower adicionado");
-							}
-						}
-						break; 
-
-					case "-r" :
-						//ler o nome de quem da follow
-						String followerRemove = (String) inStream.readObject();
-						System.out.println(followerRemove);
-						User uRemove = catUser.getUser(inUser);								
-						File followRem = new File("servidor/"+inUser+"/followers.txt");
-						uRemove.populateFollowers(followRem);
-						
-						if(catUser.find(followerRemove) == true) { //encontrar se o user exist na lista user
-							if (uRemove.existsFollower(followerRemove) ==true) {
-								uRemove.removeFollowers(followRem,followerRemove);
-								followRem.delete();
-								File removidos = new File("servidor/"+inUser+"/followers.txt");
-								removidos.createNewFile();
-								uRemove.CreateFileRemoved(removidos, inUser);
-								outStream.writeObject("Follower removido");
+								File like = new File("servidor/"+inUser+"/"+getNameFile(photo) + "Likes.txt");
+								like.createNewFile();
+								File dislike = new File("servidor/"+inUser+"/"+getNameFile(photo) + "Dislikes.txt");
+								dislike.createNewFile();
+								File comments = new File("servidor/"+inUser+"/"+getNameFile(photo) + "Comments.txt");
+								comments.createNewFile();
+								outStream.writeObject("TRANSFERIDA");
 							}else {
-								outStream.writeObject("Follower nao esta na lista");
+								//Se ja existe , envia para o cliente que ja existe e da exit
+								if (existsNameFile(listOfFiles, photo)){
+									System.out.println("existe o ficheiro");
+									outStream.writeObject("EXISTE");
+								}
 							}
-						} 	
-						break;
-					default : 
+							break; // optional
+
+						case "-l" :
+							String userPhotos = (String) inStream.readObject();
+							File followers = new File("servidor/"+userPhotos+"/followers.txt");
+							//catalogo para fotos
+							User userPhoto = catUser.getUser(userPhotos);	 
+							//popular os followers
+							userPhoto.populateFollowers(followers);
+							File photoList = new File("servidor/"+userPhotos+"/listaFotos.txt");
+							//catalogo fotos
+
+							//popular o catalogo das fotos
+							photos.populate(photoList);
+							ArrayList<Photo> fotos = photos.listaFotos();
+							if(catUser.find(userPhotos) == true) {
+								//System.out.println("aqui");
+								if(userPhoto.existsFollower(inUser) == true) {
+									//verificar este if nao entendo 
+									//System.out.println(photos.listaFotos().size());
+									outStream.writeObject(photos.listaFotos().size());
+									outStream.writeObject("EXISTE");
+									for (int i = 0; i < photos.listaFotos().size(); i++) {
+										outStream.writeObject(fotos.get(i).getNome()+" - "+fotos.get(i).getData());			
+									}
+								}else {
+									outStream.writeObject("NAO EXISTE");
+								}
+							}
+
+							break; // optional
+
+						case "-i" :
+							String userID = (String) inStream.readObject();
+							String foto= (String) inStream.readObject();
+							User userCatalog = catUser.getUser(userID);
+
+							if (catUser.find(userID) ==true) {
+								File followC = new File("servidor/"+userID+"/followers.txt");
+								userCatalog.populateFollowers(followC);
+								if(userCatalog.existsFollower(inUser) == true) {
+									File listaFotosC = new File("servidor/"+userID+"/listaFotos.txt");
+									photos.populate(listaFotosC);
+									if (photos.existsPhoto(foto) == true) {
+										System.out.println("Mostra");
+										outStream.writeObject("MOSTRA");
+
+										//populate Likes
+										Photo phototempL = photos.getPhoto(foto);
+										File ficheiroLikes = new File("servidor/"+userID+"/"+getNameFile(foto)+ "Likes.txt");
+										phototempL.populateLikes(ficheiroLikes);
+
+										//populate Dislikes
+										Photo phototempD = photos.getPhoto(foto);									
+										File ficheiroDislikes = new File("servidor/"+userID+"/"+getNameFile(foto)+ "Dislikes.txt");
+										phototempD.populateDislikes(ficheiroDislikes);
+										//populate comentarios
+										Photo phototempC = photos.getPhoto(foto);									
+										File ficheiroComments = new File("servidor/"+userID+"/"+getNameFile(foto)+ "Comments.txt");
+										phototempC.populateComments(ficheiroComments);
+
+										ArrayList<String> comentarios = phototempC.getlistPhotoComments();
+										outStream.writeObject(phototempC.tamanholistPhotoComments());
+										for (int i = 0; i < comentarios.size(); i++) {
+											outStream.writeObject(comentarios.get(i));
+										}
+
+										outStream.writeObject(phototempL.tamanholistPhotoLikes());
+										outStream.writeObject(phototempD.tamanholistPhotoDislikes());
 
 
+
+									}else {
+										outStream.writeObject("NAO FOTO");
+
+									}
+								}else {
+									outStream.writeObject("NAO FOLLOWER");
+								}
+							}else {
+								outStream.writeObject("NAO USER");
+
+							}
+
+
+							break; 
+						case "-g" :
+
+							String userG = (String) inStream.readObject();
+							System.out.println(userG);
+							User u = catUser.getUser(userG);
+							if (catUser.find(userG) ==true) {
+								File followC = new File("servidor/"+userG+"/followers.txt");
+								u.populateFollowers(followC);
+								System.out.println("lista:");
+								u.imprime();
+								//System.out.println("existe? "+u.existsFollower(inUser));
+								if(u.existsFollower(inUser) == true) {
+									File folderDir = new File("servidor/"+userG);
+									String[] folderFiles = folderDir.list();
+									ArrayList<String> listaDeFotos = getPhotoFiles(folderFiles);
+									//System.out.println(listaDeFotos.get(0));
+									outStream.write(listaDeFotos.size());
+									outStream.writeObject("Fotos enviadas");
+									for (int i = 0; i < listaDeFotos.size(); i++) {
+										outStream.writeObject(listaDeFotos.get(i));
+										//System.out.println("oi barrote");
+										File file = new File("servidor/"+userG+"/"+listaDeFotos.get(i));
+										long size = file.length();
+										FileInputStream inStream1 = new FileInputStream(file);
+										InputStream inStream2 = new BufferedInputStream(inStream1);
+										byte buffer[] = new byte[1024];
+										int count=1024;
+										outStream.writeObject(file.length());
+										while((count = inStream1.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+											outStream.write(buffer, 0, count);
+											size -=count;
+											outStream.flush();	
+										}
+										
+									}
+									
+								}else {
+									outStream.writeObject("Nao Follower");
+									
+								}
+							}
+
+
+
+
+
+
+
+
+
+
+							break; 
+
+
+						case "-c" :
+							String comentario = (String) inStream.readObject();
+
+							String userC = (String) inStream.readObject();
+							String photoC = (String) inStream.readObject();
+							User userCcomment = catUser.getUser(userC);
+
+							//verificar se e user
+							if (catUser.find(userC) ==true) {
+								File followC = new File("servidor/"+userC+"/followers.txt");
+								userCcomment.populateFollowers(followC);
+								//verificamos se e follower	
+								if(userCcomment.existsFollower(inUser) == true) {
+									File listaFotosC = new File("servidor/"+userC+"/listaFotos.txt");
+									photos.populate(listaFotosC);
+									if (photos.existsPhoto(photoC) == true) {
+										BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+userC+"/"+getNameFile(photoC) + "Comments.txt", true)); 
+										writer.write(comentario);
+										writer.newLine();
+										writer.close();
+										outStream.writeObject("COMMENT");
+									}else {
+										outStream.writeObject("NAO FOTO");
+									}
+								}else {
+									outStream.writeObject("NAO FOLLOWER");
+								}		
+							}else {
+								outStream.writeObject("NAO USER");
+							}			
+							break; // optional     
+
+						case "-L" :
+							String user = (String) inStream.readObject();
+							String photoL = (String) inStream.readObject();
+							File followLike = new File("servidor/"+inUser+"/followers.txt");
+							File listaFotos = new File("servidor/"+user+"/listaFotos.txt");
+
+							//verificar se e user
+							if (catUser.find(user) ==true) {									
+								User userLike = catUser.getUser(user);
+								userLike.populateFollowers(followLike);
+								System.out.println(userLike.existsFollower(inUser));
+								//verificamos se e follower	
+								if(userLike.existsFollower(inUser) == true) {
+									
+									photos.populate(listaFotos);
+									if (photos.existsPhoto(photoL) == true) {	
+										Photo phototemp = photos.getPhoto(photoL);
+										File ficheiroLikes = new File("servidor/"+user+"/"+getNameFile(photoL)+ "Likes.txt");
+										phototemp.populateLikes(ficheiroLikes);
+										if(phototemp.deuLike(inUser) == false) {
+											BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+user+"/"+getNameFile(photoL) + "Likes.txt", true)); 
+											writer.write(inUser);
+											writer.newLine();
+											writer.close();
+											outStream.writeObject("LIKE");
+										}else {
+											outStream.writeObject("JADEULIKE");
+										}
+									}else {
+										outStream.writeObject("NAO FOTO");
+									}		
+								}else {
+									outStream.writeObject("NAO LIKE");
+								}
+							}else {
+								outStream.writeObject("NAO USER");
+							}
+
+							break; // optional
+
+						case "-D" :
+							String userD = (String) inStream.readObject();
+							String photoD = (String) inStream.readObject();
+							File followDislike = new File("servidor/"+inUser+"/followers.txt");
+							File listFotos = new File("servidor/"+userD+"/listaFotos.txt");
+							photos.populate(listFotos);
+
+							//verificar se e user
+							if (catUser.find(userD) ==true) {
+								User userDislike = catUser.getUser(userD);
+								userDislike.populateFollowers(followDislike);
+
+								//verificamos se e follower
+								if(userDislike.existsFollower(inUser) == true) {
+									if (photos.existsPhoto(photoD) == true) {
+										Photo phototemp = photos.getPhoto(photoD);
+
+										File ficheiroDislikes = new File("servidor/"+userD+"/"+getNameFile(photoD)+ "Dislikes.txt");
+										phototemp.populateDislikes(ficheiroDislikes);
+										if(phototemp.deuLike(inUser) == false) {
+											BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+userD+"/"+getNameFile(photoD) + "Dislikes.txt", true)); 
+											writer.write(inUser);
+											writer.newLine();
+											writer.close();
+											outStream.writeObject("DISLIKE");
+										}else {
+											outStream.writeObject("JADEUDISLIKE");
+										}
+									}else {
+										outStream.writeObject("NAO FOTO");
+									}		
+								}else {
+									outStream.writeObject("NAO DISLIKE");
+								}
+							}else {
+								outStream.writeObject("NAO USER");
+							}
+
+							break; // optional
+
+						case "-f" :
+							//ler o nome de quem da follow
+							//System.out.println("entrei -f");
+							String followerAdd = (String) inStream.readObject();
+							User uAdd = catUser.getUser(inUser);
+							File follow = new File("servidor/"+inUser+"/followers.txt");
+							uAdd.populateFollowers(follow);
+							if(catUser.find(followerAdd) == true) {//encontrar se o user exist na lista users
+								if (uAdd.existsFollower(followerAdd) ==true) {
+									outStream.writeObject("Follower ja existe");
+								}else{ 
+									
+									BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/followers.txt", true)); 
+									writer.write(followerAdd);
+									writer.newLine();
+									writer.close();
+									outStream.writeObject("Follower adicionado");
+								}
+							}else {
+								outStream.writeObject("follower nao existe");
+							}
+							break; 
+
+						case "-r" :
+							//ler o nome de quem da follow
+							String followerRemove = (String) inStream.readObject();
+							System.out.println(followerRemove);
+							User uRemove = catUser.getUser(inUser);								
+							File followRem = new File("servidor/"+inUser+"/followers.txt");
+							uRemove.populateFollowers(followRem);
+
+							if(catUser.find(followerRemove) == true) { //encontrar se o user exist na lista user
+								if (uRemove.existsFollower(followerRemove) ==true) {
+									System.out.println("follow:");
+									uRemove.imprime();
+									uRemove.removeFollowers(followRem,followerRemove);
+									System.out.println("removido:");
+									uRemove.imprime();
+									followRem.delete();
+									File removidos = new File("servidor/"+inUser+"/followers.txt");
+									removidos.createNewFile();
+									uRemove.CreateFileRemoved(removidos, inUser);
+									outStream.writeObject("Follower removido");
+								}else {
+									outStream.writeObject("Follower nao esta na lista");
+								}
+							}else {
+								outStream.writeObject("Follower nao existe");
+							}
+							break;
+						default : 
+
+						}
+
+
+						confirmacao = (String)inStream.readObject();
 
 					}
-				
-					
-					 confirmacao = (String)inStream.readObject();
-					
-					}
-				
+
 				}catch (ClassNotFoundException e1) {
 					e1.printStackTrace();
 				}
@@ -562,7 +580,7 @@ public class PhotoShareServer {
 
 			reader.close();
 		}
-	
-	
+
+
 	}
 }
