@@ -103,11 +103,11 @@ public class PhotoShare {
 				switch(operacoesArgs[0]) {
 				case "-a" :
 					//envia nome do ficheiro(exemplo: a.jpg)
-					out.writeObject(operacoesArgs[0]);
 					//argumento da foto
 					File foto = new File("Clientes/"+arguments[0]+"/"+operacoesArgs[1]);
 					long size = foto.length();
 					if(foto.exists()) {
+						out.writeObject(operacoesArgs[0]);
 						out.writeObject(operacoesArgs[1]);
 						String existe = (String) in.readObject();
 						if (existe.equals("NAO EXISTE")) {
@@ -127,15 +127,13 @@ public class PhotoShare {
 							}
 
 						}else{
+							out.writeObject(operacoesArgs[0]);
+
 							System.out.println("ja existe a foto");
 						}
-
-
-
-
 					}else {
 						//envia uma operacao que nao existe para poder dar exit
-						out.writeObject("--");
+						//out.writeObject("--");
 						System.out.println("A foto que quer enviar nao existe");
 
 					}
@@ -145,19 +143,25 @@ public class PhotoShare {
 					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
 					//System.out.println(operacoesArgs[1]);
-					int tamanho =(int) in.readObject();
 					//System.out.println("tamanho "+tamanho);
 					String segue = (String) in.readObject();
 					if (segue.equals("EXISTE")) {
+						int tamanho =(int) in.readObject();
 						System.out.println("Lista de fotos:");
 						for (int i = 0; i < tamanho; i++) {
 							String nomeData = (String) in.readObject(); 
 							System.out.println(nomeData);
 						}
 
-					}else {
+					}else if (segue.equals("NAO EXISTE USER")) {
 						System.out.println("O user que introduziu nao existe");						
+
+					}else {
+						System.out.println("Nao é follower");
 					}
+
+
+
 					break;
 
 				case "-i" :
@@ -185,6 +189,7 @@ public class PhotoShare {
 						System.out.println("Numero de dislikes: " +dislikeSize);
 
 					}else if (mostra.equals("NAO FOTO")) {
+						System.out.println("Nao existe a foto");
 
 
 					}else if(mostra.equals("NAO FOLLOWER")) {
@@ -206,16 +211,16 @@ public class PhotoShare {
 					out.writeObject(operacoesArgs[1]);
 
 					int vector = in.read();
-					System.out.println(vector);
+					//System.out.println(vector);
 					//System.out.println(vector);
 					String msg= (String) in.readObject();
-					System.out.println("mandei isto "+msg);
+					//System.out.println("mandei isto "+msg);
 					if (msg.equals("Fotos enviadas")) {
 
 
 						for (int i = 0; i < vector; i++) {
 							String fotografia = (String) in.readObject();
-							System.out.println(fotografia);
+							//System.out.println(fotografia);
 							FileOutputStream outStream1 = new FileOutputStream("Clientes/"+arguments[0]+"/"+fotografia);
 							OutputStream outStream2 = new BufferedOutputStream(outStream1);
 							byte buffer[] = new byte [1024];
@@ -230,8 +235,10 @@ public class PhotoShare {
 
 						}
 						System.out.println("Transferencia efectuada com sucesso");
-					}else {
+					}else if (msg.equals("Nao Follower")) {
 						System.out.println("Nao e follower");
+					}else {
+						System.out.println("Nao e user");
 					}
 					break; // optional
 

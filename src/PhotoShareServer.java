@@ -143,8 +143,6 @@ public class PhotoShareServer {
 					System.out.println(confirmacao);
 					while (confirmacao.equals("y")) {
 
-
-
 						String operacao = (String)inStream.readObject();
 						switch(operacao) {
 						case "-a" :
@@ -154,7 +152,7 @@ public class PhotoShareServer {
 							String photo = (String) inStream.readObject();
 							String temp = dirName+"/"+photo;
 							boolean check = new File(temp).exists();
-							System.out.println(check);
+							//System.out.println(check);
 							File[] listOfFiles = dir.listFiles();
 
 							if(check == false) {
@@ -199,30 +197,36 @@ public class PhotoShareServer {
 
 						case "-l" :
 							String userPhotos = (String) inStream.readObject();
-							File followers = new File("servidor/"+userPhotos+"/followers.txt");
+							//System.out.println("user "+userPhotos);
 							//catalogo para fotos
 							User userPhoto = catUser.getUser(userPhotos);	 
 							//popular os followers
-							userPhoto.populateFollowers(followers);
-							File photoList = new File("servidor/"+userPhotos+"/listaFotos.txt");
 							//catalogo fotos
 
 							//popular o catalogo das fotos
-							photos.populate(photoList);
-							ArrayList<Photo> fotos = photos.listaFotos();
+
+
 							if(catUser.find(userPhotos) == true) {
+								File followers = new File("servidor/"+userPhotos+"/followers.txt");
+								userPhoto.populateFollowers(followers);
 								//System.out.println("aqui");
 								if(userPhoto.existsFollower(inUser) == true) {
+									outStream.writeObject("EXISTE");
+									ArrayList<Photo> fotos = photos.listaFotos();
+									File photoList = new File("servidor/"+userPhotos+"/listaFotos.txt");
+									photos.populate(photoList);
 									//verificar este if nao entendo 
 									//System.out.println(photos.listaFotos().size());
 									outStream.writeObject(photos.listaFotos().size());
-									outStream.writeObject("EXISTE");
+
 									for (int i = 0; i < photos.listaFotos().size(); i++) {
 										outStream.writeObject(fotos.get(i).getNome()+" - "+fotos.get(i).getData());			
 									}
 								}else {
 									outStream.writeObject("NAO EXISTE");
 								}
+							}else {
+								outStream.writeObject("NAO EXISTE USER");
 							}
 
 							break; // optional
@@ -284,12 +288,12 @@ public class PhotoShareServer {
 						case "-g" :
 
 							String userG = (String) inStream.readObject();
-							System.out.println(userG);
+							//System.out.println(userG);
 							User u = catUser.getUser(userG);
 							if (catUser.find(userG) ==true) {
 								File followC = new File("servidor/"+userG+"/followers.txt");
 								u.populateFollowers(followC);
-								System.out.println("lista:");
+								//System.out.println("lista:");
 								u.imprime();
 								//System.out.println("existe? "+u.existsFollower(inUser));
 								if(u.existsFollower(inUser) == true) {
@@ -314,13 +318,15 @@ public class PhotoShareServer {
 											size -=count;
 											outStream.flush();	
 										}
-										
+
 									}
-									
+
 								}else {
 									outStream.writeObject("Nao Follower");
-									
+
 								}
+							}else {
+								outStream.writeObject("Nao e user");
 							}
 
 
@@ -370,7 +376,7 @@ public class PhotoShareServer {
 						case "-L" :
 							String user = (String) inStream.readObject();
 							String photoL = (String) inStream.readObject();
-							File followLike = new File("servidor/"+inUser+"/followers.txt");
+							File followLike = new File("servidor/"+user+"/followers.txt");
 							File listaFotos = new File("servidor/"+user+"/listaFotos.txt");
 
 							//verificar se e user
@@ -380,7 +386,7 @@ public class PhotoShareServer {
 								System.out.println(userLike.existsFollower(inUser));
 								//verificamos se e follower	
 								if(userLike.existsFollower(inUser) == true) {
-									
+
 									photos.populate(listaFotos);
 									if (photos.existsPhoto(photoL) == true) {	
 										Photo phototemp = photos.getPhoto(photoL);
@@ -458,7 +464,7 @@ public class PhotoShareServer {
 								if (uAdd.existsFollower(followerAdd) ==true) {
 									outStream.writeObject("Follower ja existe");
 								}else{ 
-									
+
 									BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/followers.txt", true)); 
 									writer.write(followerAdd);
 									writer.newLine();
