@@ -33,7 +33,7 @@ public class PhotoShareServer {
 	public static ArrayList<String> getPhotoFiles(String[] ficheiros) {
 		ArrayList<String> files = new ArrayList<String>();
 		for(int i = 0; i < ficheiros.length; i++) {
-			if (ficheiros[i].endsWith(".jpg")|| ficheiros[i].endsWith("Comments.txt") ) {
+			if (ficheiros[i].endsWith(".jpeg")||ficheiros[i].endsWith(".jpg")|| ficheiros[i].endsWith("Comments.txt") ) {
 				files.add(ficheiros[i]);
 			}
 
@@ -288,24 +288,22 @@ public class PhotoShareServer {
 						case "-g" :
 
 							String userG = (String) inStream.readObject();
-							//System.out.println(userG);
 							User u = catUser.getUser(userG);
 							if (catUser.find(userG) ==true) {
 								File followC = new File("servidor/"+userG+"/followers.txt");
 								u.populateFollowers(followC);
-								//System.out.println("lista:");
 								u.imprime();
-								//System.out.println("existe? "+u.existsFollower(inUser));
 								if(u.existsFollower(inUser) == true) {
 									File folderDir = new File("servidor/"+userG);
 									String[] folderFiles = folderDir.list();
+									System.out.println(folderFiles + "FOLDER FILES!!!");
 									ArrayList<String> listaDeFotos = getPhotoFiles(folderFiles);
-									//System.out.println(listaDeFotos.get(0));
 									outStream.write(listaDeFotos.size());
+									// TA A ENVIAR 1 A MAIS! 
+									System.out.println("tamanho da lista de fotos:" + listaDeFotos.size());
 									outStream.writeObject("Fotos enviadas");
 									for (int i = 0; i < listaDeFotos.size(); i++) {
 										outStream.writeObject(listaDeFotos.get(i));
-										//System.out.println("oi barrote");
 										File file = new File("servidor/"+userG+"/"+listaDeFotos.get(i));
 										long size = file.length();
 										FileInputStream inStream1 = new FileInputStream(file);
