@@ -211,23 +211,17 @@ public class PhotoShare {
 					out.writeObject(operacoesArgs[1]);
 
 					int vector = in.read();
-					//System.out.println(vector);
-					//System.out.println(vector);
+					System.out.println("vetor tamanha:" + vector);
 					String msg= (String) in.readObject();
-					//System.out.println("mandei isto "+msg);
 					if (msg.equals("Fotos enviadas")) {
-
-
 						for (int i = 0; i < vector; i++) {
 							String fotografia = (String) in.readObject();
-							//System.out.println(fotografia);
 							FileOutputStream outStream1 = new FileOutputStream("Clientes/"+arguments[0]+"/"+fotografia);
 							OutputStream outStream2 = new BufferedOutputStream(outStream1);
 							byte buffer[] = new byte [1024];
 							int count;
 							long leng =(long) in.readObject();
 							while((count = in.read(buffer, 0,(int) (leng<1024 ? leng:1024))) >0 ){
-								System.out.println(count);
 								outStream1.write(buffer, 0, count);
 								leng -=count;
 								outStream2.flush();
@@ -235,6 +229,7 @@ public class PhotoShare {
 
 						}
 						System.out.println("Transferencia efectuada com sucesso");
+						
 					}else if (msg.equals("Nao Follower")) {
 						System.out.println("Nao e follower");
 					}else {
