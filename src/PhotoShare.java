@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.plaf.FontUIResource;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 public class PhotoShare {
 
@@ -33,6 +34,28 @@ public class PhotoShare {
 		}
 
 		return comentario;
+	}
+
+
+	public static boolean verifyOperations(String input) {
+		String[] operacoes = {"-a","-l","-i","-g","-c","-D","-f","-r"};
+		for (int i = 0; i < operacoes.length; i++) {
+			if (input.equals(operacoes[i])) {
+				return true;
+			}
+		}
+		return false;
+
+	}
+
+	public static ArrayList<String> ops(String[] operacoes){
+		ArrayList<String> array = new ArrayList<String>();
+
+		for (int i = 0; i < operacoes.length; i++) {
+			array.add(operacoes[i]);
+		}
+
+		return array;
 	}
 
 
@@ -99,9 +122,27 @@ public class PhotoShare {
 
 				String operacao = input.nextLine();
 				String[]  operacoesArgs = operacao.split(" ");
+
+				while(operacoesArgs.length <= 1 || (verifyOperations(operacoesArgs[0]) == false)) {
+					System.out.println("faltam argumentos na operacao, volte a introduzir");
+					operacao = input.nextLine();
+					operacoesArgs = operacao.split(" ");
+				}
+
+				ArrayList<String> OpsAux = ops(operacoesArgs);
+
 				//String comentario = 
 				switch(operacoesArgs[0]) {
 				case "-a" :
+					while(OpsAux.size() >= 3) {	
+						System.out.println("demasiados argumentos,introduza apeanas o nome da foto");
+						String aux = input.nextLine();
+						if (aux.split(" ").length == 1) {
+							OpsAux.remove(2);
+						}
+						
+					}
+
 					//envia nome do ficheiro(exemplo: a.jpg)
 					//argumento da foto
 					File foto = new File("Clientes/"+arguments[0]+"/"+operacoesArgs[1]);
@@ -229,7 +270,7 @@ public class PhotoShare {
 
 						}
 						System.out.println("Transferencia efectuada com sucesso");
-						
+
 					}else if (msg.equals("Nao Follower")) {
 						System.out.println("Nao e follower");
 					}else {
