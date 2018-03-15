@@ -139,7 +139,9 @@ public class PhotoShare {
 						String aux = input.nextLine();
 						if (aux.split(" ").length == 1) {
 							OpsAux.remove(2);
+							operacoesArgs[1] = aux;
 						}
+						
 						
 					}
 
@@ -181,6 +183,8 @@ public class PhotoShare {
 					break;
 
 				case "-l" :
+					
+					
 					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
 					//System.out.println(operacoesArgs[1]);
