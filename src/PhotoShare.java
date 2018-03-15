@@ -190,10 +190,6 @@ public class PhotoShare {
 						}
 					}
 					
-					
-					
-					
-					
 					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
 					//System.out.println(operacoesArgs[1]);
@@ -259,6 +255,15 @@ public class PhotoShare {
 					break; // optional
 				case "-g" :
 
+					while(OpsAux.size() >= 3) {	
+						System.out.println("demasiados argumentos,introduza apeanas o nome do user");
+						String aux = input.nextLine();
+						if (aux.split(" ").length == 1) {
+							OpsAux.remove(2);
+							operacoesArgs[1] = aux;
+						}
+					}
+						
 					//op
 					out.writeObject(operacoesArgs[0]);		
 					//user
