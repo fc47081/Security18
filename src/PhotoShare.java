@@ -370,6 +370,15 @@ public class PhotoShare {
 					break; // optional      
 
 				case "-f" :
+					while(OpsAux.size() >= 3) {	
+						System.out.println("demasiados argumentos,introduza apeanas o nome do user");
+						String aux = input.nextLine();
+						if (aux.split(" ").length == 1) {
+							OpsAux.remove(2);
+							operacoesArgs[1] = aux;
+						}
+					}
+					
 					//envia nome do user a dar follow + op
 					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
@@ -386,6 +395,18 @@ public class PhotoShare {
 					break; // optional
 
 				case "-r" :
+					while(OpsAux.size() >= 3) {	
+						System.out.println("demasiados argumentos,introduza apeanas o nome do user");
+						String aux = input.nextLine();
+						if (aux.split(" ").length == 1) {
+							OpsAux.remove(2);
+							operacoesArgs[1] = aux;
+						}
+					}
+					
+					
+					
+					
 					//envia nome do user a remover
 					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
