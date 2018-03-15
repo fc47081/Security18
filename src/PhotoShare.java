@@ -141,8 +141,6 @@ public class PhotoShare {
 							OpsAux.remove(2);
 							operacoesArgs[1] = aux;
 						}
-						
-						
 					}
 
 					//envia nome do ficheiro(exemplo: a.jpg)
@@ -183,6 +181,17 @@ public class PhotoShare {
 					break;
 
 				case "-l" :
+					while(OpsAux.size() >= 3) {	
+						System.out.println("demasiados argumentos,introduza apeanas o nome do user");
+						String aux = input.nextLine();
+						if (aux.split(" ").length == 1) {
+							OpsAux.remove(2);
+							operacoesArgs[1] = aux;
+						}
+					}
+					
+					
+					
 					
 					
 					out.writeObject(operacoesArgs[0]);
