@@ -1,26 +1,16 @@
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 
-import javax.swing.plaf.FontUIResource;
-
-import java.util.ArrayList;
 import java.util.Scanner;
 public class PhotoShare {
 
@@ -36,29 +26,6 @@ public class PhotoShare {
 		return comentario;
 	}
 
-
-	public static boolean verifyOperations(String input) {
-		String[] operacoes = {"-a","-l","-i","-g","-c","-D","-f","-r"};
-		for (int i = 0; i < operacoes.length; i++) {
-			if (input.equals(operacoes[i])) {
-				return true;
-			}
-		}
-		return false;
-
-	}
-
-	public static ArrayList<String> ops(String[] operacoes){
-		ArrayList<String> array = new ArrayList<String>();
-
-		for (int i = 0; i < operacoes.length; i++) {
-			array.add(operacoes[i]);
-		}
-
-		return array;
-	}
-
-
 	public static void main(String[] args){
 
 		File pasta = new File("Clientes");
@@ -71,7 +38,6 @@ public class PhotoShare {
 		Scanner input = new Scanner(System.in);
 		String [] arguments = verificaArgs(argumentos,input);
 		String [] serverAdress = arguments[2].split(":");
-		//System.out.println(serverAdress[1]);
 		try {
 			listeningSocket = new Socket(serverAdress[0],Integer.parseInt(serverAdress[1]));
 
@@ -110,12 +76,9 @@ public class PhotoShare {
 				dir.mkdir();
 			}
 
-			System.out.println("Deseja realizar operacoes ? (y/n)" );
-			String confirmacao = input.nextLine();
-			out.writeObject(confirmacao);
 
 
-			while(confirmacao.equals("y")) {
+			
 				System.out.println("escolha uma operacao:");
 				System.out.println( "[ -a <photos> | -l <userId> | -i <userId> <photo> | -g <userId> \n"
 						+ "| -c <comment> <userId> <photo> | -L <userId> <photo> | \n -D <userId> <photo> | -f <followUserIds> | -r <followUserIds> ]");
@@ -123,26 +86,9 @@ public class PhotoShare {
 				String operacao = input.nextLine();
 				String[]  operacoesArgs = operacao.split(" ");
 
-				while(operacoesArgs.length <= 1 || (verifyOperations(operacoesArgs[0]) == false)) {
-					System.out.println("faltam argumentos na operacao, volte a introduzir");
-					operacao = input.nextLine();
-					operacoesArgs = operacao.split(" ");
-				}
-
-				ArrayList<String> OpsAux = ops(operacoesArgs);
-
 				//String comentario = 
 				switch(operacoesArgs[0]) {
 				case "-a" :
-					while(OpsAux.size() >= 3) {	
-						System.out.println("demasiados argumentos,introduza apeanas o nome da foto");
-						String aux = input.nextLine();
-						if (aux.split(" ").length == 1) {
-							OpsAux.remove(2);
-							operacoesArgs[1] = aux;
-						}
-					}
-
 					//envia nome do ficheiro(exemplo: a.jpg)
 					//argumento da foto
 					File foto = new File("Clientes/"+arguments[0]+"/"+operacoesArgs[1]);
@@ -176,26 +122,14 @@ public class PhotoShare {
 						//envia uma operacao que nao existe para poder dar exit
 						//out.writeObject("--");
 						System.out.println("A foto que quer enviar nao existe");
-
 					}
 					break;
-
-				case "-l" :
-					while(OpsAux.size() >= 3) {	
-						System.out.println("demasiados argumentos,introduza apeanas o nome do user");
-						String aux = input.nextLine();
-						if (aux.split(" ").length == 1) {
-							OpsAux.remove(2);
-							operacoesArgs[1] = aux;
-						}
-					}
-					
+				case "-l" :	
+					//op + user da op(-l a)
 					out.writeObject(operacoesArgs[0]);
-					out.writeObject(operacoesArgs[1]);
-					//System.out.println(operacoesArgs[1]);
-					//System.out.println("tamanho "+tamanho);
-					String segue = (String) in.readObject();
-					if (segue.equals("EXISTE")) {
+					out.writeObject(operacoesArgs[1]);					
+					String result = (String) in.readObject();
+					if (result.equals("EXISTE")) {
 						int tamanho =(int) in.readObject();
 						System.out.println("Lista de fotos:");
 						for (int i = 0; i < tamanho; i++) {
@@ -203,15 +137,12 @@ public class PhotoShare {
 							System.out.println(nomeData);
 						}
 
-					}else if (segue.equals("NAO EXISTE USER")) {
+					}else if (result.equals("NAO EXISTE USER")) {
 						System.out.println("O user que introduziu nao existe");						
 
 					}else {
 						System.out.println("Nao é follower");
 					}
-
-
-
 					break;
 
 				case "-i" :
@@ -249,28 +180,14 @@ public class PhotoShare {
 						System.out.println("User inválido");
 
 					}
-
-
-
 					break; // optional
 				case "-g" :
-
-					while(OpsAux.size() >= 3) {	
-						System.out.println("demasiados argumentos,introduza apeanas o nome do user");
-						String aux = input.nextLine();
-						if (aux.split(" ").length == 1) {
-							OpsAux.remove(2);
-							operacoesArgs[1] = aux;
-						}
-					}
-						
 					//op
 					out.writeObject(operacoesArgs[0]);		
 					//user
 					out.writeObject(operacoesArgs[1]);
 
 					int vector = in.read();
-					System.out.println("vetor tamanha:" + vector);
 					String msg= (String) in.readObject();
 					if (msg.equals("Fotos enviadas")) {
 						for (int i = 0; i < vector; i++) {
@@ -285,7 +202,6 @@ public class PhotoShare {
 								leng -=count;
 								outStream2.flush();
 							}
-
 						}
 						System.out.println("Transferencia efectuada com sucesso");
 
@@ -306,10 +222,7 @@ public class PhotoShare {
 					out.writeObject(operacoesArgs[len-2]);
 					//photo
 					out.writeObject(operacoesArgs[len-1]);
-
-
 					String comentario = (String) in.readObject();
-
 					if (comentario.equals("COMMENT")) {
 						System.out.println("Comentario efectuado com sucesso");
 					}else if(comentario.equals("NAO FOLLOWER")){
@@ -343,9 +256,7 @@ public class PhotoShare {
 					}else {
 						System.out.println("User inválido");
 					}
-
 					break; // optional
-
 				case "-D" :
 					out.writeObject(operacoesArgs[0]);
 					//user
@@ -370,15 +281,6 @@ public class PhotoShare {
 					break; // optional      
 
 				case "-f" :
-					while(OpsAux.size() >= 3) {	
-						System.out.println("demasiados argumentos,introduza apeanas o nome do user");
-						String aux = input.nextLine();
-						if (aux.split(" ").length == 1) {
-							OpsAux.remove(2);
-							operacoesArgs[1] = aux;
-						}
-					}
-					
 					//envia nome do user a dar follow + op
 					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
@@ -395,18 +297,6 @@ public class PhotoShare {
 					break; // optional
 
 				case "-r" :
-					while(OpsAux.size() >= 3) {	
-						System.out.println("demasiados argumentos,introduza apeanas o nome do user");
-						String aux = input.nextLine();
-						if (aux.split(" ").length == 1) {
-							OpsAux.remove(2);
-							operacoesArgs[1] = aux;
-						}
-					}
-					
-					
-					
-					
 					//envia nome do user a remover
 					out.writeObject(operacoesArgs[0]);
 					out.writeObject(operacoesArgs[1]);
@@ -425,12 +315,6 @@ public class PhotoShare {
 				default : 
 				}
 
-				System.out.println("Deseja realizar operacoes ? (y/n)" );
-				confirmacao = input.nextLine();
-				out.writeObject(confirmacao);
-
-			}
-
 			System.out.println("Nao pode realizar mais operacoes");
 
 
@@ -441,7 +325,6 @@ public class PhotoShare {
 			try {
 				listeningSocket.close();
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}

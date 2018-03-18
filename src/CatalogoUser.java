@@ -1,10 +1,8 @@
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class CatalogoUser {
 	
@@ -95,9 +93,6 @@ public class CatalogoUser {
 			user = new User(split[0], split[1]);
 			users.add(user);
 		}
+		reader.close();
 	}
-
-	
-
-
 }

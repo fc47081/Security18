@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -76,7 +75,9 @@ public class User {
 		String line="";	
 		while((line = reader.readLine()) != null){
 			followers.add(line);
+			System.out.println("followers: " + line);
 		}
+		reader.close();
 	}
 
 
@@ -91,6 +92,7 @@ public class User {
 			}
 			
 		}
+		reader.close();
 	}
 	
 	public void CreateFileRemoved(File removed,String inUser) throws IOException {

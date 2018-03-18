@@ -1,6 +1,5 @@
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,23 +22,34 @@ public class Photo {
 		
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public String getNome() {
 		return nome;
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public String getData() {
 		return data;
 	}
 	
-	
+	/**
+	 * 
+	 * @param userLikes
+	 * @throws IOException
+	 */
 	public void populateLikes(File userLikes) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(userLikes));
 		String line="";
 		while((line = reader.readLine()) != null){
 			likes.add(line);
 		}
-		
-		
+		reader.close();
 	}
 	
 	
@@ -51,7 +61,7 @@ public class Photo {
 		while((line = reader.readLine()) != null){
 			dislikes.add(line);
 		}
-				
+		reader.close();		
 	}
 	
 	
@@ -62,6 +72,7 @@ public class Photo {
 		while((line = reader.readLine()) != null){
 			comentarios.add(line);
 		}
+		reader.close();
 				
 	}
 	
@@ -93,11 +104,17 @@ public class Photo {
 	
 	public boolean deuLike(String user) throws IOException {
 		for (int i = 0; i < likes.size(); i++) {
-			if (likes.get(i).equals(user)) {
-				return true;
-			}
-		
+			if (likes.get(i).equals(user)) 
+				return true;	
 		}
+		return false;
+	}
+		
+		public boolean deuDislike(String user) throws IOException {
+			for (int i = 0; i < dislikes.size(); i++) {
+				if (dislikes.get(i).equals(user)) 
+					return true;		
+			}
 	
 		return false;
 
