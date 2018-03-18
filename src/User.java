@@ -62,39 +62,64 @@ public class User {
 		}
 		return false;
 	}
+	
+	/**
+	 * Followers
+	 */
 	public void Follower() {
 		for (int i = 0; i < followers.size(); i++) {
-			System.out.println("LISTA:   " + followers.get(i));
+			System.out.println("LISTA:  " + followers.get(i));
 		}
 
 	}
-	
-	
-	public void populateFollowers(File follow) throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(follow));
-		String line="";	
-		while((line = reader.readLine()) != null){
-			followers.add(line);
-			System.out.println("followers: " + line);
-		}
-		reader.close();
-	}
 
-
-	
-	public void removeFollowers(File follow,String follower) throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(follow));
-		String line="";
-		
-		while((line = reader.readLine()) != null){
-			if (follower.equals(line)) {
-				followers.remove(line);
+	/**
+	 * Popular o ficheiro de followers
+	 * @param follow - ficheiros de followers
+	 */
+	public void populateFollowers(File follow){
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(follow));
+			String line="";	
+			while((line = reader.readLine()) != null){
+				followers.add(line);
+				System.out.println("followers: " + line);
 			}
-			
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		reader.close();
+	
+	}
+
+	/**
+	 * removeFollowers
+	 * @param follow- ficheiro de followers
+	 * @param follower - follower a remover
+	 */
+	public void removeFollowers(File follow,String follower){
+
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(follow));
+			String line="";
+			
+			while((line = reader.readLine()) != null){
+				if (follower.equals(line)) {
+					followers.remove(line);
+				}			
+			}
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
+	/**
+	 * Criar ficheiro com follower removido
+	 * @param removed - ficheiro novo com follower removido
+	 * @param inUser - userAtual
+	 * @throws IOException
+	 */
 	public void CreateFileRemoved(File removed,String inUser) throws IOException {
 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/"+removed.getName(), true)); 
@@ -103,32 +128,17 @@ public class User {
 			writer.write(followers.get(i));
 			writer.newLine();
 		}
-		
-	
 		writer.close();
 	}
 	
-	
-	
+	/**
+	 * Imprime followers
+	 */
 	public void imprime() {
 		for (int i = 0; i < followers.size(); i++) {
 			System.out.println(followers.get(i));
 		}
-		
-		
+	
 	}
 	
-
-	
-	
-
-	
-
-	
-	
-	
-
 }
-	
-	
-	

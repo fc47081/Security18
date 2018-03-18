@@ -60,7 +60,7 @@ public class PhotoShareServer {
 				e.printStackTrace();
 			}
 		}
-		
+
 	}
 
 	//Threads utilizadas para comunicacao com os clientes
@@ -410,67 +410,68 @@ public class PhotoShareServer {
 				e.printStackTrace();
 			}
 		}
-		
+
 	}
-		/**
-		 * Autenticacao do user
-		 * @param inUser - user name
-		 * @param inPasswd - user password
-		 * @param outStream - stream out
-		 * @param inStream - stream in
-		 * @return frase - retorno a dar ao client
-		 * @throws IOException
-		 * @throws ClassNotFoundException 
-		 */
-		private void autenticarUser(CatalogoUser catUser ,String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
-			String frase="";
-			BufferedReader reader = null;
-			File utilizadores = new File ("info.txt");
-			if(!utilizadores.exists())
-				utilizadores.createNewFile();
-			else
-				catUser.populate(utilizadores);
-			try {
-				reader = new BufferedReader(new FileReader("info.txt"));
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-			//user existe
-			if (catUser.find(inUser)) {
-				if (catUser.pwdCerta(inUser,inPasswd)) {
-					frase= "LOGGED";
-					outStream.writeObject(frase);
-				}else {// password errada
+
+	/**
+	 * Autenticacao do user
+	 * @param inUser - user name
+	 * @param inPasswd - user password
+	 * @param outStream - stream out
+	 * @param inStream - stream in
+	 * @return frase - retorno a dar ao client
+	 * @throws IOException
+	 * @throws ClassNotFoundException 
+	 */
+	private void autenticarUser(CatalogoUser catUser ,String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
+		String frase="";
+		BufferedReader reader = null;
+		File utilizadores = new File ("info.txt");
+		if(!utilizadores.exists())
+			utilizadores.createNewFile();
+		else
+			catUser.populate(utilizadores);
+		try {
+			reader = new BufferedReader(new FileReader("info.txt"));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		//user existe
+		if (catUser.find(inUser)) {
+			if (catUser.pwdCerta(inUser,inPasswd)) {
+				frase= "LOGGED";
+				outStream.writeObject(frase);
+			}else {// password errada
+				frase= "WRONG";
+				outStream.writeObject(frase);
+				while (!catUser.getUserPwd(inUser).equals(inStream.readObject())){
 					frase= "WRONG";
 					outStream.writeObject(frase);
-					while (!catUser.getUserPwd(inUser).equals(inStream.readObject())){
-						frase= "WRONG";
-						outStream.writeObject(frase);
-					}
-					outStream.writeObject("LOGGED");
 				}
-			}else {//user nao existe
-				frase= "CREATE";
-				outStream.writeObject(frase);
-				//String stream = (String) inStream.readObject();
-				User user = new User(inUser, inPasswd);
-				catUser.lista().add(user);
-				BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
-				writer.write(inUser + ":" + inPasswd);
-				writer.newLine();
-				writer.close();
-				File dir = new File("servidor/"+inUser);
-				dir.mkdir();
-				File followers = new File("servidor/"+inUser+"/"+"followers.txt");
-				followers.createNewFile();
-				File listPhotos = new File("servidor/"+inUser+"/"+"listaFotos.txt");
-				listPhotos.createNewFile();
+				outStream.writeObject("LOGGED");
 			}
-			reader.close();
+		}else {//user nao existe
+			frase= "CREATE";
+			outStream.writeObject(frase);
+			//String stream = (String) inStream.readObject();
+			User user = new User(inUser, inPasswd);
+			catUser.lista().add(user);
+			BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
+			writer.write(inUser + ":" + inPasswd);
+			writer.newLine();
+			writer.close();
+			File dir = new File("servidor/"+inUser);
+			dir.mkdir();
+			File followers = new File("servidor/"+inUser+"/"+"followers.txt");
+			followers.createNewFile();
+			File listPhotos = new File("servidor/"+inUser+"/"+"listaFotos.txt");
+			listPhotos.createNewFile();
 		}
-		
+		reader.close();
+	}
+
 	/**
-	 * adiciona ficheiros imagem para um arrayList
+	 * Adiciona ficheiros imagem para um arrayList
 	 * @param ficheiros
 	 * @return files
 	 */
