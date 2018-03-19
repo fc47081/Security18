@@ -2,5 +2,6 @@ grant codeBase "file:${user.dir}${/}-"{
 	permission java.net.SocketPermission "127.0.0.1:1024-", "listen";	
 	permission java.net.SocketPermission "*:1024-", "accept,resolve";	
 	permission java.io.FilePermission "${user.dir}${/}servidor${/}-","write,read,delete";
+	permission java.io.FilePermission "${user.dir}${/}servidor","write";
 	permission java.io.FilePermission "${user.dir}${/}info.txt" ,"write,read";	
 };
