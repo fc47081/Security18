@@ -11,7 +11,7 @@ public class User {
 	private String UserName;
 	private String password;
 	private ArrayList<String> followers;
-	
+
 
 	/**
 	 * Construtor
@@ -51,7 +51,7 @@ public class User {
 	}
 
 	/**
-	 * existsFollower
+	 * ExistsFollower
 	 * @param username - nome do user a procurar
 	 * @return true or false
 	 */
@@ -62,7 +62,7 @@ public class User {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Followers
 	 */
@@ -89,11 +89,11 @@ public class User {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	
+
 	}
 
 	/**
-	 * removeFollowers
+	 * RemoveFollowers
 	 * @param follow- ficheiro de followers
 	 * @param follower - follower a remover
 	 */
@@ -102,7 +102,7 @@ public class User {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(follow));
 			String line="";
-			
+
 			while((line = reader.readLine()) != null){
 				if (follower.equals(line)) {
 					followers.remove(line);
@@ -113,24 +113,28 @@ public class User {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * Criar ficheiro com follower removido
 	 * @param removed - ficheiro novo com follower removido
 	 * @param inUser - userAtual
 	 * @throws IOException
 	 */
-	public void CreateFileRemoved(File removed,String inUser) throws IOException {
-		
-		BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/"+removed.getName(), true)); 
-		
-		for (int i = 0; i < followers.size(); i++) {
-			writer.write(followers.get(i));
-			writer.newLine();
+	public void CreateFileRemoved(File removed,String inUser){
+
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/"+removed.getName(), true)); 
+			for (int i = 0; i < followers.size(); i++) {
+				writer.write(followers.get(i));
+				writer.newLine();
+			}
+			writer.close();
+		}catch (IOException e) {
+			e.printStackTrace();
 		}
-		writer.close();
 	}
-	
+
+
 	/**
 	 * Imprime followers
 	 */
@@ -138,7 +142,7 @@ public class User {
 		for (int i = 0; i < followers.size(); i++) {
 			System.out.println(followers.get(i));
 		}
-	
+
 	}
-	
+
 }

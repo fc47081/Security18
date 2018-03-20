@@ -83,16 +83,22 @@ public class CatalogoUser {
 	 * @param utilizadores - ficheiro de users
 	 * @throws IOException
 	 */
-	public void populate(File utilizadores) throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(utilizadores));
-		String line="";
-		User user;
+	public void populate(File utilizadores){
+
 		
-		while((line = reader.readLine()) != null){
-			String[] split = line.split(":");
-			user = new User(split[0], split[1]);
-			users.add(user);
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(utilizadores));
+			String line="";
+			User user;
+			while((line = reader.readLine()) != null){
+				String[] split = line.split(":");
+				user = new User(split[0], split[1]);
+				users.add(user);
+			}
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		reader.close();
+		
 	}
 }

@@ -66,7 +66,7 @@ public class CatalogoPhotos {
 	 * @return true se existe or false se nao existe
 	 * @throws IOException
 	 */
-	public boolean existsPhoto(String foto) throws IOException {
+	public boolean existsPhoto(String foto){
 		for (int i = 0; i < fotos.size(); i++) {
 			if (fotos.get(i).getNome().equals(foto)) {
 				return true;
