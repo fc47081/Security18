@@ -94,11 +94,8 @@ public class PhotoShareServer {
 					String operacao = (String)inStream.readObject();
 					switch(operacao) {
 					case "-a" :
-						//argumento da foto
 						operationA(inUser, inStream, outStream);
-
 						break; // optional
-
 					case "-l" :
 						operationMiniL(inStream, outStream, catUser, inUser, photos);
 						break; 
@@ -119,12 +116,9 @@ public class PhotoShareServer {
 						operationD(inStream, outStream, catUser, inUser, photos);
 						break; // optional
 					case "-f" :
-						//ler o nome de quem da follow
-						//System.out.println("entrei -f");
 						operationF(inStream, inUser, catUser, outStream);
 						break; 
 					case "-r" :
-						//ler o nome de quem da follow
 						operatioR(inStream, outStream, catUser, inUser);
 						break;
 					default : 
@@ -153,54 +147,64 @@ public class PhotoShareServer {
 	 * @throws IOException
 	 * @throws ClassNotFoundException 
 	 */
-	private void autenticarUser(CatalogoUser catUser ,String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream) throws IOException, ClassNotFoundException {
-		String frase="";
-		BufferedReader reader = null;
-		File utilizadores = new File ("info.txt");
-		if(!utilizadores.exists())
-			utilizadores.createNewFile();
-		else
-			catUser.populate(utilizadores);
+	private void autenticarUser(CatalogoUser catUser ,String inUser, String inPasswd,ObjectOutputStream outStream,ObjectInputStream inStream){
 		try {
-			reader = new BufferedReader(new FileReader("info.txt"));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		//user existe
-		if (catUser.find(inUser)) {
-			if (catUser.pwdCerta(inUser,inPasswd)) {
-				frase= "LOGGED";
-				outStream.writeObject(frase);
-			}else {// password errada
-				frase= "WRONG";
-				outStream.writeObject(frase);
-				while (!catUser.getUserPwd(inUser).equals(inStream.readObject())){
+			String frase="";
+			BufferedReader reader = null;
+			File utilizadores = new File ("info.txt");
+			if(!utilizadores.exists())
+				utilizadores.createNewFile();
+			else
+				catUser.populate(utilizadores);
+			try {
+				reader = new BufferedReader(new FileReader("info.txt"));
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			//user existe
+			if (catUser.find(inUser)) {
+				if (catUser.pwdCerta(inUser,inPasswd)) {
+					frase= "LOGGED";
+					outStream.writeObject(frase);
+				}else {// password errada
 					frase= "WRONG";
 					outStream.writeObject(frase);
+					while (!catUser.getUserPwd(inUser).equals(inStream.readObject())){
+						frase= "WRONG";
+						outStream.writeObject(frase);
+					}
+					outStream.writeObject("LOGGED");
 				}
-				outStream.writeObject("LOGGED");
+			}else {//user nao existe
+				frase= "CREATE";
+				outStream.writeObject(frase);
+				//String stream = (String) inStream.readObject();
+				User user = new User(inUser, inPasswd);
+				catUser.lista().add(user);
+				BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
+				writer.write(inUser + ":" + inPasswd);
+				writer.newLine();
+				writer.close();
+				File dir = new File("servidor/"+inUser);
+				dir.mkdir();
+				File followers = new File("servidor/"+inUser+"/"+"followers.txt");
+				followers.createNewFile();
+				File listPhotos = new File("servidor/"+inUser+"/"+"listaFotos.txt");
+				listPhotos.createNewFile();
 			}
-		}else {//user nao existe
-			frase= "CREATE";
-			outStream.writeObject(frase);
-			//String stream = (String) inStream.readObject();
-			User user = new User(inUser, inPasswd);
-			catUser.lista().add(user);
-			BufferedWriter writer = new BufferedWriter(new FileWriter("info.txt", true)); 
-			writer.write(inUser + ":" + inPasswd);
-			writer.newLine();
-			writer.close();
-			File dir = new File("servidor/"+inUser);
-			dir.mkdir();
-			File followers = new File("servidor/"+inUser+"/"+"followers.txt");
-			followers.createNewFile();
-			File listPhotos = new File("servidor/"+inUser+"/"+"listaFotos.txt");
-			listPhotos.createNewFile();
+			reader.close();
+		} catch (Exception e) {
+			System.err.println("erro de autenticacao");
 		}
-		reader.close();
+
 	}
 
-	
+	/**
+	 * Operação -a
+	 * @param inUser - user recebido na operacao
+	 * @param inStream - reader do cliente
+	 * @param outStream - writer para o cliente
+	 */
 	public static void operationA(String inUser, ObjectInputStream inStream, ObjectOutputStream outStream) {
 		try {
 			String dirName = "servidor/"+inUser;
@@ -255,12 +259,18 @@ public class PhotoShareServer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
+
+
+
 	}
-	
-	
+
+	/**
+	 * Operação -f
+	 * @param inUser - user recebido na operacao
+	 * @param inStream - reader do cliente
+	 * @param outStream - writer para o cliente
+	 * @param catUser - catalogo de users
+	 */
 	public static void operationF(ObjectInputStream inStream,String inUser, CatalogoUser catUser,ObjectOutputStream outStream) {
 		try {
 			String followerAdd = (String) inStream.readObject();
@@ -283,14 +293,20 @@ public class PhotoShareServer {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
+
+
+
 	}
 
+	/**
+	 * Operacao -r
+	 * @param inStream- reader do cliente
+	 * @param outStream- writer para o cliente
+	 * @param catUser- catalogo de users
+	 * @param inUser- user recebido na operacao
+	 */
 	public static void operatioR(ObjectInputStream inStream,ObjectOutputStream outStream,CatalogoUser catUser,String inUser) {
 		try {
 			String followerRemove = (String) inStream.readObject();
@@ -319,16 +335,18 @@ public class PhotoShareServer {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		
-		
-		
-		
-		
+		}	
 	}
-	
+
+	/**
+	 * Operacao -L
+	 * @param inStream - reader do cliente
+	 * @param outStream - writer para o cliente
+	 * @param catUser - catalogo de users
+	 * @param inUser - user recebido na operacao
+	 * @param photos - catalogo de fotos
+	 */
 	public static void operationL(ObjectInputStream inStream,ObjectOutputStream outStream,CatalogoUser catUser,String inUser,CatalogoPhotos photos) {
 		try {
 			String user = (String) inStream.readObject();
@@ -342,7 +360,7 @@ public class PhotoShareServer {
 				System.out.println(userLike.existsFollower(inUser));
 				//verificamos se e follower	
 				if(userLike.existsFollower(inUser) == true) {
-					
+
 					photos.populate(listaFotos);
 					if (photos.existsPhoto(photoL) == true) {	
 						Photo phototemp = photos.getPhoto(photoL);
@@ -369,14 +387,21 @@ public class PhotoShareServer {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
+
+
+
 	}
 
+	/**
+	 * Operacao -D
+	 * @param inStream - reader do cliente
+	 * @param outStream - writer para o cliente
+	 * @param catUser - catalogo de users
+	 * @param inUser - user recebido na operacao
+	 * @param photos - catalogo de fotos
+	 */
 	public static void operationD(ObjectInputStream inStream,ObjectOutputStream outStream,CatalogoUser catUser,String inUser,CatalogoPhotos photos) {
 		try {
 			String userD = (String) inStream.readObject();
@@ -415,17 +440,24 @@ public class PhotoShareServer {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
 	}
-	
+
+	/**
+	 * Operacao -c
+	 * @param inStream - reader do cliente
+	 * @param outStream - writer para o cliente
+	 * @param catUser - catalogo de users
+	 * @param inUser - user recebido na operacao
+	 * @param photos - catalogo de fotos
+	 */
 	public static void operationC(ObjectInputStream inStream,ObjectOutputStream outStream, CatalogoUser catUser,String inUser,CatalogoPhotos photos) {
 		try {
 
@@ -459,15 +491,22 @@ public class PhotoShareServer {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
+
+
+
+
 	}
-	
+
+	/**
+	 * Operacao -i
+	 * @param inStream - reader do cliente
+	 * @param outStream - writer para o cliente
+	 * @param catUser - catalogo de users
+	 * @param inUser - user recebido na operacao
+	 * @param photos - catalogo de fotos
+	 */
 	public static void operationI(ObjectInputStream inStream,ObjectOutputStream outStream,CatalogoUser catUser,String inUser,CatalogoPhotos photos) {
 		try {
 			String userID = (String) inStream.readObject();
@@ -515,19 +554,26 @@ public class PhotoShareServer {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
+
+
 	}
-	
+
+	/**
+	 * Operacao -l
+	 * @param inStream - reader do cliente
+	 * @param outStream - writer para o cliente
+	 * @param catUser - catalogo de users
+	 * @param inUser - user recebido na operacao
+	 * @param photos - catalogo de fotos
+	 */
 	public static void operationMiniL(ObjectInputStream inStream,ObjectOutputStream outStream,CatalogoUser catUser,String inUser,CatalogoPhotos photos) {
 		try {
 			String userPhotos = (String) inStream.readObject();
@@ -552,24 +598,30 @@ public class PhotoShareServer {
 			}else {
 				outStream.writeObject("NAO EXISTE USER");
 			}
-			
+
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
 	}
-	
+
+	/**
+	 * Operacao -g
+	 * @param inStream - reader do cliente
+	 * @param outStream - writer para o cliente
+	 * @param catUser - catalogo de users
+	 * @param inUser - user recebido na operacao
+	 */
 	public static void operationG(ObjectInputStream inStream,ObjectOutputStream outStream,CatalogoUser catUser,String inUser) {
 		try {
-			
+
 			String userG = (String) inStream.readObject();
 			User u = catUser.getUser(userG);
 			if (catUser.find(userG) ==true) {
@@ -609,17 +661,16 @@ public class PhotoShareServer {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
 
-		
+
+
+
+
 	}
-	
-	
+
+
 	/**
 	 * Adiciona ficheiros imagem para um arrayList
 	 * @param ficheiros

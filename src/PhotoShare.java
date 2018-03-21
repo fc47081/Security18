@@ -42,7 +42,7 @@ public class PhotoShare {
 			ObjectOutputStream out = new ObjectOutputStream(listeningSocket.getOutputStream());
 			out.writeObject(arguments[0]);
 			out.writeObject(arguments[1]);
-			
+
 			//faz verificações de logIn appos a resposta do servidor
 			logIn(in, out, arguments, input);
 
@@ -144,6 +144,13 @@ public class PhotoShare {
 		return result;
 	}
 
+	/**
+	 * Verificacao de login do user local
+	 * @param in - InputStream
+	 * @param out - OutputStream
+	 * @param arguments - String de argumentos lidos
+	 * @param input - Scanner
+	 */
 	public static void logIn(ObjectInputStream in,ObjectOutputStream out,String[] arguments ,Scanner input) {
 		try {
 			String var = (String) in.readObject();
@@ -162,7 +169,6 @@ public class PhotoShare {
 					password = input.nextLine();
 					out.writeObject(password);
 				}
-
 				//user NOK , entao criar um user novo
 			}else if(var.equals("CREATE")) {
 				System.out.println(" O user novo foi criado");
@@ -173,14 +179,17 @@ public class PhotoShare {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		
-		
-		
+		}	
 	}
-	
+
+	/**
+	 * Operacao -a
+	 * @param arguments - Recebe todos os argumentos
+	 * @param operacoesArgs - Recebe a operacao separadamente
+	 * @param out - OutputStream
+	 * @param in - InputStream
+	 */
 	public  static void  operationA(String[] arguments,String[] operacoesArgs,ObjectOutputStream out,ObjectInputStream in) {
 		//envia nome do ficheiro(exemplo: a.jpg)
 		//argumento da foto
@@ -223,11 +232,16 @@ public class PhotoShare {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
+
+
+
 	}
-	
+	/**
+	 * Operacao -f
+	 * @param out - OutputStream
+	 * @param in - InputStream
+	 * @param operacoesArgs - Recebe a operacao separadamente
+	 */
 	public static void operationF(ObjectInputStream in,ObjectOutputStream out,String[] operacoesArgs) {
 		try {
 			out.writeObject(operacoesArgs[0]);
@@ -244,16 +258,17 @@ public class PhotoShare {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
 
-		
 	}
-	
+
+	/**
+	 * Operacao -r
+	 * @param out- OutputStream
+	 * @param operacoesArgs - Recebe a operacao separadamente
+	 * @param in- InputStream
+	 */
 	public static void operationR(ObjectOutputStream out,String[] operacoesArgs,ObjectInputStream in) {
 		try {
 			out.writeObject(operacoesArgs[0]);
@@ -271,16 +286,21 @@ public class PhotoShare {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
+
+
+
 	}
-	
+
+	/**
+	 * Operacao -L
+	 * @param out- OutputStream
+	 * @param operacoesArgs - Recebe a operacao separadamente
+	 * @param in- InputStream
+	 */
 	public static void operationL(ObjectInputStream in,ObjectOutputStream out,String[] operacoesArgs) {
-		
+
 		try {
 			out.writeObject(operacoesArgs[0]);
 			//user
@@ -305,15 +325,20 @@ public class PhotoShare {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
+
+
+
+
 	}
-	
+
+	/**
+	 * Operacao -D
+	 * @param out- OutputStream
+	 * @param operacoesArgs - Recebe a operacao separadamente
+	 * @param in- InputStream
+	 */
 	public static void operationD(ObjectOutputStream out,String[] operacoesArgs,ObjectInputStream in) {
 		try {
 			out.writeObject(operacoesArgs[0]);
@@ -339,17 +364,22 @@ public class PhotoShare {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
 	}
-	
+
+	/**
+	 * Operacao -c
+	 * @param out- OutputStream
+	 * @param operacoesArgs - Recebe a operacao separadamente
+	 * @param in- InputStream
+	 */
 	public static void operationC(String[] operacoesArgs,ObjectOutputStream out,ObjectInputStream in) {
 		try {
 			String comment = concatenateComment(operacoesArgs);
@@ -374,19 +404,24 @@ public class PhotoShare {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
+
+
 	}
-	
+
+	/**
+	 * Operacao -i
+	 * @param out- OutputStream
+	 * @param operacoesArgs - Recebe a operacao separadamente
+	 * @param in- InputStream
+	 */
 	public static void operationI(String[] operacoesArgs,ObjectOutputStream out,ObjectInputStream in) {
 		try {
 			out.writeObject(operacoesArgs[0]);
@@ -413,8 +448,6 @@ public class PhotoShare {
 
 			}else if (mostra.equals("NAO FOTO")) {
 				System.out.println("Nao existe a foto");
-
-
 			}else if(mostra.equals("NAO FOLLOWER")) {
 				System.out.println("Nao e follower deste user");
 
@@ -425,17 +458,22 @@ public class PhotoShare {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
 	}
-	
+
+	/**
+	 * Operacao -l
+	 * @param out- OutputStream
+	 * @param operacoesArgs - Recebe a operacao separadamente
+	 * @param in- InputStream
+	 */
 	public static void operationMiniL(ObjectOutputStream out,ObjectInputStream in,String[] operacoesArgs) {
 		try {
 			out.writeObject(operacoesArgs[0]);
@@ -458,19 +496,25 @@ public class PhotoShare {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
 	}
-	
+
+	/**
+	 * Operacao -g
+	 * @param arguments - Recebe todos os argumentos
+	 * @param operacoesArgs - Recebe a operacao separadamente
+	 * @param out - OutputStream
+	 * @param in - InputStream
+	 */
 	public static void operationG(String[] operacoesArgs,ObjectInputStream in,ObjectOutputStream out, String[] arguments) {
-		
+
 		try {
 			out.writeObject(operacoesArgs[0]);		
 			//user
@@ -499,20 +543,19 @@ public class PhotoShare {
 			}else {
 				System.out.println("Nao e user");
 			}
-			
+
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		
+
+
+
+
 	}
-	
-	
+
+
 	/**
 	 * Validacao de pattern
 	 * @param ip - ip introduzido
