@@ -42,31 +42,9 @@ public class PhotoShare {
 			ObjectOutputStream out = new ObjectOutputStream(listeningSocket.getOutputStream());
 			out.writeObject(arguments[0]);
 			out.writeObject(arguments[1]);
-			String var = (String) in.readObject();
-
-			// user e pass -> OK
-			if(var.equals("LOGGED")) {
-				System.out.println("Bem Vindo "+ arguments [0]  + "!");
-				//user OK mas password NOK	
-			}else if (var.equals("WRONG")) {
-				//pede a pass ate ficar correta
-				System.out.println("palavra passe incorrecta");
-				String password = input.nextLine();
-				out.writeObject(password);
-				while (!((String)in.readObject()).equals("LOGGED")) {
-					System.out.println("falhei");
-					password = input.nextLine();
-					out.writeObject(password);
-				}
-
-				//user NOK , entao criar um user novo
-			}else if(var.equals("CREATE")) {
-				System.out.println(" O user novo foi criado");
-				String dirName = "Clientes/"+ arguments[0];
-				File dir = new File(dirName);
-				dir.mkdir();
-			}
-
+			
+			//faz verificações de logIn appos a resposta do servidor
+			logIn(in, out, arguments, input);
 
 
 
@@ -166,7 +144,42 @@ public class PhotoShare {
 		return result;
 	}
 
-	
+	public static void logIn(ObjectInputStream in,ObjectOutputStream out,String[] arguments ,Scanner input) {
+		try {
+			String var = (String) in.readObject();
+
+			// user e pass -> OK
+			if(var.equals("LOGGED")) {
+				System.out.println("Bem Vindo "+ arguments [0]  + "!");
+				//user OK mas password NOK	
+			}else if (var.equals("WRONG")) {
+				//pede a pass ate ficar correta
+				System.out.println("palavra passe incorrecta");
+				String password = input.nextLine();
+				out.writeObject(password);
+				while (!((String)in.readObject()).equals("LOGGED")) {
+					System.out.println("falhei");
+					password = input.nextLine();
+					out.writeObject(password);
+				}
+
+				//user NOK , entao criar um user novo
+			}else if(var.equals("CREATE")) {
+				System.out.println(" O user novo foi criado");
+				String dirName = "Clientes/"+ arguments[0];
+				File dir = new File(dirName);
+				dir.mkdir();
+			}
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+	}
 	
 	public  static void  operationA(String[] arguments,String[] operacoesArgs,ObjectOutputStream out,ObjectInputStream in) {
 		//envia nome do ficheiro(exemplo: a.jpg)
