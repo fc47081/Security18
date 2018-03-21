@@ -77,230 +77,38 @@ public class PhotoShare {
 			String operacao = input.nextLine();
 			String[]  operacoesArgs = operacao.split(" ");
 
-			//String comentario = 
 			switch(operacoesArgs[0]) {
 			case "-a" :
-				//envia nome do ficheiro(exemplo: a.jpg)
-				//argumento da foto
-				File foto = new File("Clientes/"+arguments[0]+"/"+operacoesArgs[1]);
-				long size = foto.length();
-				if(foto.exists()) {
-					out.writeObject(operacoesArgs[0]);
-					out.writeObject(operacoesArgs[1]);
-					String existe = (String) in.readObject();
-					if (existe.equals("NAO EXISTE")) {
-						FileInputStream inStream1 = new FileInputStream(foto);
-						InputStream inStream2 = new BufferedInputStream(inStream1);
-						byte buffer[] = new byte[1024];
-						int count=1024;
-						out.writeObject(foto.length());
-						while((count = inStream1.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
-							out.write(buffer, 0, count);
-							size -=count;
-							out.flush();	
-						}
-						String transfer = (String)in.readObject();
-						if(transfer.equals("TRANSFERIDA")) {
-							System.out.println("A foto foi transferida com sucesso");
-						}
-
-					}else{
-						out.writeObject(operacoesArgs[0]);
-
-						System.out.println("ja existe a foto");
-					}
-				}else {
-					//envia uma operacao que nao existe para poder dar exit
-					//out.writeObject("--");
-					System.out.println("A foto que quer enviar nao existe");
-				}
+				operationA(arguments, operacoesArgs, out, in);
 				break;
 			case "-l" :	
-				//op + user da op(-l a)
-				out.writeObject(operacoesArgs[0]);
-				out.writeObject(operacoesArgs[1]);					
-				String result = (String) in.readObject();
-				if (result.equals("EXISTE")) {
-					int tamanho =(int) in.readObject();
-					System.out.println("Lista de fotos:");
-					for (int i = 0; i < tamanho; i++) {
-						String nomeData = (String) in.readObject(); 
-						System.out.println(nomeData);
-					}
-
-				}else if (result.equals("NAO EXISTE USER")) {
-					System.out.println("O user que introduziu nao existe");						
-
-				}else {
-					System.out.println("Nao é follower");
-				}
+				operationMiniL(out, in, operacoesArgs);	
 				break;
 
 			case "-i" :
-				//operacaco
-				out.writeObject(operacoesArgs[0]);
-				//user
-				out.writeObject(operacoesArgs[1]);
-				//photo
-				out.writeObject(operacoesArgs[2]);
-				String mostra = (String) in.readObject();
-				if (mostra.equals("MOSTRA")) {
-
-					int commentSize = (int) in.readObject();
-					System.out.println("Lista de comentarios:");
-					for (int i = 0; i < commentSize; i++) {
-						String comentario = (String) in.readObject();
-						System.out.println(comentario);
-					}
-
-					int likesSize = (int) in.readObject();
-
-					int dislikeSize = (int) in.readObject();
-
-					System.out.println("Numero de likes: " + likesSize);
-					System.out.println("Numero de dislikes: " +dislikeSize);
-
-				}else if (mostra.equals("NAO FOTO")) {
-					System.out.println("Nao existe a foto");
-
-
-				}else if(mostra.equals("NAO FOLLOWER")) {
-					System.out.println("Nao e follower deste user");
-
-				}else{
-					System.out.println("User inválido");
-
-				}
-				break; // optional
+				operationI(operacoesArgs, out, in);
+				break; 
 			case "-g" :
-				//op
-				out.writeObject(operacoesArgs[0]);		
-				//user
-				out.writeObject(operacoesArgs[1]);
-
-				int vector = in.read();
-				String msg= (String) in.readObject();
-				if (msg.equals("Fotos enviadas")) {
-					for (int i = 0; i < vector; i++) {
-						String fotografia = (String) in.readObject();
-						FileOutputStream outStream1 = new FileOutputStream("Clientes/"+arguments[0]+"/"+fotografia);
-						OutputStream outStream2 = new BufferedOutputStream(outStream1);
-						byte buffer[] = new byte [1024];
-						int count;
-						long leng =(long) in.readObject();
-						while((count = in.read(buffer, 0,(int) (leng<1024 ? leng:1024))) >0 ){
-							outStream1.write(buffer, 0, count);
-							leng -=count;
-							outStream2.flush();
-						}
-					}
-					System.out.println("Transferencia efectuada com sucesso");
-
-				}else if (msg.equals("Nao Follower")) {
-					System.out.println("Nao e follower");
-				}else {
-					System.out.println("Nao e user");
-				}
-				break; // optional
+				operationG(operacoesArgs, in, out, arguments);
+				break;
 
 			case "-c" :
-				String comment = concatenateComment(operacoesArgs);
-				int len = operacoesArgs.length;
-				out.writeObject(operacoesArgs[0]);
-				//user
-				out.writeObject(comment);
-
-				out.writeObject(operacoesArgs[len-2]);
-				//photo
-				out.writeObject(operacoesArgs[len-1]);
-				String comentario = (String) in.readObject();
-				if (comentario.equals("COMMENT")) {
-					System.out.println("Comentario efectuado com sucesso");
-				}else if(comentario.equals("NAO FOLLOWER")){
-					System.out.println("Nao e follower deste user");
-				}else if(comentario.equals("NAO FOTO")){
-					System.out.println("Nao existe a foto que pretende");
-				}else {
-					System.out.println("User inválido");
-				}	
-				break; // optional     
+				operationC(operacoesArgs, out, in);
+				break;     
 
 			case "-L" :
-				//operacao
-				out.writeObject(operacoesArgs[0]);
-				//user
-				out.writeObject(operacoesArgs[1]);
-				//photo
-				out.writeObject(operacoesArgs[2]);
-				String like = (String) in.readObject();
-				if (like.equals("LIKE")) {
-					System.out.println("Like efectuado com sucesso");
-
-				}else if(like.equals("JADEULIKE")){
-					System.out.println("Já deu like anteriormente");		
-
-				}else if(like.equals("NAO LIKE")){
-					System.out.println("Nao e follower deste user");
-
-				}else if(like.equals("NAO FOTO")){
-					System.out.println("Nao existe a foto que pretende");
-				}else {
-					System.out.println("User inválido");
-				}
-				break; // optional
+				operationL(in, out, operacoesArgs);
+				break;
 			case "-D" :
-				out.writeObject(operacoesArgs[0]);
-				//user
-				out.writeObject(operacoesArgs[1]);
-				//photo
-				out.writeObject(operacoesArgs[2]);
-				String dislike = (String) in.readObject();
-				if (dislike.equals("DISLIKE")) {
-					System.out.println("Dislike efectuado com sucesso");
-
-				}else if(dislike.equals("JADEUDISLIKE")){
-					System.out.println("Já deu dislike anteriormente");		
-
-				}else if(dislike.equals("NAO DISLIKE")){
-					System.out.println("Nao e follower deste user");
-
-				}else if(dislike.equals("NAO FOTO")){
-					System.out.println("Nao existe a foto que pretende");
-				}else {
-					System.out.println("User inválido");
-				}
-				break; // optional      
+				operationD(out, operacoesArgs, in);
+				break;      
 
 			case "-f" :
-				//envia nome do user a dar follow + op
-				out.writeObject(operacoesArgs[0]);
-				out.writeObject(operacoesArgs[1]);
-				//Ler reposta do server : adicionado ou ja existente
-				String respostaAdd = (String)in.readObject();
-				if(respostaAdd.equals("Follower adicionado") ) {
-					System.out.println(respostaAdd);
-				}else if (respostaAdd.equals("Follower ja existe")) {
-					System.out.println(respostaAdd);
-				}else {
-					System.out.println(respostaAdd);
-				}
-
-				break; // optional
+				operationF(in, out, operacoesArgs);
+				break;
 
 			case "-r" :
-				//envia nome do user a remover
-				out.writeObject(operacoesArgs[0]);
-				out.writeObject(operacoesArgs[1]);
-				//Ler reposta do server : removido ou nunca existiu
-				String respostaRem = (String)in.readObject();
-				//System.out.println(respostaRem);
-				if(respostaRem.equals("Follower removido") ) 
-					System.out.println(respostaRem);
-				else if (respostaRem.equals("Follower nao esta na lista")) {
-					System.out.println(respostaRem);
-				}else {
-					System.out.println(respostaRem);
-				}
+				operationR(out, operacoesArgs, in);
 
 				break;
 			default : 
@@ -358,6 +166,340 @@ public class PhotoShare {
 		return result;
 	}
 
+	
+	
+	public  static void  operationA(String[] arguments,String[] operacoesArgs,ObjectOutputStream out,ObjectInputStream in) {
+		//envia nome do ficheiro(exemplo: a.jpg)
+		//argumento da foto
+		try {
+			File foto = new File("Clientes/"+arguments[0]+"/"+operacoesArgs[1]);
+			long size = foto.length();
+			if(foto.exists()) {
+				out.writeObject(operacoesArgs[0]);
+				out.writeObject(operacoesArgs[1]);
+				String existe = (String) in.readObject();
+				if (existe.equals("NAO EXISTE")) {
+					FileInputStream inStream1 = new FileInputStream(foto);
+					InputStream inStream2 = new BufferedInputStream(inStream1);
+					byte buffer[] = new byte[1024];
+					int count=1024;
+					out.writeObject(foto.length());
+					while((count = inStream1.read(buffer, 0,(int) (size<1024 ? size:1024))) >0 ){
+						out.write(buffer, 0, count);
+						size -=count;
+						out.flush();	
+					}
+					String transfer = (String)in.readObject();
+					if(transfer.equals("TRANSFERIDA")) {
+						System.out.println("A foto foi transferida com sucesso");
+					}
+
+				}else{
+					out.writeObject(operacoesArgs[0]);
+
+					System.out.println("ja existe a foto");
+				}
+			}else {
+				//envia uma operacao que nao existe para poder dar exit
+				//out.writeObject("--");
+				System.out.println("A foto que quer enviar nao existe");
+			}
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+	}
+	
+	public static void operationF(ObjectInputStream in,ObjectOutputStream out,String[] operacoesArgs) {
+		try {
+			out.writeObject(operacoesArgs[0]);
+			out.writeObject(operacoesArgs[1]);
+			//Ler reposta do server : adicionado ou ja existente
+			String respostaAdd = (String)in.readObject();
+			if(respostaAdd.equals("Follower adicionado") ) {
+				System.out.println(respostaAdd);
+			}else if (respostaAdd.equals("Follower ja existe")) {
+				System.out.println(respostaAdd);
+			}else {
+				System.out.println(respostaAdd);
+			}
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+
+		
+	}
+	
+	public static void operationR(ObjectOutputStream out,String[] operacoesArgs,ObjectInputStream in) {
+		try {
+			out.writeObject(operacoesArgs[0]);
+			out.writeObject(operacoesArgs[1]);
+			//Ler reposta do server : removido ou nunca existiu
+			String respostaRem = (String)in.readObject();
+			//System.out.println(respostaRem);
+			if(respostaRem.equals("Follower removido") ) 
+				System.out.println(respostaRem);
+			else if (respostaRem.equals("Follower nao esta na lista")) {
+				System.out.println(respostaRem);
+			}else {
+				System.out.println(respostaRem);
+			}
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+	}
+	
+	public static void operationL(ObjectInputStream in,ObjectOutputStream out,String[] operacoesArgs) {
+		
+		try {
+			out.writeObject(operacoesArgs[0]);
+			//user
+			out.writeObject(operacoesArgs[1]);
+			//photo
+			out.writeObject(operacoesArgs[2]);
+			String like = (String) in.readObject();
+			if (like.equals("LIKE")) {
+				System.out.println("Like efectuado com sucesso");
+
+			}else if(like.equals("JADEULIKE")){
+				System.out.println("Já deu like anteriormente");		
+
+			}else if(like.equals("NAO LIKE")){
+				System.out.println("Nao e follower deste user");
+
+			}else if(like.equals("NAO FOTO")){
+				System.out.println("Nao existe a foto que pretende");
+			}else {
+				System.out.println("User inválido");
+			}
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+	}
+	
+	public static void operationD(ObjectOutputStream out,String[] operacoesArgs,ObjectInputStream in) {
+		try {
+			out.writeObject(operacoesArgs[0]);
+			//user
+			out.writeObject(operacoesArgs[1]);
+			//photo
+			out.writeObject(operacoesArgs[2]);
+			String dislike = (String) in.readObject();
+			if (dislike.equals("DISLIKE")) {
+				System.out.println("Dislike efectuado com sucesso");
+
+			}else if(dislike.equals("JADEUDISLIKE")){
+				System.out.println("Já deu dislike anteriormente");		
+
+			}else if(dislike.equals("NAO DISLIKE")){
+				System.out.println("Nao e follower deste user");
+
+			}else if(dislike.equals("NAO FOTO")){
+				System.out.println("Nao existe a foto que pretende");
+			}else {
+				System.out.println("User inválido");
+			}
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+		
+		
+	}
+	
+	public static void operationC(String[] operacoesArgs,ObjectOutputStream out,ObjectInputStream in) {
+		try {
+			String comment = concatenateComment(operacoesArgs);
+			int len = operacoesArgs.length;
+			out.writeObject(operacoesArgs[0]);
+			//user
+			out.writeObject(comment);
+
+			out.writeObject(operacoesArgs[len-2]);
+			//photo
+			out.writeObject(operacoesArgs[len-1]);
+			String comentario = (String) in.readObject();
+			if (comentario.equals("COMMENT")) {
+				System.out.println("Comentario efectuado com sucesso");
+			}else if(comentario.equals("NAO FOLLOWER")){
+				System.out.println("Nao e follower deste user");
+			}else if(comentario.equals("NAO FOTO")){
+				System.out.println("Nao existe a foto que pretende");
+			}else {
+				System.out.println("User inválido");
+			}	
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+	}
+	
+	public static void operationI(String[] operacoesArgs,ObjectOutputStream out,ObjectInputStream in) {
+		try {
+			out.writeObject(operacoesArgs[0]);
+			//user
+			out.writeObject(operacoesArgs[1]);
+			//photo
+			out.writeObject(operacoesArgs[2]);
+			String mostra = (String) in.readObject();
+			if (mostra.equals("MOSTRA")) {
+
+				int commentSize = (int) in.readObject();
+				System.out.println("Lista de comentarios:");
+				for (int i = 0; i < commentSize; i++) {
+					String comentario = (String) in.readObject();
+					System.out.println(comentario);
+				}
+
+				int likesSize = (int) in.readObject();
+
+				int dislikeSize = (int) in.readObject();
+
+				System.out.println("Numero de likes: " + likesSize);
+				System.out.println("Numero de dislikes: " +dislikeSize);
+
+			}else if (mostra.equals("NAO FOTO")) {
+				System.out.println("Nao existe a foto");
+
+
+			}else if(mostra.equals("NAO FOLLOWER")) {
+				System.out.println("Nao e follower deste user");
+
+			}else{
+				System.out.println("User inválido");
+
+			}
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+		
+		
+	}
+	
+	public static void operationMiniL(ObjectOutputStream out,ObjectInputStream in,String[] operacoesArgs) {
+		try {
+			out.writeObject(operacoesArgs[0]);
+			out.writeObject(operacoesArgs[1]);					
+			String result = (String) in.readObject();
+			if (result.equals("EXISTE")) {
+				int tamanho =(int) in.readObject();
+				System.out.println("Lista de fotos:");
+				for (int i = 0; i < tamanho; i++) {
+					String nomeData = (String) in.readObject(); 
+					System.out.println(nomeData);
+				}
+
+			}else if (result.equals("NAO EXISTE USER")) {
+				System.out.println("O user que introduziu nao existe");						
+
+			}else {
+				System.out.println("Nao é follower");
+			}
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+		
+		
+	}
+	
+	public static void operationG(String[] operacoesArgs,ObjectInputStream in,ObjectOutputStream out, String[] arguments) {
+		
+		try {
+			out.writeObject(operacoesArgs[0]);		
+			//user
+			out.writeObject(operacoesArgs[1]);
+
+			int vector = in.read();
+			String msg= (String) in.readObject();
+			if (msg.equals("Fotos enviadas")) {
+				for (int i = 0; i < vector; i++) {
+					String fotografia = (String) in.readObject();
+					FileOutputStream outStream1 = new FileOutputStream("Clientes/"+arguments[0]+"/"+fotografia);
+					OutputStream outStream2 = new BufferedOutputStream(outStream1);
+					byte buffer[] = new byte [1024];
+					int count;
+					long leng =(long) in.readObject();
+					while((count = in.read(buffer, 0,(int) (leng<1024 ? leng:1024))) >0 ){
+						outStream1.write(buffer, 0, count);
+						leng -=count;
+						outStream2.flush();
+					}
+				}
+				System.out.println("Transferencia efectuada com sucesso");
+
+			}else if (msg.equals("Nao Follower")) {
+				System.out.println("Nao e follower");
+			}else {
+				System.out.println("Nao e user");
+			}
+			
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+	}
+	
+	
 	/**
 	 * Validacao de pattern
 	 * @param ip - ip introduzido
