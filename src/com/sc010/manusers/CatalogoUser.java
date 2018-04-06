@@ -1,13 +1,24 @@
 package com.sc010.manusers;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.util.ArrayList;
+import java.util.Base64;
+
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 /**
- * @author Felipe
+ * @author sc010
  *
  */
 public class CatalogoUser {
@@ -112,8 +123,23 @@ public class CatalogoUser {
 			String line = "";
 			User user;
 			while ((line = reader.readLine()) != null) {
+				// Ler linha a linha e separar por dois pontos.
+				// Ex: felipe:salt:oaksdfnoij132l%
 				String[] split = line.split(":");
-				user = new User(split[0], split[1]);
+				
+				String username, password;
+				
+				// Username esta limpo no texto.
+				username = split[0];
+				
+				// Salt e password hash split[1],[2]
+				password = split[2];				
+				
+				
+				// Ja esta decifrada podemos adicionar.
+				user = new User(username, password);				
+				
+				// All done addiciona ao catalogo.
 				users.add(user);
 			}
 			reader.close();
@@ -131,8 +157,10 @@ public class CatalogoUser {
 	 *            Utilizador a ser adicionado
 	 * @param password
 	 *            Password a ser adicionada
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeySpecException 
 	 */
-	public void add(String user, String password) {
+	public void add(String user, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
 
 		// Criar utilizador.
 		User u = new User(user, password);
@@ -144,8 +172,33 @@ public class CatalogoUser {
 		}
 
 		// Cypher and persist
-
-	}
+		
+		// Create salt
+		byte[] salt = new byte[16];
+		SecureRandom sr = new SecureRandom();
+		sr.nextBytes(salt);
+		
+		KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 128); // Why 20. PDF.
+		SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+		SecretKey key = kf.generateSecret(spec);
+		
+		String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
+		String userLine =  user.concat(":").concat(Base64.getEncoder().encodeToString(salt)).concat(":").concat(encodedKey);
+		
+		// Append to file.
+		try {
+			FileWriter fw = new FileWriter(this.db);
+			BufferedWriter bw = new BufferedWriter(fw);
+			
+			bw.write(userLine);
+			bw.newLine();
+			bw.close();
+			fw.close();
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}}
 
 	public void del(String user) {
 		boolean exists = false;

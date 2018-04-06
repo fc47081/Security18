@@ -158,13 +158,13 @@ public class PhotoShareServer {
 		try {
 			String frase="";
 			BufferedReader reader = null;
-			File utilizadores = new File ("info.txt");
+			File utilizadores = new File ("Users/users.txt");
 			if(!utilizadores.exists())
 				utilizadores.createNewFile();
 			else
 				catUser.populate(utilizadores);
 			try {
-				reader = new BufferedReader(new FileReader("info.txt"));
+				reader = new BufferedReader(new FileReader(utilizadores));
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
