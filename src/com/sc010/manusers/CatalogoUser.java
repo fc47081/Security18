@@ -187,7 +187,7 @@ public class CatalogoUser {
 		
 		// Append to file.
 		try {
-			FileWriter fw = new FileWriter(this.db);
+			FileWriter fw = new FileWriter(this.db, true);
 			BufferedWriter bw = new BufferedWriter(fw);
 			
 			bw.write(userLine);
