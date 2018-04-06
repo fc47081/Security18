@@ -1,4 +1,3 @@
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -9,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -58,6 +56,14 @@ public class PhotoShareServer {
 			}
 			catch (IOException e) {
 				e.printStackTrace();
+				if (sSoc != null && !sSoc.isClosed()) {
+			        try {
+			        	sSoc.close();
+			        } catch (IOException err)
+			        {
+			            err.printStackTrace();
+			        }
+			    }
 			}
 		}
 
@@ -246,6 +252,7 @@ public class PhotoShareServer {
 				File comments = new File("servidor/"+inUser+"/"+getNameFile(photo) + "Comments.txt");
 				comments.createNewFile();
 				outStream.writeObject("TRANSFERIDA");
+				outStream2.close();
 			}else {
 				//Se ja existe , envia para o cliente que ja existe e da exit
 				if (existsNameFile(listOfFiles, photo)){
@@ -642,7 +649,7 @@ public class PhotoShareServer {
 						File file = new File("servidor/"+userG+"/"+listaDeFotos.get(i));
 						long size = file.length();
 						FileInputStream inStream1 = new FileInputStream(file);
-						InputStream inStream2 = new BufferedInputStream(inStream1);
+						//InputStream inStream2 = new BufferedInputStream(inStream1);
 						byte buffer[] = new byte[1024];
 						int count=1024;
 						outStream.writeObject(file.length());
@@ -651,6 +658,7 @@ public class PhotoShareServer {
 							size -=count;
 							outStream.flush();	
 						}
+						inStream1.close();
 					}
 				}else {
 					outStream.writeObject("Nao Follower");
