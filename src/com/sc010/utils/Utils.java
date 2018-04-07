@@ -8,4 +8,10 @@ public class Utils {
 		}
 		return true;
 	}
+
+	public static String decifrar(String password, String salt) {
+		// TODO
+		
+		return "";
+	}
 }
