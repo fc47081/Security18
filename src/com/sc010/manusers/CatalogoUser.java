@@ -26,6 +26,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+import com.sc010.utils.Utils;
+
 /**
  * @author sc010
  *
@@ -142,7 +144,7 @@ public class CatalogoUser {
 				username = split[0];
 
 				// Salt e password hash split[1],[2]
-				password = split[2];
+				password = Utils.decifrar(split[2], split[1]);
 
 				// Ja esta decifrada podemos adicionar.
 				user = new User(username, password);
@@ -167,14 +169,16 @@ public class CatalogoUser {
 	 *            Password a ser adicionada
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
-	 * @throws InvalidKeyException 
-	 * @throws NoSuchPaddingException 
-	 * @throws BadPaddingException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws IOException 
-	 * @throws InvalidAlgorithmParameterException 
+	 * @throws InvalidKeyException
+	 * @throws NoSuchPaddingException
+	 * @throws BadPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws IOException
+	 * @throws InvalidAlgorithmParameterException
 	 */
-	public void add(String user, String password) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, InvalidAlgorithmParameterException {
+	public void add(String user, String password)
+			throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException, IOException, InvalidAlgorithmParameterException {
 
 		// Criar utilizador.
 		User u = new User(user, password);
@@ -193,20 +197,19 @@ public class CatalogoUser {
 			KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 128); // Why 20. PDF.
 			SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
 			SecretKey key = kf.generateSecret(spec);
-			
+
 			String Joana = "Ola Joana!";
-			byte [] str =Joana.getBytes();			
+			byte[] str = Joana.getBytes();
 			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 			c.init(Cipher.ENCRYPT_MODE, key);
 			byte[] enc = c.doFinal(str);
 			byte[] params = c.getParameters().getEncoded();
-			
+
 			AlgorithmParameters p = AlgorithmParameters.getInstance("PBEWithHmacSHA256AndAES_128");
 			p.init(params);
 			Cipher d = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 			d.init(Cipher.DECRYPT_MODE, key, p);
-			byte [] dec = d.doFinal(enc);
-			
+			byte[] dec = d.doFinal(enc);
 
 			String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
 			String userLine = user.concat(":").concat(Base64.getEncoder().encodeToString(salt)).concat(":")
@@ -221,7 +224,7 @@ public class CatalogoUser {
 				bw.newLine();
 				bw.close();
 				fw.close();
-				System.out.printf("Adicionado %s %s\n",user, password);
+				System.out.printf("Adicionado %s %s\n", user, password);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

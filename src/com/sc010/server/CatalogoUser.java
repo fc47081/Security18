@@ -105,6 +105,11 @@ public class CatalogoUser {
 	public void populate(File utilizadores) {
 
 		try {
+			// Verificar o mac
+			
+			// TODO
+			
+			// Ler
 			BufferedReader reader = new BufferedReader(new FileReader(utilizadores));
 			String line = "";
 			User user;
