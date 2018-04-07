@@ -166,7 +166,7 @@ public class CatalogoUser {
 		User u = new User(user, password);
 
 		if (this.lista().contains(u)) {
-			System.out.println("Utilizador já existe");
+			System.out.println("Utilizador jï¿½ existe");
 		} else {
 			this.lista().add(u);
 		}
@@ -201,9 +201,35 @@ public class CatalogoUser {
 
 	public void del(String user) {
 		boolean exists = false;
-		for (User u : this.lista()) {
+		for (User u : this.lista() ) {
 			if (u.getUserName().equals(user)) {
+				try {
+					File tempFile = new File("myTempFile.txt");
+
+					BufferedReader reader = new BufferedReader(new FileReader(this.db));
+					BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
+
+					String currentLine;
+
+					while((currentLine = reader.readLine()) != null) {
+					    // trim newline when comparing with lineToRemove
+					    String trimmedLine = currentLine.trim();
+					    String[] userpass = trimmedLine.split(":");
+					    if(userpass[0].equals(user)) continue;
+					    writer.write(currentLine + System.getProperty("line.separator"));
+					}
+					writer.close(); 
+					reader.close(); 
+					tempFile.renameTo(db);
+					//boolean successful = tempFile.renameTo(inputFile);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
+				
 				exists = true;
+				break;
+				
 			}
 		}
 		if (!exists) {
@@ -219,7 +245,7 @@ public class CatalogoUser {
 		User u = new User(username, password);
 
 		if (this.lista().contains(u)) {
-			System.out.println("Utilizador já existe");
+			System.out.println("Utilizador jï¿½ existe");
 		} else {
 			for (User user : this.lista()) {
 				if(user.getUserName().equals(username)) {
