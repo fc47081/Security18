@@ -166,39 +166,38 @@ public class CatalogoUser {
 		// Criar utilizador.
 		User u = new User(user, password);
 
-		if (this.lista().contains(u)) {
-			System.out.println("Utilizador j� existe");
+		if (this.find(user)) {
+			System.out.println("Utilizador ja existe");
+
 		} else {
 			this.lista().add(u);
-		}
+			// Cypher and persist
+			// Create salt
+			byte[] salt = new byte[16];
+			SecureRandom sr = new SecureRandom();
+			sr.nextBytes(salt);
 
-		// Cypher and persist
+			KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 128); // Why 20. PDF.
+			SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+			SecretKey key = kf.generateSecret(spec);
 
-		// Create salt
-		byte[] salt = new byte[16];
-		SecureRandom sr = new SecureRandom();
-		sr.nextBytes(salt);
+			String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
+			String userLine = user.concat(":").concat(Base64.getEncoder().encodeToString(salt)).concat(":")
+					.concat(encodedKey);
 
-		KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 128); // Why 20. PDF.
-		SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
-		SecretKey key = kf.generateSecret(spec);
+			// Append to file.
+			try {
+				FileWriter fw = new FileWriter(this.db, true);
+				BufferedWriter bw = new BufferedWriter(fw);
 
-		String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
-		String userLine = user.concat(":").concat(Base64.getEncoder().encodeToString(salt)).concat(":")
-				.concat(encodedKey);
-
-		// Append to file.
-		try {
-			FileWriter fw = new FileWriter(this.db, true);
-			BufferedWriter bw = new BufferedWriter(fw);
-
-			bw.write(userLine);
-			bw.newLine();
-			bw.close();
-			fw.close();
-
-		} catch (IOException e) {
-			e.printStackTrace();
+				bw.write(userLine);
+				bw.newLine();
+				bw.close();
+				fw.close();
+				System.out.printf("Adicionado %s %s\n",user, password);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -225,17 +224,18 @@ public class CatalogoUser {
 					writer.close();
 					reader.close();
 					Files.move(tempFile.toPath(), this.db.toPath(), StandardCopyOption.REPLACE_EXISTING);
+					System.out.printf("Removido %s\n", user);
+					exists = true;
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-
-				exists = true;
 				break;
-			}
-		}
-		System.out.println("User nao existe");
-		// Cypher and persist
 
+			} // if
+
+		} // for
+		if (!exists)
+			System.out.println("User nao existe");
 	}
 
 	public void update(String username, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -262,7 +262,8 @@ public class CatalogoUser {
 			String currentLine;
 			while ((currentLine = br.readLine()) != null) {
 				// trim newline when comparing with lineToRemove
-				String[] userpass = currentLine.split(":");
+				String trimmedLine = currentLine.trim();
+				String[] userpass = trimmedLine.split(":");
 				if (userpass[0].equals(username))
 					continue;
 				bw.write(currentLine + System.getProperty("line.separator"));
@@ -282,13 +283,9 @@ public class CatalogoUser {
 					.concat(encodedKey);
 			bw.write(userLine);
 			bw.newLine();
-			Files.move(tempFile.toPath(), this.db.toPath(), StandardCopyOption.REPLACE_EXISTING);
-			
-
 			bw.close();
 			br.close();
-			
-			
+			Files.move(tempFile.toPath(), this.db.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

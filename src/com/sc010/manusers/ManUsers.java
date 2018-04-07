@@ -35,11 +35,9 @@ public class ManUsers {
 				switch (argumentos[0]) {
 				case "add":
 					catalogo.add(argumentos[1], argumentos[2]);
-					System.out.printf("Adicionado %s %s\n", argumentos[1], argumentos[2]);
 					break;
 				case "del":
 					catalogo.del(argumentos[1]);
-					System.out.printf("Removido %s\n", argumentos[1]);
 					break;
 				case "update":
 					catalogo.update(argumentos[1], argumentos[2]);
