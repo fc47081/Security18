@@ -236,5 +236,6 @@ public class CatalogoUser {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				
 	}
 }
