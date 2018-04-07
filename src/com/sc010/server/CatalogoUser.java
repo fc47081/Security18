@@ -8,12 +8,16 @@ import java.util.ArrayList;
 public class CatalogoUser {
 	
 	private  ArrayList<User> users; 
+	private File db;
 	
 	/**
 	 * Construtor
 	 */
 	public CatalogoUser(){
 		users = new ArrayList<User>();
+		
+		db = new File("Users/users.txt");
+		populate(db);
 	}
 	
 	/**
