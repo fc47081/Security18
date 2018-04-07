@@ -213,15 +213,13 @@ public class CatalogoUser {
 
 					while((currentLine = reader.readLine()) != null) {
 					    // trim newline when comparing with lineToRemove
-					    String trimmedLine = currentLine.trim();
+						String trimmedLine = currentLine.trim();
 					    String[] userpass = trimmedLine.split(":");
 					    if(userpass[0].equals(user)) continue;
 					    writer.write(currentLine + System.getProperty("line.separator"));
 					}
 					writer.close(); 
 					reader.close(); 
-					tempFile.renameTo(db);
-					//boolean successful = tempFile.renameTo(inputFile);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -229,7 +227,6 @@ public class CatalogoUser {
 				
 				exists = true;
 				break;
-				
 			}
 		}
 		if (!exists) {
@@ -239,7 +236,7 @@ public class CatalogoUser {
 
 	}
 
-	public void update(String username, String password) {
+	public void update(String username, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
 
 		// Criar utilizador.
 		User u = new User(username, password);
@@ -252,13 +249,38 @@ public class CatalogoUser {
 					user.setPwd(password);
 				}
 			}
-
 		}
 		// update to file.
 				try {
-					FileWriter fw = new FileWriter(this.db, true);
-					BufferedWriter bw = new BufferedWriter(fw);
+					File tempFile = new File("myTempFile.txt");
+
+					BufferedReader br = new BufferedReader(new FileReader(this.db));
+					BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
+
+					String currentLine;
+					while((currentLine = br.readLine()) != null) {
+					    // trim newline when comparing with lineToRemove
+					    String[] userpass = currentLine.split(":");
+					    if(userpass[0].equals(username)) continue;
+					    bw.write(currentLine + System.getProperty("line.separator"));
+					}
 					
+					// Create salt
+					byte[] salt = new byte[16];
+					SecureRandom sr = new SecureRandom();
+					sr.nextBytes(salt);
+					
+					KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 128); // Why 20. PDF.
+					SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+					SecretKey key = kf.generateSecret(spec);
+					
+					String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
+					String userLine =  u.getUserName().concat(":").concat(Base64.getEncoder().encodeToString(salt)).concat(":").concat(encodedKey);
+					bw.write(userLine);
+					
+					bw.close(); 
+					br.close(); 
+					tempFile.renameTo(db);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
