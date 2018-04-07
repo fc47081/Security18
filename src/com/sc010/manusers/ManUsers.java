@@ -12,6 +12,8 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import com.sc010.utils.Utils;
+
 public class ManUsers {
 
 	private static CatalogoUser catalogo;
