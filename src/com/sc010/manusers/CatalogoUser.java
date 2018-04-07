@@ -196,7 +196,6 @@ public class CatalogoUser {
 			fw.close();
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}}
 
@@ -227,8 +226,15 @@ public class CatalogoUser {
 					user.setPwd(password);
 				}
 			}
-			
-			// Cypher and persist
+
 		}
+		// update to file.
+				try {
+					FileWriter fw = new FileWriter(this.db, true);
+					BufferedWriter bw = new BufferedWriter(fw);
+					
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 	}
 }
