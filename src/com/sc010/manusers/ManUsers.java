@@ -2,15 +2,21 @@ package com.sc010.manusers;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Scanner;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 public class ManUsers {
 
 	private static CatalogoUser catalogo;
 
-	public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException {
+	public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, IOException {
 		try {
 			File pasta = new File("Users");
 			if (!pasta.exists()) {
@@ -28,7 +34,7 @@ public class ManUsers {
 		boolean end = false;
 		while (!end) {
 			System.out.println("Escolha uma operacao:");
-			System.out.println("[ add <user> <password> | del <user> <password> | update <user> <password> | quit ]");
+			System.out.println("[ add <user> <password> | del <user> | update <user> <password> | quit ]");
 
 			argumentos = sc.nextLine().split(" ");
 			if (Utils.check(argumentos)) {

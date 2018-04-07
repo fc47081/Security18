@@ -8,6 +8,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.security.AlgorithmParameters;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -15,6 +18,10 @@ import java.security.spec.KeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -160,8 +167,14 @@ public class CatalogoUser {
 	 *            Password a ser adicionada
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
+	 * @throws InvalidKeyException 
+	 * @throws NoSuchPaddingException 
+	 * @throws BadPaddingException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws IOException 
+	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public void add(String user, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+	public void add(String user, String password) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, InvalidAlgorithmParameterException {
 
 		// Criar utilizador.
 		User u = new User(user, password);
@@ -180,6 +193,20 @@ public class CatalogoUser {
 			KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 128); // Why 20. PDF.
 			SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
 			SecretKey key = kf.generateSecret(spec);
+			
+			String Joana = "Ola Joana!";
+			byte [] str =Joana.getBytes();			
+			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+			c.init(Cipher.ENCRYPT_MODE, key);
+			byte[] enc = c.doFinal(str);
+			byte[] params = c.getParameters().getEncoded();
+			
+			AlgorithmParameters p = AlgorithmParameters.getInstance("PBEWithHmacSHA256AndAES_128");
+			p.init(params);
+			Cipher d = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+			d.init(Cipher.DECRYPT_MODE, key, p);
+			byte [] dec = d.doFinal(enc);
+			
 
 			String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
 			String userLine = user.concat(":").concat(Base64.getEncoder().encodeToString(salt)).concat(":")
