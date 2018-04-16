@@ -3,12 +3,13 @@ package com.sc010.manusers;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -16,10 +17,11 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
+import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -190,31 +192,15 @@ public class CatalogoUser {
 			this.lista().add(u);
 			// Cypher and persist
 			// Create salt
-			byte[] salt = new byte[16];
 			SecureRandom sr = new SecureRandom();
+			byte[] salt = new byte[16];
 			sr.nextBytes(salt);
-
-			KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 128); // Why 20. PDF.
-			SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
-			SecretKey key = kf.generateSecret(spec);
-
-			String Joana = "Ola Joana!";
-			byte[] str = Joana.getBytes();
-			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
-			c.init(Cipher.ENCRYPT_MODE, key);
-			byte[] enc = c.doFinal(str);
-			byte[] params = c.getParameters().getEncoded();
-
-			AlgorithmParameters p = AlgorithmParameters.getInstance("PBEWithHmacSHA256AndAES_128");
-			p.init(params);
-			Cipher d = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
-			d.init(Cipher.DECRYPT_MODE, key, p);
-			byte[] dec = d.doFinal(enc);
-
-			String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
-			String userLine = user.concat(":").concat(Base64.getEncoder().encodeToString(salt)).concat(":")
-					.concat(encodedKey);
-
+			
+			byte[] enc = hashPassword(password.toCharArray(), salt, 20, 256);
+			
+			//Write our string which is gonna be saved in our txt
+			String userLine = u.getUserName() + ":" + new String(salt) + ":" + new String(enc);
+			System.out.println("[DEBUG]"+userLine);
 			// Append to file.
 			try {
 				FileWriter fw = new FileWriter(this.db, true);
@@ -320,5 +306,48 @@ public class CatalogoUser {
 			e.printStackTrace();
 		}
 
+	}
+	
+	public static byte[] hashPassword(final char[] password, final byte[] salt, final int iterations,
+			final int keyLength) {
+
+		try {
+			SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
+			PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, keyLength);
+			SecretKey key = skf.generateSecret(spec);
+			byte[] res = key.getEncoded();
+			return res;
+
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Returns true if the given password and salt match the hashed value, false
+	 * otherwise.<br>
+	 * Note - side effect: the password is destroyed (the char[] is filled with
+	 * zeros)
+	 *
+	 * @param password
+	 *            the password to check
+	 * @param salt
+	 *            the salt used to hash the password
+	 * @param expectedHash
+	 *            the expected hashed value of the password
+	 *
+	 * @return true if the given password and salt match the hashed value, false
+	 *         otherwise
+	 */
+	public static boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedHash) {
+		byte[] pwdHash = hashPassword(password, salt, 20, 256);
+		Arrays.fill(password, Character.MIN_VALUE);
+		if (pwdHash.length != expectedHash.length)
+			return false;
+		for (int i = 0; i < pwdHash.length; i++) {
+			if (pwdHash[i] != expectedHash[i])
+				return false;
+		}
+		return true;
 	}
 }
