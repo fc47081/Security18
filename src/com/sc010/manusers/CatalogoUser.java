@@ -36,6 +36,8 @@ import javax.xml.bind.DatatypeConverter;
 
 import com.sun.org.apache.bcel.internal.generic.NEW;
 
+import sun.misc.BASE64Encoder;
+
 /**
  * @author sc010
  *
@@ -43,7 +45,9 @@ import com.sun.org.apache.bcel.internal.generic.NEW;
 public class CatalogoUser {
 	private static final String PathTemp = "Users/tempPass.txt";
 	private static final String usersFile = "Users/users.txt";
-
+	private byte[] encrypted;
+	private String encryptedtext;
+    private String decrypted;
 
 
 	private ArrayList<User> users;
@@ -209,10 +213,12 @@ public class CatalogoUser {
 			sr.nextBytes(salt);
 			cypher(password, ivBytes, salt);
 
+			BASE64Encoder encoder = new BASE64Encoder();
+
 			try {
 				FileWriter fw = new FileWriter(this.db, true);
 				BufferedWriter bw = new BufferedWriter(fw);
-				bw.write(user+":"+password);
+				bw.write(user+":"+encoder.encode(salt)+ encoder.encode(password.getBytes())+":"+cypher(password, ivBytes, salt));
 				bw.newLine();
 				bw.close();
 				fw.close();
@@ -220,56 +226,13 @@ public class CatalogoUser {
 			} catch (IOException e) {
 				e.printStackTrace();	
 			}
-			/*
-			File tempPass = new File(PathTemp);
-			tempPass.createNewFile();
 
-			try {
-				FileWriter fw = new FileWriter(tempPass, true);
-				BufferedWriter bw = new BufferedWriter(fw);
-				bw.write(password);
-				bw.newLine();
-				bw.close();
-				fw.close();
-
-			} catch (IOException e) {
-				e.printStackTrace();	
-			}*/
-			System.out.println(cypher(password, ivBytes, salt));
-			System.out.println(decypher(password, ivBytes, salt));
+			System.out.println("cifrado : "+cypher(password, ivBytes, salt));
+			System.out.println("decifrado : "+decypher(cypher(password, ivBytes, salt), password,ivBytes, salt));
 
 
-		}		//file.delete();
+		}	
 
-
-		/*
-			byte[] salt = new byte[16];
-			SecureRandom sr = new SecureRandom();
-			sr.nextBytes(salt);
-
-			KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 128); // Why 20. PDF.
-			SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
-			SecretKey key = kf.generateSecret(spec);
-
-			String Joana = "Ola Joana!";
-			byte [] str =Joana.getBytes();			
-			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
-			c.init(Cipher.ENCRYPT_MODE, key);
-			byte[] enc = c.doFinal(str);
-			byte[] params = c.getParameters().getEncoded();
-
-			AlgorithmParameters p = AlgorithmParameters.getInstance("PBEWithHmacSHA256AndAES_128");
-			p.init(params);
-			Cipher d = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
-			d.init(Cipher.DECRYPT_MODE, key, p);
-			byte [] dec = d.doFinal(enc);
-		 */
-
-		//String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
-		//String userLine = user.concat(":").concat(Base64.getEncoder().encodeToString(salt)).concat(":")
-		//.concat(encodedKey);
-
-		// Append to file.
 
 
 	}
@@ -304,9 +267,9 @@ public class CatalogoUser {
 				}
 				break;
 
-			} // if
+			} 
 
-		} // for
+		} 
 		if (!exists)
 			System.out.println("User nao existe");
 	}
@@ -370,7 +333,7 @@ public class CatalogoUser {
 	public String cypher(String password,byte[] ivBytes, byte[] salt) {
 		PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
 		SecretKeyFactory kf;
-		String cifra= "";
+		//String cifra= "";
 		try {
 			kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
 
@@ -383,21 +346,25 @@ public class CatalogoUser {
 			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 			c.init(Cipher.ENCRYPT_MODE, key, spec);
 
-			byte[] dados = password.getBytes();
-			byte[] cypher = c.doFinal(dados);
-		    cifra = DatatypeConverter.printBase64Binary(cypher);
-	
+			byte[] encrypted = c.doFinal(password.getBytes());
+			encryptedtext = DatatypeConverter.printBase64Binary(encrypted);
 			
+			
+			
+			//byte[] cypher = c.doFinal(dados);
+		    
+			//cifra = new String(cypher);
+	
 		}catch (Exception e) {
 			System.out.println("houve algum erro ao cifrar");
 		}
-		return cifra;
+		return encryptedtext;
 	}
 
-	public String decypher(String pass,byte[] ivBytes,byte[] salt) throws IOException {		
+	public String decypher(String cifrado,String pass,byte[] ivBytes,byte[] salt) throws IOException {		
 		PBEKeySpec keySpec = new PBEKeySpec(pass.toCharArray());
 		SecretKeyFactory kf;
-		String cifra = ""; 
+		//String cifra = ""; 
 		try {
 			kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
 
@@ -409,16 +376,18 @@ public class CatalogoUser {
 			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 			c.init(Cipher.DECRYPT_MODE, key, spec);
 			
-			byte[] dados = pass.getBytes();
-			byte[] cypher = c.doFinal(dados);
+			encrypted = DatatypeConverter.parseBase64Binary(cifrado);
+            decrypted = new String(c.doFinal(encrypted)); 
 		    
-			String encripted = DatatypeConverter.printBase64Binary(cypher);
-		    cifra = new String(encripted); 
+			//String encripted = DatatypeConverter.printBase64Binary(cypher);
+		    
+			//cifra = new String(encripted); 
 		}catch (Exception e) {
-			System.out.println("houve algum erro ao decifrar");
+			e.printStackTrace();
+			//System.out.println("houve algum erro ao decifrar");
 		}
 
-		return cifra;
+		return decrypted;
 
 	}
 
