@@ -3,21 +3,29 @@ package com.sc010.manusers;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -25,7 +33,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
 /**
@@ -35,6 +42,11 @@ import javax.xml.bind.DatatypeConverter;
 public class CatalogoUser {
 	private static final String PathTemp = "Users/tempPass.txt";
 	private static final String usersFile = "Users/users.txt";
+	private static final String KeyStorePath = "Users/users.keystore";
+	
+	
+	private static final String alias = "decifraTudo";
+	
 	private byte[] encrypted;
 	private String encryptedtext;
 	private String decrypted;
@@ -337,7 +349,7 @@ public class CatalogoUser {
 				}
 				bw.write(currentLine + System.getProperty("line.separator"));
 			}
-			// So damos update se o user exite nao �.
+			// So damos update se o user exite nao �.
 			if (found) {
 				// Create salt
 				SecureRandom sr = new SecureRandom();
@@ -433,22 +445,45 @@ public class CatalogoUser {
 
 	}
 
-<<<<<<< HEAD
-=======
+
 	public void createMac(String password,File file) {
+		
 		try {
-			Mac mac = Mac.getInstance("HmacSHA1");
-			byte[] pass = password.getBytes();
-			SecretKey sk =  new SecretKeySpec(pass,"HmacSHA1");
-			mac.init(sk);
-			BufferedReader br = new BufferedReader(new FileReader(usersFile));
-			String fileLine = "";
-			while ((fileLine = br.readLine()) != null) {
-				
+			FileOutputStream fos = new FileOutputStream("test");
+			Mac mac = Mac.getInstance("HmacSHA256");
+			// args[0] = alias; args[1] = password
+			// args[2] = keystore location
+			KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+			File keystore = new File("Users/users.keystore");
+			FileOutputStream keyStoreOutput = new FileOutputStream(keystore.getAbsolutePath());
+			if(!keystore.exists()) {
+				keystore.createNewFile();
+				ks.store(keyStoreOutput, password.toCharArray());
 			}
 			
-		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException e) {
-			// TODO Auto-generated catch block
+			FileInputStream fis = new FileInputStream(KeyStorePath);
+			ks.load(fis, password.toCharArray());
+			SecretKey key =  (SecretKey) ks.getKey(alias,password.toCharArray());
+			//  SecretKey key = //obtém a chave secreta de alguma forma
+			
+			//  verifica se existe um mac 
+			if(key == null) {
+				System.out.println("Não existe nenhum mac criado.");	
+				key = KeyGenerator.getInstance("HmacSHA256").generateKey();
+			}else {
+				System.out.println("ja existe o mac");	
+				
+			}
+			mac.init(key);
+			
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			String data = "This have I thought good to deliver thee, ......";
+			byte buf[] = data.getBytes( );
+			mac.update(buf);
+			oos.writeObject(data);
+			oos.writeObject(mac.doFinal( ));
+			fos.close();
+		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | KeyStoreException | CertificateException | UnrecoverableKeyException e) {
 			e.printStackTrace();
 		}
 		
@@ -456,5 +491,5 @@ public class CatalogoUser {
 	}
 
 
->>>>>>> goncalo
+
 }
