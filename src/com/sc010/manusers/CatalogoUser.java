@@ -1,15 +1,18 @@
 package com.sc010.manusers;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -17,24 +20,35 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 
 import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
+import javax.xml.bind.DatatypeConverter;
 
-import com.sc010.utils.Utils;
+import com.sun.org.apache.bcel.internal.generic.NEW;
+
+import sun.misc.BASE64Encoder;
 
 /**
  * @author sc010
  *
  */
 public class CatalogoUser {
+	private static final String PathTemp = "Users/tempPass.txt";
+	private static final String usersFile = "Users/users.txt";
+	private byte[] encrypted;
+	private String encryptedtext;
+    private String decrypted;
+
 
 	private ArrayList<User> users;
 	private File db;
@@ -45,7 +59,7 @@ public class CatalogoUser {
 	public CatalogoUser() {
 		users = new ArrayList<User>();
 
-		db = new File("Users/users.txt");
+		db = new File(usersFile);
 		populate(db);
 
 	}
@@ -146,7 +160,7 @@ public class CatalogoUser {
 				username = split[0];
 
 				// Salt e password hash split[1],[2]
-				password = Utils.decifrar(split[2], split[1]);
+				password = split[2];
 
 				// Ja esta decifrada podemos adicionar.
 				user = new User(username, password);
@@ -171,16 +185,14 @@ public class CatalogoUser {
 	 *            Password a ser adicionada
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
-	 * @throws InvalidKeyException
-	 * @throws NoSuchPaddingException
-	 * @throws BadPaddingException
-	 * @throws IllegalBlockSizeException
-	 * @throws IOException
-	 * @throws InvalidAlgorithmParameterException
+	 * @throws InvalidKeyException 
+	 * @throws NoSuchPaddingException 
+	 * @throws BadPaddingException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws IOException 
+	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public void add(String user, String password)
-			throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException,
-			IllegalBlockSizeException, BadPaddingException, IOException, InvalidAlgorithmParameterException {
+	public void add(String user, String password) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, InvalidAlgorithmParameterException {
 
 		// Criar utilizador.
 		User u = new User(user, password);
@@ -189,34 +201,55 @@ public class CatalogoUser {
 			System.out.println("Utilizador ja existe");
 
 		} else {
+			//System.out.println("Utilizador nao existe");
 			this.lista().add(u);
 			// Cypher and persist
 			// Create salt
 			SecureRandom sr = new SecureRandom();
-			byte[] salt = new byte[16];
-			sr.nextBytes(salt);
 			
-			byte[] enc = hashPassword(password.toCharArray(), salt, 20, 256);
+			byte[] salt = saltGenerator(sr);
+			byte[] ivBytes = ivGenerator(sr);
+			String saltWord = DatatypeConverter.printHexBinary(salt);
+
 			
-			//Write our string which is gonna be saved in our txt
-			String userLine = u.getUserName() + ":" + new String(salt) + ":" + new String(enc);
-			System.out.println("[DEBUG]"+userLine);
-			// Append to file.
+			
 			try {
 				FileWriter fw = new FileWriter(this.db, true);
 				BufferedWriter bw = new BufferedWriter(fw);
-
-				bw.write(userLine);
+				bw.write(user+":"+saltWord+":"+cypher(password, ivBytes, salt));
 				bw.newLine();
 				bw.close();
 				fw.close();
-				System.out.printf("Adicionado %s %s\n", user, password);
+				System.out.printf("Adicionado %s %s\n",user, password);
 			} catch (IOException e) {
-				e.printStackTrace();
+				e.printStackTrace();	
 			}
-		}
+
+			System.out.println("cifrado : "+cypher(password, ivBytes, salt));
+			System.out.println("decifrado : "+decypher(cypher(password, ivBytes, salt), password,ivBytes, salt));
+
+		}	
+
+
+
 	}
 
+	
+	public byte[] saltGenerator(SecureRandom sr) {
+		byte[] salt = new byte[16];
+		sr.nextBytes(salt);
+		return salt;
+	}
+	
+	
+	public byte[] ivGenerator(SecureRandom sr){
+		byte[] ivBytes = new byte[16];
+		sr.nextBytes(ivBytes);
+		return ivBytes;
+	}
+	
+	
+	
 	public void del(String user) {
 		boolean exists = false;
 		for (User u : this.lista()) {
@@ -247,9 +280,9 @@ public class CatalogoUser {
 				}
 				break;
 
-			} // if
+			} 
 
-		} // for
+		} 
 		if (!exists)
 			System.out.println("User nao existe");
 	}
@@ -286,17 +319,14 @@ public class CatalogoUser {
 			}
 
 			// Create salt
-			byte[] salt = new byte[16];
 			SecureRandom sr = new SecureRandom();
-			sr.nextBytes(salt);
+			byte[] salt = saltGenerator(sr);
+			byte[] ivBytes = ivGenerator(sr);
+			String saltWord = DatatypeConverter.printHexBinary(salt);
 
-			KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 128); // Why 20. PDF.
-			SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
-			SecretKey key = kf.generateSecret(spec);
-
-			String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
-			String userLine = u.getUserName().concat(":").concat(Base64.getEncoder().encodeToString(salt)).concat(":")
-					.concat(encodedKey);
+			String userLine = u.getUserName()+":"+saltWord+":"+cypher(password, ivBytes, salt);
+		
+			
 			bw.write(userLine);
 			bw.newLine();
 			bw.close();
@@ -307,47 +337,60 @@ public class CatalogoUser {
 		}
 
 	}
-	
-	public static byte[] hashPassword(final char[] password, final byte[] salt, final int iterations,
-			final int keyLength) {
 
+
+
+	public String cypher(String password,byte[] ivBytes, byte[] salt) {
+		PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
+		SecretKeyFactory kf;
+		//String cifra= "";
 		try {
-			SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
-			PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, keyLength);
-			SecretKey key = skf.generateSecret(spec);
-			byte[] res = key.getEncoded();
-			return res;
+			kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
 
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-			throw new RuntimeException(e);
+			SecretKey key = kf.generateSecret(keySpec); 
+
+
+			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+			PBEParameterSpec spec = new PBEParameterSpec(salt, 20, ivSpec);
+
+			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+			c.init(Cipher.ENCRYPT_MODE, key, spec);
+
+			byte[] encrypted = c.doFinal(password.getBytes());
+			encryptedtext = DatatypeConverter.printHexBinary(encrypted);
+	
+		}catch (Exception e) {
+			System.out.println("houve algum erro ao cifrar");
 		}
+		return encryptedtext;
 	}
 
-	/**
-	 * Returns true if the given password and salt match the hashed value, false
-	 * otherwise.<br>
-	 * Note - side effect: the password is destroyed (the char[] is filled with
-	 * zeros)
-	 *
-	 * @param password
-	 *            the password to check
-	 * @param salt
-	 *            the salt used to hash the password
-	 * @param expectedHash
-	 *            the expected hashed value of the password
-	 *
-	 * @return true if the given password and salt match the hashed value, false
-	 *         otherwise
-	 */
-	public static boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedHash) {
-		byte[] pwdHash = hashPassword(password, salt, 20, 256);
-		Arrays.fill(password, Character.MIN_VALUE);
-		if (pwdHash.length != expectedHash.length)
-			return false;
-		for (int i = 0; i < pwdHash.length; i++) {
-			if (pwdHash[i] != expectedHash[i])
-				return false;
+	public String decypher(String cifrado,String pass,byte[] ivBytes,byte[] salt) throws IOException {		
+		PBEKeySpec keySpec = new PBEKeySpec(pass.toCharArray());
+		SecretKeyFactory kf;
+		try {
+			kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+
+			SecretKey key = kf.generateSecret(keySpec); 
+
+			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+			PBEParameterSpec spec = new PBEParameterSpec(salt, 20, ivSpec);
+
+			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+			c.init(Cipher.DECRYPT_MODE, key, spec);
+			
+			encrypted = DatatypeConverter.parseHexBinary(cifrado);
+            decrypted = new String(c.doFinal(encrypted)); 
+		    
+		}catch (Exception e) {
+			System.out.println("houve algum erro ao decifrar");
 		}
-		return true;
+
+		return decrypted;
+
 	}
+
+
+
+
 }
