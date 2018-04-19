@@ -1,30 +1,22 @@
 package com.sc010.manusers;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 import java.util.ArrayList;
-import java.util.Base64;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -33,10 +25,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import javax.xml.bind.DatatypeConverter;
-
-import com.sun.org.apache.bcel.internal.generic.NEW;
-
-import sun.misc.BASE64Encoder;
 
 /**
  * @author sc010
@@ -47,8 +35,8 @@ public class CatalogoUser {
 	private static final String usersFile = "Users/users.txt";
 	private byte[] encrypted;
 	private String encryptedtext;
-    private String decrypted;
-
+	private String decrypted;
+	private SecureRandom sr;
 
 	private ArrayList<User> users;
 	private File db;
@@ -61,6 +49,7 @@ public class CatalogoUser {
 
 		db = new File(usersFile);
 		populate(db);
+		sr = new SecureRandom();
 
 	}
 
@@ -160,8 +149,9 @@ public class CatalogoUser {
 				username = split[0];
 
 				// Salt e password hash split[1],[2]
+				// Como isto vai ficar => password = decypher(split[2], ivGenerator(sr), split[1].getBytes());//TODO
 				password = split[2];
-
+				
 				// Ja esta decifrada podemos adicionar.
 				user = new User(username, password);
 
@@ -185,14 +175,16 @@ public class CatalogoUser {
 	 *            Password a ser adicionada
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
-	 * @throws InvalidKeyException 
-	 * @throws NoSuchPaddingException 
-	 * @throws BadPaddingException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws IOException 
-	 * @throws InvalidAlgorithmParameterException 
+	 * @throws InvalidKeyException
+	 * @throws NoSuchPaddingException
+	 * @throws BadPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws IOException
+	 * @throws InvalidAlgorithmParameterException
 	 */
-	public void add(String user, String password) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, InvalidAlgorithmParameterException {
+	public void add(String user, String password)
+			throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException, IOException, InvalidAlgorithmParameterException {
 
 		// Criar utilizador.
 		User u = new User(user, password);
@@ -201,55 +193,60 @@ public class CatalogoUser {
 			System.out.println("Utilizador ja existe");
 
 		} else {
-			//System.out.println("Utilizador nao existe");
+			// System.out.println("Utilizador nao existe");
 			this.lista().add(u);
 			// Cypher and persist
 			// Create salt
 			SecureRandom sr = new SecureRandom();
-			
+
 			byte[] salt = saltGenerator(sr);
 			byte[] ivBytes = ivGenerator(sr);
 			String saltWord = DatatypeConverter.printHexBinary(salt);
 
-			
-			
 			try {
 				FileWriter fw = new FileWriter(this.db, true);
 				BufferedWriter bw = new BufferedWriter(fw);
-				bw.write(user+":"+saltWord+":"+cypher(password, ivBytes, salt));
+				bw.write(user + ":" + saltWord + ":" + cypher(password, ivBytes, salt));
 				bw.newLine();
 				bw.close();
 				fw.close();
-				System.out.printf("Adicionado %s %s\n",user, password);
+				System.out.printf("Adicionado %s %s\n", user, password);
 			} catch (IOException e) {
-				e.printStackTrace();	
+				e.printStackTrace();
 			}
 
-			System.out.println("cifrado : "+cypher(password, ivBytes, salt));
-			System.out.println("decifrado : "+decypher(cypher(password, ivBytes, salt), password,ivBytes, salt));
+			System.out.println("cifrado : " + cypher(password, ivBytes, salt));
+			System.out.println("decifrado : " + decypher(cypher(password, ivBytes, salt), ivBytes, salt));
 
-		}	
-
-
+		}
 
 	}
-
-	
+	/**
+	 * Gera um random salt com um array de bytes randomizado de forma segura.
+	 * @param sr	Gerador de numeros random seguro
+	 * @return byte[] ivBytes
+	 */
 	public byte[] saltGenerator(SecureRandom sr) {
 		byte[] salt = new byte[16];
 		sr.nextBytes(salt);
 		return salt;
 	}
-	
-	
-	public byte[] ivGenerator(SecureRandom sr){
+
+	/**
+	 * Gera um random IV com um array de bytes randomizado de forma segura.
+	 * @param sr	Gerador de numeros random seguro
+	 * @return byte[] salt
+	 */
+	public byte[] ivGenerator(SecureRandom sr) {
 		byte[] ivBytes = new byte[16];
 		sr.nextBytes(ivBytes);
 		return ivBytes;
 	}
-	
-	
-	
+
+	/**
+	 * Apaga o user do catalogo e do ficheiro de users
+	 * @param user Username do user a ser apagado
+	 */
 	public void del(String user) {
 		boolean exists = false;
 		for (User u : this.lista()) {
@@ -280,20 +277,27 @@ public class CatalogoUser {
 				}
 				break;
 
-			} 
+			}
 
-		} 
+		}
 		if (!exists)
 			System.out.println("User nao existe");
 	}
 
+	/**
+	 * Update da password do user dado, com a password dada
+	 * @param username	User a ser feito o update
+	 * @param password	Nova password
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeySpecException
+	 */
 	public void update(String username, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
 
 		// Criar utilizador.
 		User u = new User(username, password);
 
 		if (this.lista().contains(u)) {
-			System.out.println("Utilizador j� existe");
+			System.out.println("Utilizador ja existe");
 		} else {
 			for (User user : this.lista()) {
 				if (user.getUserName().equals(username)) {
@@ -324,9 +328,8 @@ public class CatalogoUser {
 			byte[] ivBytes = ivGenerator(sr);
 			String saltWord = DatatypeConverter.printHexBinary(salt);
 
-			String userLine = u.getUserName()+":"+saltWord+":"+cypher(password, ivBytes, salt);
-		
-			
+			String userLine = u.getUserName() + ":" + saltWord + ":" + cypher(password, ivBytes, salt);
+
 			bw.write(userLine);
 			bw.newLine();
 			bw.close();
@@ -339,16 +342,21 @@ public class CatalogoUser {
 	}
 
 
-
-	public String cypher(String password,byte[] ivBytes, byte[] salt) {
-		PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
+	/**
+	 * Cifra uma password.
+	 * @param password	string com a password a cifrar
+	 * @param ivBytes	array de bytes para servir de IV
+	 * @param salt	suposto array de bytes randomizados
+	 * @return password cifrarda numa String
+	 */
+	public String cypher(String password, byte[] ivBytes, byte[] salt) {
+		PBEKeySpec keySpec = new PBEKeySpec("Tree Math Water".toCharArray());
 		SecretKeyFactory kf;
-		//String cifra= "";
+		// String cifra= "";
 		try {
 			kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
 
-			SecretKey key = kf.generateSecret(keySpec); 
-
+			SecretKey key = kf.generateSecret(keySpec);
 
 			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
 			PBEParameterSpec spec = new PBEParameterSpec(salt, 20, ivSpec);
@@ -358,39 +366,44 @@ public class CatalogoUser {
 
 			byte[] encrypted = c.doFinal(password.getBytes());
 			encryptedtext = DatatypeConverter.printHexBinary(encrypted);
-	
-		}catch (Exception e) {
+
+		} catch (Exception e) {
 			System.out.println("houve algum erro ao cifrar");
 		}
 		return encryptedtext;
 	}
 
-	public String decypher(String cifrado,String pass,byte[] ivBytes,byte[] salt) throws IOException {		
-		PBEKeySpec keySpec = new PBEKeySpec(pass.toCharArray());
+	/**
+	 * Decifra uma password cifrada dada a key.
+	 * @param cifrado	String com a password cifrada
+	 * @param ivBytes	Parametros IV randomizados
+	 * @param salt	Salt 
+	 * @return	Password Original
+	 * @throws IOException
+	 */
+	public String decypher(String cifrado, byte[] ivBytes, byte[] salt) throws IOException {
+		PBEKeySpec keySpec = new PBEKeySpec("Tree Math Water".toCharArray());
 		SecretKeyFactory kf;
 		try {
 			kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
 
-			SecretKey key = kf.generateSecret(keySpec); 
+			SecretKey key = kf.generateSecret(keySpec);
 
 			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
 			PBEParameterSpec spec = new PBEParameterSpec(salt, 20, ivSpec);
 
 			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 			c.init(Cipher.DECRYPT_MODE, key, spec);
-			
+
 			encrypted = DatatypeConverter.parseHexBinary(cifrado);
-            decrypted = new String(c.doFinal(encrypted)); 
-		    
-		}catch (Exception e) {
+			decrypted = new String(c.doFinal(encrypted));
+
+		} catch (Exception e) {
 			System.out.println("houve algum erro ao decifrar");
 		}
 
 		return decrypted;
 
 	}
-
-
-
 
 }
