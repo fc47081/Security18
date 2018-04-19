@@ -205,20 +205,18 @@ public class CatalogoUser {
 			this.lista().add(u);
 			// Cypher and persist
 			// Create salt
-			byte[] salt = new byte[16];
 			SecureRandom sr = new SecureRandom();
-			sr.nextBytes(salt);
+			
+			byte[] salt = saltGenerator(sr);
+			byte[] ivBytes = ivGenerator(sr);
+			String saltWord = DatatypeConverter.printHexBinary(salt);
 
-			byte[] ivBytes = new byte[16];
-			sr.nextBytes(salt);
-			cypher(password, ivBytes, salt);
-
-			BASE64Encoder encoder = new BASE64Encoder();
-
+			
+			
 			try {
 				FileWriter fw = new FileWriter(this.db, true);
 				BufferedWriter bw = new BufferedWriter(fw);
-				bw.write(user+":"+encoder.encode(salt)+ encoder.encode(password.getBytes())+":"+cypher(password, ivBytes, salt));
+				bw.write(user+":"+saltWord+":"+cypher(password, ivBytes, salt));
 				bw.newLine();
 				bw.close();
 				fw.close();
@@ -230,13 +228,28 @@ public class CatalogoUser {
 			System.out.println("cifrado : "+cypher(password, ivBytes, salt));
 			System.out.println("decifrado : "+decypher(cypher(password, ivBytes, salt), password,ivBytes, salt));
 
-
 		}	
 
 
 
 	}
 
+	
+	public byte[] saltGenerator(SecureRandom sr) {
+		byte[] salt = new byte[16];
+		sr.nextBytes(salt);
+		return salt;
+	}
+	
+	
+	public byte[] ivGenerator(SecureRandom sr){
+		byte[] ivBytes = new byte[16];
+		sr.nextBytes(ivBytes);
+		return ivBytes;
+	}
+	
+	
+	
 	public void del(String user) {
 		boolean exists = false;
 		for (User u : this.lista()) {
@@ -306,17 +319,14 @@ public class CatalogoUser {
 			}
 
 			// Create salt
-			byte[] salt = new byte[16];
 			SecureRandom sr = new SecureRandom();
-			sr.nextBytes(salt);
+			byte[] salt = saltGenerator(sr);
+			byte[] ivBytes = ivGenerator(sr);
+			String saltWord = DatatypeConverter.printHexBinary(salt);
 
-			KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 128); // Why 20. PDF.
-			SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
-			SecretKey key = kf.generateSecret(spec);
-
-			String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());
-			String userLine = u.getUserName().concat(":").concat(Base64.getEncoder().encodeToString(salt)).concat(":")
-					.concat(encodedKey);
+			String userLine = u.getUserName()+":"+saltWord+":"+cypher(password, ivBytes, salt);
+		
+			
 			bw.write(userLine);
 			bw.newLine();
 			bw.close();
@@ -347,13 +357,7 @@ public class CatalogoUser {
 			c.init(Cipher.ENCRYPT_MODE, key, spec);
 
 			byte[] encrypted = c.doFinal(password.getBytes());
-			encryptedtext = DatatypeConverter.printBase64Binary(encrypted);
-			
-			
-			
-			//byte[] cypher = c.doFinal(dados);
-		    
-			//cifra = new String(cypher);
+			encryptedtext = DatatypeConverter.printHexBinary(encrypted);
 	
 		}catch (Exception e) {
 			System.out.println("houve algum erro ao cifrar");
@@ -364,7 +368,6 @@ public class CatalogoUser {
 	public String decypher(String cifrado,String pass,byte[] ivBytes,byte[] salt) throws IOException {		
 		PBEKeySpec keySpec = new PBEKeySpec(pass.toCharArray());
 		SecretKeyFactory kf;
-		//String cifra = ""; 
 		try {
 			kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
 
@@ -376,15 +379,11 @@ public class CatalogoUser {
 			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 			c.init(Cipher.DECRYPT_MODE, key, spec);
 			
-			encrypted = DatatypeConverter.parseBase64Binary(cifrado);
+			encrypted = DatatypeConverter.parseHexBinary(cifrado);
             decrypted = new String(c.doFinal(encrypted)); 
 		    
-			//String encripted = DatatypeConverter.printBase64Binary(cypher);
-		    
-			//cifra = new String(encripted); 
 		}catch (Exception e) {
-			e.printStackTrace();
-			//System.out.println("houve algum erro ao decifrar");
+			System.out.println("houve algum erro ao decifrar");
 		}
 
 		return decrypted;
