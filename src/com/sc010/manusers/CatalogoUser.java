@@ -149,9 +149,10 @@ public class CatalogoUser {
 				username = split[0];
 
 				// Salt e password hash split[1],[2]
-				// Como isto vai ficar => password = decypher(split[2], ivGenerator(sr), split[1].getBytes());//TODO
+				// Como isto vai ficar => password = decypher(split[2], ivGenerator(sr),
+				// split[1].getBytes());//TODO
 				password = split[2];
-				
+
 				// Ja esta decifrada podemos adicionar.
 				user = new User(username, password);
 
@@ -221,9 +222,12 @@ public class CatalogoUser {
 		}
 
 	}
+
 	/**
 	 * Gera um random salt com um array de bytes randomizado de forma segura.
-	 * @param sr	Gerador de numeros random seguro
+	 * 
+	 * @param sr
+	 *            Gerador de numeros random seguro
 	 * @return byte[] ivBytes
 	 */
 	public byte[] saltGenerator(SecureRandom sr) {
@@ -234,7 +238,9 @@ public class CatalogoUser {
 
 	/**
 	 * Gera um random IV com um array de bytes randomizado de forma segura.
-	 * @param sr	Gerador de numeros random seguro
+	 * 
+	 * @param sr
+	 *            Gerador de numeros random seguro
 	 * @return byte[] salt
 	 */
 	public byte[] ivGenerator(SecureRandom sr) {
@@ -245,7 +251,9 @@ public class CatalogoUser {
 
 	/**
 	 * Apaga o user do catalogo e do ficheiro de users
-	 * @param user Username do user a ser apagado
+	 * 
+	 * @param user
+	 *            Username do user a ser apagado
 	 */
 	public void del(String user) {
 		boolean exists = false;
@@ -286,8 +294,11 @@ public class CatalogoUser {
 
 	/**
 	 * Update da password do user dado, com a password dada
-	 * @param username	User a ser feito o update
-	 * @param password	Nova password
+	 * 
+	 * @param username
+	 *            User a ser feito o update
+	 * @param password
+	 *            Nova password
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
 	 */
@@ -312,26 +323,33 @@ public class CatalogoUser {
 			BufferedReader br = new BufferedReader(new FileReader(this.db));
 			BufferedWriter bw = new BufferedWriter(new FileWriter(tempFile));
 
+			boolean found = false;
 			String currentLine;
 			while ((currentLine = br.readLine()) != null) {
 				// trim newline when comparing with lineToRemove
 				String trimmedLine = currentLine.trim();
 				String[] userpass = trimmedLine.split(":");
-				if (userpass[0].equals(username))
+				if (userpass[0].equals(username)) {
+					found = true; // Se encontramos o nosso user tudo bem.
 					continue;
+				}
 				bw.write(currentLine + System.getProperty("line.separator"));
 			}
+			// So damos update se o user exite nao é.
+			if (found) {
+				// Create salt
+				SecureRandom sr = new SecureRandom();
+				byte[] salt = saltGenerator(sr);
+				byte[] ivBytes = ivGenerator(sr);
+				String saltWord = DatatypeConverter.printHexBinary(salt);
 
-			// Create salt
-			SecureRandom sr = new SecureRandom();
-			byte[] salt = saltGenerator(sr);
-			byte[] ivBytes = ivGenerator(sr);
-			String saltWord = DatatypeConverter.printHexBinary(salt);
+				String userLine = u.getUserName() + ":" + saltWord + ":" + cypher(password, ivBytes, salt);
 
-			String userLine = u.getUserName() + ":" + saltWord + ":" + cypher(password, ivBytes, salt);
-
-			bw.write(userLine);
-			bw.newLine();
+				bw.write(userLine);
+				bw.newLine();
+			}else {
+				System.out.println("User nao encontrado");
+			}
 			bw.close();
 			br.close();
 			Files.move(tempFile.toPath(), this.db.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -341,12 +359,15 @@ public class CatalogoUser {
 
 	}
 
-
 	/**
 	 * Cifra uma password.
-	 * @param password	string com a password a cifrar
-	 * @param ivBytes	array de bytes para servir de IV
-	 * @param salt	suposto array de bytes randomizados
+	 * 
+	 * @param password
+	 *            string com a password a cifrar
+	 * @param ivBytes
+	 *            array de bytes para servir de IV
+	 * @param salt
+	 *            suposto array de bytes randomizados
 	 * @return password cifrarda numa String
 	 */
 	public String cypher(String password, byte[] ivBytes, byte[] salt) {
@@ -375,10 +396,14 @@ public class CatalogoUser {
 
 	/**
 	 * Decifra uma password cifrada dada a key.
-	 * @param cifrado	String com a password cifrada
-	 * @param ivBytes	Parametros IV randomizados
-	 * @param salt	Salt 
-	 * @return	Password Original
+	 * 
+	 * @param cifrado
+	 *            String com a password cifrada
+	 * @param ivBytes
+	 *            Parametros IV randomizados
+	 * @param salt
+	 *            Salt
+	 * @return Password Original
 	 * @throws IOException
 	 */
 	public String decypher(String cifrado, byte[] ivBytes, byte[] salt) throws IOException {

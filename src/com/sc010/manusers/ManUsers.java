@@ -49,7 +49,6 @@ public class ManUsers {
 					break;
 				case "update":
 					catalogo.update(argumentos[1], argumentos[2]);
-					System.out.printf("Atualizado %s %s\n", argumentos[1], argumentos[2]);
 					break;
 				case "quit":
 					end = !end;
