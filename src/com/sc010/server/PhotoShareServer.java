@@ -12,13 +12,16 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
 
 //Servidor PhotoShareServer
 public class PhotoShareServer {
@@ -38,10 +41,13 @@ public class PhotoShareServer {
 	 * Trata da comunicacao com o servidor
 	 */
 	public void startServer (){
-		ServerSocket sSoc = null;
+		SSLServerSocket ss = null ;
 		try {
-			sSoc = new ServerSocket(23232);
-			sSoc.getLocalPort();
+			
+			ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
+			ss = (SSLServerSocket) ssf.createServerSocket(23232);
+			//sSoc = new ServerSocket(23232);
+			//sSoc.getLocalPort();
 			//System.out.println(sSoc.getLocalPort());
 
 		} catch (IOException e) {
@@ -50,16 +56,15 @@ public class PhotoShareServer {
 		}
 		while(true) {
 			try {
-				Socket inSoc = sSoc.accept();
-				ServerThread newServerThread = new ServerThread(inSoc);
+				ServerThread newServerThread = new ServerThread(ss.accept());
 				newServerThread.start();
 				//sSoc.close();
 			}
 			catch (IOException e) {
 				e.printStackTrace();
-				if (sSoc != null && !sSoc.isClosed()) {
+				if (ss != null && !ss.isClosed()) {
 			        try {
-			        	sSoc.close();
+			        	ss.close();
 			        } catch (IOException err)
 			        {
 			            err.printStackTrace();
@@ -75,8 +80,8 @@ public class PhotoShareServer {
 
 		private Socket socket = null;
 
-		ServerThread(Socket inSoc) {
-			socket = inSoc;
+		ServerThread(Socket socket2) {
+			socket = socket2;
 			System.out.println("Entrou novo cliente");
 		}
 
@@ -87,6 +92,7 @@ public class PhotoShareServer {
 			try {
 				ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream inStream = new ObjectInputStream(socket.getInputStream());
+				
 				String inUser = "";
 				String inPasswd = "";
 
