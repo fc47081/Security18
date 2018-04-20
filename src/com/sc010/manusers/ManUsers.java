@@ -18,7 +18,9 @@ public class ManUsers {
 
 	private static CatalogoUser catalogo;
 
-	public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, IOException {
+	public static void main(String[] args)
+			throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, IOException {
 		try {
 			File pasta = new File("Users");
 			if (!pasta.exists()) {
@@ -31,7 +33,10 @@ public class ManUsers {
 			System.err.println("Erro ao criar user/pasta :" + e.toString());
 		}
 		Scanner sc = new Scanner(System.in);
+		System.out.println("Introduza password de acesso");
+		String pw = sc.nextLine();
 		catalogo = new CatalogoUser();
+		catalogo.loadKeystore("Users/users.keystore", pw.toCharArray());
 		String argumentos[];
 		boolean end = false;
 		while (!end) {
@@ -51,7 +56,7 @@ public class ManUsers {
 					catalogo.update(argumentos[1], argumentos[2]);
 					break;
 				case "quit":
-					catalogo.createMac("TESTE");
+					//catalogo.cypherFile(key, filePath);("TESTE");
 					end = !end;
 					System.out.println("Saindo...");
 				default:
