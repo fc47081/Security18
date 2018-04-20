@@ -11,10 +11,16 @@ import java.net.Socket;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 public class PhotoShare {
 
 	private static final String IPPort = "(\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}):(\\d{1,5})";
 	private static final Pattern PATTERN = Pattern.compile(IPPort);
+	static SocketFactory sf = null;
+	static SSLSocket listeningSocket = null;
 
 	public static void main(String[] args) {
 
@@ -29,7 +35,10 @@ public class PhotoShare {
 		String[] arguments = verificaArgs(argumentos, input);
 		String[] serverAdress = arguments[2].split(":");
 		try {
-			listeningSocket = new Socket(serverAdress[0], Integer.parseInt(serverAdress[1]));
+
+			sf = SSLSocketFactory.getDefault( );
+			listeningSocket = (SSLSocket) sf.createSocket(serverAdress[0], Integer.parseInt(serverAdress[1]));
+
 
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
