@@ -9,7 +9,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidAlgorithmParameterException;
@@ -448,31 +447,30 @@ public class CatalogoUser {
 	public void createMac(String password) {
 		
 		try {
+			
 			FileOutputStream fos = new FileOutputStream("test");
 			Mac mac = Mac.getInstance("HmacSHA256");
-			// args[0] = alias; args[1] = password
-			// args[2] = keystore location
 			KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
 			File keystore = new File("Users/users.keystore");
 			FileOutputStream keyStoreOutput = new FileOutputStream(keystore);
 			FileInputStream fis = new FileInputStream(keystore);
-			if(!keystore.exists()) {
-				// Create keystore.
+			
+			if(keystore.exists()) {
+				// load keystore.
+				ks.load(fis, password.toCharArray());		
+			} else {
+				//se nao existe cria 
 				ks.load(null, password.toCharArray());
 				ks.store(keyStoreOutput, password.toCharArray());
-			} else {
-				 ks.load(fis, password.toCharArray());
 			}
 			
 			SecretKey key =  (SecretKey) ks.getKey(alias,password.toCharArray());
-			//  SecretKey key = //obtém a chave secreta de alguma forma
-			
 			//  verifica se existe um mac 
 			if(key == null) {
-				System.out.println("Não existe nenhum mac criado.");	
+				System.out.println("Nao existe nenhum mac criado.");	
 				key = KeyGenerator.getInstance("HmacSHA256").generateKey();
 			}else {
-				System.out.println("ja existe o mac");	
+				System.out.println("jah existe o mac");	
 				
 			}
 			mac.init(key);
