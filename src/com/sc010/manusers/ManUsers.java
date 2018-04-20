@@ -51,8 +51,7 @@ public class ManUsers {
 					catalogo.update(argumentos[1], argumentos[2]);
 					break;
 				case "quit":
-					File keystore = new File("Users/users.keystore");
-					catalogo.createMac("TESTE", keystore);
+					catalogo.createMac("TESTE");
 					end = !end;
 					System.out.println("Saindo...");
 				default:

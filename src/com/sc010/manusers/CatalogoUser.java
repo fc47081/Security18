@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidAlgorithmParameterException;
@@ -43,10 +44,9 @@ public class CatalogoUser {
 	private static final String PathTemp = "Users/tempPass.txt";
 	private static final String usersFile = "Users/users.txt";
 	private static final String KeyStorePath = "Users/users.keystore";
-	
-	
+
 	private static final String alias = "decifraTudo";
-	
+
 	private byte[] encrypted;
 	private String encryptedtext;
 	private String decrypted;
@@ -361,7 +361,7 @@ public class CatalogoUser {
 
 				bw.write(userLine);
 				bw.newLine();
-			}else {
+			} else {
 				System.out.println("User nao encontrado");
 			}
 			bw.close();
@@ -445,8 +445,7 @@ public class CatalogoUser {
 
 	}
 
-
-	public void createMac(String password,File file) {
+	public void createMac(String password) {
 		
 		try {
 			FileOutputStream fos = new FileOutputStream("test");
@@ -455,14 +454,16 @@ public class CatalogoUser {
 			// args[2] = keystore location
 			KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
 			File keystore = new File("Users/users.keystore");
-			FileOutputStream keyStoreOutput = new FileOutputStream(keystore.getAbsolutePath());
+			FileOutputStream keyStoreOutput = new FileOutputStream(keystore);
+			FileInputStream fis = new FileInputStream(keystore);
 			if(!keystore.exists()) {
-				keystore.createNewFile();
+				// Create keystore.
+				ks.load(null, password.toCharArray());
 				ks.store(keyStoreOutput, password.toCharArray());
+			} else {
+				 ks.load(fis, password.toCharArray());
 			}
 			
-			FileInputStream fis = new FileInputStream(KeyStorePath);
-			ks.load(fis, password.toCharArray());
 			SecretKey key =  (SecretKey) ks.getKey(alias,password.toCharArray());
 			//  SecretKey key = //obtém a chave secreta de alguma forma
 			
@@ -481,7 +482,7 @@ public class CatalogoUser {
 			byte buf[] = data.getBytes( );
 			mac.update(buf);
 			oos.writeObject(data);
-			oos.writeObject(mac.doFinal( ));
+			oos.writeObject(mac.doFinal());
 			fos.close();
 		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | KeyStoreException | CertificateException | UnrecoverableKeyException e) {
 			e.printStackTrace();
@@ -489,7 +490,5 @@ public class CatalogoUser {
 		
 		
 	}
-
-
 
 }
