@@ -18,6 +18,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
@@ -445,48 +446,53 @@ public class CatalogoUser {
 	}
 
 	public void createMac(String password) {
-		
+
 		try {
-			
+
 			FileOutputStream fos = new FileOutputStream("test");
 			Mac mac = Mac.getInstance("HmacSHA256");
-			KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+			KeyStore ks = KeyStore.getInstance("JCEKS");
 			File keystore = new File("Users/users.keystore");
-			FileOutputStream keyStoreOutput = new FileOutputStream(keystore);
-			FileInputStream fis = new FileInputStream(keystore);
-			
-			if(keystore.exists()) {
-				// load keystore.
-				ks.load(fis, password.toCharArray());		
+			// FileOutputStream keyStoreOutput = ;
+			// FileInputStream fis = ;
+
+			if (keystore.exists()) {
+				ks.load(new FileInputStream(KeyStorePath), password.toCharArray());
+
 			} else {
-				//se nao existe cria 
+				// se nao existe cria
 				ks.load(null, password.toCharArray());
-				ks.store(keyStoreOutput, password.toCharArray());
+				ks.store(new FileOutputStream(keystore), password.toCharArray());
 			}
-			
-			SecretKey key =  (SecretKey) ks.getKey(alias,password.toCharArray());
-			//  verifica se existe um mac 
-			if(key == null) {
-				System.out.println("Nao existe nenhum mac criado.");	
+			// fis.close();
+			SecretKey key = (SecretKey) ks.getKey(alias, password.toCharArray());
+			// verifica se existe um mac
+			if (key == null) {
+				System.out.println("Nao existe nenhum mac criado.");
 				key = KeyGenerator.getInstance("HmacSHA256").generateKey();
-			}else {
-				System.out.println("jah existe o mac");	
-				
+				Certificate cert = ks.getCertificate(alias); 
+				Certificate[] certarray =  {cert};
+				ks.setKeyEntry(alias, key, password.toCharArray(),certarray);
+				ks.store(new FileOutputStream(keystore), password.toCharArray());
+			} else {
+				System.out.println("jah existe o mac");
+
 			}
 			mac.init(key);
-			
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 			String data = "This have I thought good to deliver thee, ......";
-			byte buf[] = data.getBytes( );
+			byte buf[] = data.getBytes();
 			mac.update(buf);
 			oos.writeObject(data);
 			oos.writeObject(mac.doFinal());
 			fos.close();
-		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | KeyStoreException | CertificateException | UnrecoverableKeyException e) {
+			oos.close();
+			// keyStoreOutput.close();
+		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | KeyStoreException | CertificateException
+				| UnrecoverableKeyException e) {
 			e.printStackTrace();
 		}
-		
-		
+
 	}
 
 }
