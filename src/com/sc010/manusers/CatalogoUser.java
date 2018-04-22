@@ -53,7 +53,7 @@ public class CatalogoUser {
 	private String encryptedtext;
 	private String decrypted;
 	private SecureRandom sr;
-
+	
 	private ArrayList<User> users;
 	private File db;
 
@@ -451,8 +451,16 @@ public class CatalogoUser {
 		// TODO
 	}
 
-	public void cypherFile(SecretKey key, String filePath) {
-
+	//cifar
+	//criar mac com a passAdmin
+	//output->ficheiro user.mac (NOVO)
+	//
+	
+	public void createMac(SecretKey key, String filePath) {
+		
+		byte [] ficheiro;
+		String pwAdmin = null;
+		
 		try {
 			Mac mac = Mac.getInstance("HmacSHA256");
 			FileOutputStream fos = new FileOutputStream(filePath);
@@ -470,64 +478,15 @@ public class CatalogoUser {
 			oos.writeObject(mac.doFinal());
 			fos.close();
 			oos.close();
-			// keyStoreOutput.close();
 		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException e) {
 			e.printStackTrace();
 		}
 
 	}
 
-	public void loadKeystore(String pathKS, char[] password) {
-		try {
-			// Cria uma keystore.
-			ks = KeyStore.getInstance("JCEKS");
-			File keystore = new File(pathKS);
-
-			// Se a keystore existe, dar load desse path.
-			if (keystore.exists()) {
-				ks.load(new FileInputStream(KeyStorePath), password);
-
-			} else {
-				// Se não existe dar load com path a null e depois store para escrever no
-				// ficheiro.
-				ks.load(null, password);
-				ks.store(new FileOutputStream(keystore), password);
-			}
-			// Cria a secretkey com a password dada e compara com a getKey da keystore
-			SecretKey key = (SecretKey) ks.getKey(alias, password);
-
-			// verifica se existe um mac
-			if (key == null) {
-				key = KeyGenerator.getInstance("HmacSHA256").generateKey();
-				Certificate cert = ks.getCertificate(alias);
-				Certificate[] certarray = { cert };
-				ks.setKeyEntry(alias, key, password, certarray);
-				ks.store(new FileOutputStream("Users/users.keystore"), password);
-				System.out.println("Mac criado.");
-			} else {
-				System.out.println("jah existe o mac");
-
-			}
-		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
-				| UnrecoverableKeyException e) {
-			if (e instanceof IOException) {
-				if (e.getMessage().contains("password was incorrect")) {
-					System.out.println("Password errada");
-					System.exit(-1);
-				}
-			}
-			e.printStackTrace();
-		}
-
-	}
-
-	public void saveKeystore(KeyStore ks, String pathKS, char[] password) {
-		try {
-			ks.store(new FileOutputStream(pathKS), password);
-		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public boolean verificaMac(String pw) {
+	
+		
 	}
 
 }

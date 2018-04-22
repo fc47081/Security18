@@ -36,7 +36,7 @@ public class ManUsers {
 		System.out.println("Introduza password de acesso");
 		String pw = sc.nextLine();
 		catalogo = new CatalogoUser();
-		catalogo.loadKeystore("Users/users.keystore", pw.toCharArray());
+		catalogo.verificaMac(pw);
 		String argumentos[];
 		boolean end = false;
 		while (!end) {
