@@ -168,7 +168,7 @@ public class PhotoShareServer {
 			if(!utilizadores.exists())
 				utilizadores.createNewFile();
 			else
-				catUser.populate(utilizadores);
+				//catUser.populate(utilizadores);
 			try {
 				reader = new BufferedReader(new FileReader(utilizadores));
 			} catch (FileNotFoundException e) {
