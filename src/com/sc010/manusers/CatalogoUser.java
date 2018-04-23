@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -29,25 +28,17 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
-import com.sc010.utils.Utils;
-
 /**
  * @author sc010
  *
  */
 public class CatalogoUser {
 	private static final String usersFile = "Users/users.txt";
-	private static final String KeyStorePath = "Users/users.keystore";
-
-	private static final String alias = "decifraTudo";
-
-	private KeyStore ks = null;
 
 	private byte[] encrypted;
 	private String encryptedtext;
 	private String decrypted;
-	private SecureRandom sr;
-	
+
 	private ArrayList<User> users;
 	private File db;
 
@@ -59,8 +50,6 @@ public class CatalogoUser {
 
 		db = new File(usersFile);
 		populate(db);
-		sr = new SecureRandom();
-
 	}
 
 	/**
@@ -160,7 +149,7 @@ public class CatalogoUser {
 
 				// Salt e password hash split[1],[2]
 				// Como isto vai ficar => password = decypher(split[2], ivGenerator(sr),
-				// split[1].getBytes());//TODO
+				// split[1].getBytes());
 				password = split[2];
 
 				// Ja esta decifrada podemos adicionar.
@@ -213,15 +202,12 @@ public class CatalogoUser {
 			byte[] salt = saltGenerator(sr);
 			byte[] ivBytes = ivGenerator();
 			String saltWord = DatatypeConverter.printHexBinary(salt);
-			//String ivWord = DatatypeConverter.printHexBinary(ivBytes);
-							
-			
-			
-			
+			// String ivWord = DatatypeConverter.printHexBinary(ivBytes);
+
 			try {
 				FileWriter fw = new FileWriter(this.db, true);
 				BufferedWriter bw = new BufferedWriter(fw);
-				bw.write(user + ":" + saltWord + ":" + cypher(password,ivBytes,salt));
+				bw.write(user + ":" + saltWord + ":" + cypher(password, ivBytes, salt));
 				bw.newLine();
 				bw.close();
 				fw.close();
@@ -230,8 +216,8 @@ public class CatalogoUser {
 				e.printStackTrace();
 			}
 
-			System.out.println("cifrado : " + cypher(password,ivBytes,salt));
-			System.out.println("decifrado : " +Utils.decifrar(this.db, user));
+			// System.out.println("cifrado : " + cypher(password,ivBytes,salt));
+			// System.out.println("decifrado : " +Utils.decifrar(this.db, user));
 
 		}
 
@@ -258,7 +244,8 @@ public class CatalogoUser {
 	 * @return byte[] salt
 	 */
 	public byte[] ivGenerator() {
-		byte[] ivBytes = {0x11,0x37,0x69,0x1F,0x3D,0x5A,0x04,0x18,0x23,0x6B,0x1F,0x03,0x1D,0x1E,0x1F,0x20};
+		byte[] ivBytes = { 0x11, 0x37, 0x69, 0x1F, 0x3D, 0x5A, 0x04, 0x18, 0x23, 0x6B, 0x1F, 0x03, 0x1D, 0x1E, 0x1F,
+				0x20 };
 		return ivBytes;
 	}
 
@@ -355,9 +342,9 @@ public class CatalogoUser {
 				byte[] salt = saltGenerator(sr);
 				byte[] ivBytes = ivGenerator();
 				String saltWord = DatatypeConverter.printHexBinary(salt);
-				
-				String userLine = u.getUserName() + ":" + saltWord + ":" + cypher(password,ivBytes, salt);
 
+				String userLine = u.getUserName() + ":" + saltWord + ":" + cypher(password, ivBytes, salt);
+				System.out.println("User updated");
 				bw.write(userLine);
 				bw.newLine();
 			} else {
@@ -383,7 +370,7 @@ public class CatalogoUser {
 	 *            suposto array de bytes randomizados
 	 * @return password cifrarda numa String
 	 */
-	public String cypher(String password, byte[] ivBytes,byte[] salt) {
+	public String cypher(String password, byte[] ivBytes, byte[] salt) {
 		PBEKeySpec keySpec = new PBEKeySpec("Tree Math Water".toCharArray());
 		SecretKeyFactory kf;
 		// String cifra= "";
@@ -393,10 +380,10 @@ public class CatalogoUser {
 			SecretKey key = kf.generateSecret(keySpec);
 
 			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
-			PBEParameterSpec spec = new PBEParameterSpec(salt, 20,ivSpec);
+			PBEParameterSpec spec = new PBEParameterSpec(salt, 20, ivSpec);
 
 			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
-			c.init(Cipher.ENCRYPT_MODE, key,spec);
+			c.init(Cipher.ENCRYPT_MODE, key, spec);
 
 			byte[] encrypted = c.doFinal(password.getBytes());
 
@@ -443,104 +430,5 @@ public class CatalogoUser {
 		return decrypted;
 
 	}
-	
-	/**
-	 * cria o mac e verifica
-	 * @param filePath - caminho do ficheiro mac directoria Users/users.mac
-	 * @param pwdAdmin - password introduzida pelo administrador
-	 */
-	public void createMac(String filePath, String pwdAdmin) {
-		
-		
-		try {
-			
-			File Ficheiromac = new File(filePath);
-			BufferedReader users = new BufferedReader(new FileReader("Users/users.txt"));
-			byte[] password = pwdAdmin.getBytes();
-			SecretKey key = new SecretKeySpec(password,"HmacSHA256");
-			Mac mac = Mac.getInstance("HmacSHA256");
-			if (mac == null) {
-				System.err.println("erro ao criar ficheiro mac");
-				System.exit(-1);
-			}
-			
-			mac.init(key);
-			
-			if (!Ficheiromac.exists()) {
-				
-				Ficheiromac.createNewFile();
-				String linha = ""; 
-				while ((linha=users.readLine())!= null) {
-					byte[] ficheiroUsers = linha.getBytes(); 
-					mac.update(ficheiroUsers);
-				}
-				mac.doFinal();
-				users.close();
-				BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-				String macConverter =  DatatypeConverter.printHexBinary(mac.doFinal());
-				writer.write(macConverter);
-				writer.close();
-				System.out.println("Ficheiro mac foi criado");
-				
-			}else {
-				BufferedReader reader = new BufferedReader( new FileReader(Ficheiromac));
-				
-				String linha = "";
-				while ((linha=users.readLine())!= null) {
-					byte[] ficheiroUsers = linha.getBytes(); 
-					mac.update(ficheiroUsers);
-				}
-				mac.doFinal();
-				users.close();
-				
-				String macConverter =  DatatypeConverter.printHexBinary(mac.doFinal());
-				
-				String  comparacao = reader.readLine();
-				if (macConverter.equals(comparacao)) {
-					System.out.println("mac foi validado");
-					reader.close();
-					
-				}else {
-					System.out.println("mac invalido");
-					reader.close();
-					System.exit(-1);
-					
-				}
-				
-				
-			}
-			
-		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | IllegalArgumentException e) {
-			if ( e instanceof IllegalArgumentException) {
-				System.out.println("erro");
-				System.exit(-1);
-			}
-		}
-
-	}
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
 }

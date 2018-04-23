@@ -36,7 +36,7 @@ public class ManUsers {
 		System.out.println("Introduza password de acesso");
 		String pw = sc.nextLine();
 		catalogo = new CatalogoUser();
-		catalogo.createMac("Users/users.mac", pw);
+		Utils.createMac("Users/users.mac", pw);
 		String argumentos[];
 		boolean end = false;
 		while (!end) {
@@ -56,7 +56,7 @@ public class ManUsers {
 					catalogo.update(argumentos[1], argumentos[2]);
 					break;
 				case "quit":
-					//catalogo.cypherFile(key, filePath);("TESTE");
+					// catalogo.cypherFile(key, filePath);("TESTE");
 					end = !end;
 					System.out.println("Saindo...");
 				default:

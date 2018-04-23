@@ -1,4 +1,5 @@
 package com.sc010.cliente;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,11 +35,11 @@ public class PhotoShare {
 		Scanner input = new Scanner(System.in);
 		String[] arguments = verificaArgs(argumentos, input);
 		String[] serverAdress = arguments[2].split(":");
+		System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
 		try {
 
-			sf = SSLSocketFactory.getDefault( );
+			sf = SSLSocketFactory.getDefault();
 			listeningSocket = (SSLSocket) sf.createSocket(serverAdress[0], Integer.parseInt(serverAdress[1]));
-
 
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
@@ -224,7 +225,7 @@ public class PhotoShare {
 				String existe = (String) in.readObject();
 				if (existe.equals("NAO EXISTE")) {
 					FileInputStream inStream1 = new FileInputStream(foto);
-					//InputStream inStream2 = new BufferedInputStream(inStream1);
+					// InputStream inStream2 = new BufferedInputStream(inStream1);
 					byte buffer[] = new byte[1024];
 					int count = 1024;
 					out.writeObject(foto.length());

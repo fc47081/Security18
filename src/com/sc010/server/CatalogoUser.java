@@ -20,7 +20,36 @@ public class CatalogoUser {
 		users = new ArrayList<User>();
 
 		db = new File("Users/users.txt");
-		//populate(db);
+		populate(db);
+	}
+
+	/**
+	 * Popular o catalogo com users
+	 * 
+	 * @param utilizadores
+	 *            - ficheiro de users
+	 * @throws IOException
+	 */
+	public void populate(File utilizadores) {
+
+		try {
+
+			// Ler
+			BufferedReader reader = new BufferedReader(new FileReader(utilizadores));
+			String line = "";
+			User user;
+			while ((line = reader.readLine()) != null) {
+				String[] split = line.split(":");
+				// Decifrar split[2] com split[1]
+				String password = Utils.decifrar(new File("Users/users.txt"), split[0]);
+				user = new User(split[0], password);
+				users.add(user);
+			}
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	/**
@@ -95,35 +124,4 @@ public class CatalogoUser {
 		return null;
 	}
 
-	/**
-	 * Popular o catalogo com users
-	 * 
-	 * @param utilizadores
-	 *            - ficheiro de users
-	 * @throws IOException
-	 */
-	/*public void populate(File utilizadores) {
-
-		try {
-			// Verificar o mac
-			
-			// TODO
-			
-			// Ler
-			BufferedReader reader = new BufferedReader(new FileReader(utilizadores));
-			String line = "";
-			User user;
-			while ((line = reader.readLine()) != null) {
-				String[] split = line.split(":");
-				// Decifrar split[2] com split[1]
-				//String password = Utils.decifrar(split[2], split[1]);
-				user = new User(split[0], password);
-				users.add(user);
-			}
-			reader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}*/
 }
