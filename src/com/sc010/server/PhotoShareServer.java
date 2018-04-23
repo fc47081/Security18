@@ -14,6 +14,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -21,6 +25,17 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Scanner;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -30,6 +45,9 @@ import com.sc010.utils.Utils;
 
 //Servidor PhotoShareServer
 public class PhotoShareServer {
+	private  static byte [] salt = new byte [16];
+	private static  byte [] ivBytes = { 0x11, 0x37, 0x69, 0x1F, 0x3D, 0x5A, 0x04, 0x18, 0x23, 0x6B, 0x1F, 0x03, 0x1D, 0x1E, 0x1F, 0x20 };
+	private static final String  pwdAdmin= "Tree Math Water";
 
 	public static void main(String[] args) throws java.net.SocketException {
 		File pasta = new File("servidor");
@@ -53,7 +71,7 @@ public class PhotoShareServer {
 	public void startServer() {
 		SSLServerSocket ss = null;
 		try {
-			
+
 			Scanner sc = new Scanner(System.in);
 			System.out.println("Introduza password de acesso");
 			String pw = sc.nextLine();
@@ -122,7 +140,7 @@ public class PhotoShareServer {
 					switch (operacao) {
 					case "-a":
 						operationA(inUser, inStream, outStream);
-						break; // optional
+						break; 
 					case "-l":
 						operationMiniL(inStream, outStream, catUser, inUser, photos);
 						break;
@@ -135,13 +153,13 @@ public class PhotoShareServer {
 						break;
 					case "-c":
 						operationC(inStream, outStream, catUser, inUser, photos);
-						break; // optional
+						break; 
 					case "-L":
 						operationL(inStream, outStream, catUser, inUser, photos);
-						break; // optional
+						break; 
 					case "-D":
 						operationD(inStream, outStream, catUser, inUser, photos);
-						break; // optional
+						break; 
 					case "-f":
 						operationF(inStream, inUser, catUser, outStream);
 						break;
@@ -189,11 +207,11 @@ public class PhotoShareServer {
 				utilizadores.createNewFile();
 			else
 				catUser.populate(utilizadores);
-				try {
-					reader = new BufferedReader(new FileReader(utilizadores));
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				}
+			try {
+				reader = new BufferedReader(new FileReader(utilizadores));
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
 			// user existe
 			if (catUser.find(inUser)) {
 				if (catUser.pwdCerta(inUser, inPasswd)) {
@@ -217,7 +235,7 @@ public class PhotoShareServer {
 	}
 
 	/**
-	 * Operação -a
+	 * Operacao -a
 	 * 
 	 * @param inUser
 	 *            - user recebido na operacao
@@ -228,12 +246,20 @@ public class PhotoShareServer {
 	 */
 	public static void operationA(String inUser, ObjectInputStream inStream, ObjectOutputStream outStream) {
 		try {
+			//Gerar a chave aleatori k com AES
+			KeyGenerator k = KeyGenerator.getInstance("AES");
+			k.init(256); // for example
+			SecretKey secretKey = k.generateKey();
+
+			Cipher c = Cipher.getInstance("AES");
+			c.init(Cipher.ENCRYPT_MODE, secretKey);
+
+
 			String dirName = "servidor/" + inUser;
 			File dir = new File(dirName);
 			String photo = (String) inStream.readObject();
 			String temp = dirName + "/" + photo;
 			boolean check = new File(temp).exists();
-			// System.out.println(check);
 			File[] listOfFiles = dir.listFiles();
 
 			if (check == false) {
@@ -241,14 +267,42 @@ public class PhotoShareServer {
 				outStream.writeObject("NAO EXISTE");
 				// receber o necessario do cliente e criar
 				FileOutputStream outStream1 = new FileOutputStream(temp);
-				OutputStream outStream2 = new BufferedOutputStream(outStream1);
+				CipherOutputStream cos = new CipherOutputStream(outStream1, c);
 				byte buffer[] = new byte[1024];
 				int count;
 				long size = (long) inStream.readObject();
 				while ((count = inStream.read(buffer, 0, (int) (size < 1024 ? size : 1024))) > 0) {
-					outStream1.write(buffer, 0, count);
+					cos.write(buffer, 0, count);
 					size -= count;
-					outStream2.flush();
+					cos.flush();
+				}
+				PBEKeySpec keySpec = new PBEKeySpec("Tree Math Water".toCharArray());
+				SecretKeyFactory kf;
+				try {
+					kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+
+					SecretKey key = kf.generateSecret(keySpec);
+
+					IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+					PBEParameterSpec spec = new PBEParameterSpec(salt,20, ivSpec);
+
+					Cipher c1 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+					c1.init(Cipher.ENCRYPT_MODE, key, spec);
+					
+					FileOutputStream outStream2 = new FileOutputStream(new File(temp + ".key"));
+					CipherOutputStream cos2 = new CipherOutputStream(outStream1, c);
+					
+					cos2.write(c1.doFinal(key.getEncoded()));
+					cos2.close();
+					outStream2.close();
+				} catch (InvalidKeySpecException e) {
+					e.printStackTrace();
+				} catch (InvalidAlgorithmParameterException e) {
+					e.printStackTrace();
+				} catch (IllegalBlockSizeException e) {
+					e.printStackTrace();
+				} catch (BadPaddingException e) {
+					e.printStackTrace();
 				}
 				dir.createNewFile();
 				// Data da publicacao da foto
@@ -268,7 +322,7 @@ public class PhotoShareServer {
 				File comments = new File("servidor/" + inUser + "/" + getNameFile(photo) + "Comments.txt");
 				comments.createNewFile();
 				outStream.writeObject("TRANSFERIDA");
-				outStream2.close();
+				cos.close();
 			} else {
 				// Se ja existe , envia para o cliente que ja existe e da exit
 				if (existsNameFile(listOfFiles, photo)) {
@@ -279,6 +333,12 @@ public class PhotoShareServer {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
 			e.printStackTrace();
 		}
 

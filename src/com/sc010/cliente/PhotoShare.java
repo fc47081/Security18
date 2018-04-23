@@ -58,7 +58,7 @@ public class PhotoShare {
 			out.writeObject(arguments[0]);
 			out.writeObject(arguments[1]);
 
-			// faz verificações de logIn appos a resposta do servidor
+			// faz verificacoes de logIn appos a resposta do servidor
 			logIn(in, out, arguments, input);
 
 			System.out.println("escolha uma operacao:");
@@ -245,7 +245,6 @@ public class PhotoShare {
 						System.out.println("A foto foi transferida com sucesso");
 					}
 					inStream1.close();
-
 				} else {
 					out.writeObject(operacoesArgs[0]);
 
@@ -259,7 +258,6 @@ public class PhotoShare {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

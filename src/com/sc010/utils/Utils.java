@@ -60,24 +60,6 @@ public class Utils {
 		}
 
 		UserReader.close();
-
-		// le o iv de um ficheiro a parte
-		// int countiv = 0;
-		// BufferedReader ivreader = new BufferedReader(new
-		// FileReader("Users/temp.txt"));
-		// String line = "";
-		// while ((line = ivreader.readLine())!= null) {
-		// countiv++;
-		// if (countiv == countUsers) {
-		// break;
-		// }
-		//
-		// }
-		//
-		// ivreader.close();
-		//
-		// System.out.println(line);
-
 		String password = User[2];
 		byte[] salt = new byte[16];
 		salt = DatatypeConverter.parseHexBinary(User[1]);
@@ -118,13 +100,9 @@ public class Utils {
 			kg.init(128);
 			SecretKey key = kg.generateKey();
 
-			// cifrar a chave privada
-			cifraChavePrivada(key);
-
 			Cipher c = Cipher.getInstance("AES");
 			c.init(Cipher.ENCRYPT_MODE, key);
-			// faltam buffered streams
-
+			
 			FileInputStream fis;
 			FileOutputStream fos;
 			CipherOutputStream cos;
@@ -138,17 +116,12 @@ public class Utils {
 				cos.write(b, 0, i);
 			}
 			cos.close();
-
+			fis.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
 
-	// cifra a chave privada com a chave publica
-	public static void cifraChavePrivada(SecretKey key) {
-
-	}
 
 	/**
 	 * cria o mac e verifica
