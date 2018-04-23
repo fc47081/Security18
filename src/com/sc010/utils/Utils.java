@@ -83,12 +83,6 @@ public class Utils {
 		salt = DatatypeConverter.parseHexBinary(User[1]);
 		byte[] ivBytes = { 0x11, 0x37, 0x69, 0x1F, 0x3D, 0x5A, 0x04, 0x18, 0x23, 0x6B, 0x1F, 0x03, 0x1D, 0x1E, 0x1F,
 				0x20 };
-
-		// BigInteger bi = new BigInteger(line, 16);
-		// byte[] a1 = bi.toByteArray();
-		// byte[] ivBytes = new byte[16];
-		// System.arraycopy(a1, 0, ivBytes, 16- a1.length, a1.length);
-
 		String decrypted = null;
 
 		PBEKeySpec keySpec = new PBEKeySpec("Tree Math Water".toCharArray());
@@ -108,10 +102,6 @@ public class Utils {
 
 			passwordBytes = DatatypeConverter.parseHexBinary(password);
 			decrypted = new String(c.doFinal(passwordBytes));
-
-			// byte[] encrypted = c.doFinal(password.getBytes());
-			// encryptedtext = DatatypeConverter.printHexBinary(encrypted);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
