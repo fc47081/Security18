@@ -3,27 +3,20 @@ package com.sc010.utils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
-import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.util.stream.Collectors;
 
 import javax.crypto.Cipher;
+import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
-import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
@@ -126,6 +119,80 @@ public class Utils {
 		return decrypted;
 
 	}
+	
+	
+	
+	//  cifra o ficheiro com uma chave aleatoria
+	public static void CifraFiles(File ficheiro) {
+		
+		
+		try {
+			KeyGenerator kg = KeyGenerator.getInstance("AES");
+			kg.init(128);
+			SecretKey key = kg.generateKey();
+			
+			// cifrar a chave privada
+			cifraChavePrivada(key);
+			
+			
+			Cipher c = Cipher.getInstance("AES");
+			c.init(Cipher.ENCRYPT_MODE, key);
+			// faltam buffered streams
+			
+			
+			FileInputStream fis;
+			FileOutputStream fos;
+			CipherOutputStream cos;
+			fis = new FileInputStream(ficheiro);
+			fos = new FileOutputStream(ficheiro+".cif");
+			cos = new CipherOutputStream(fos, c);
+			byte[] b = new byte[16];
+			
+			
+			int i;
+			while ((i=fis.read(b) )!= -1) {
+			cos.write(b, 0, i);
+			}
+			cos.close();
+		
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+		
+		
+		
+		
+	}
+	
+	
+	
+	
+	//  cifra a chave privada com a chave publica
+	public static void cifraChavePrivada(SecretKey key) {
+		
+		
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 	/*
 	public static String[] decifrarFileText(File file, SecretKey key ) {

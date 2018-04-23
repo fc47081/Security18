@@ -507,13 +507,8 @@ public class CatalogoUser {
 				}
 				users.close();
 				
-				String macConverter =  DatatypeConverter.printHexBinary(mac.doFinal());
-				
-				System.out.println(macConverter);
-				
-				
+				String macConverter =  DatatypeConverter.printHexBinary(mac.doFinal());	
 				String  comparacao = reader.readLine();
-				System.out.println(comparacao);
 				if (macConverter.equals(comparacao)) {
 					System.out.println("mac foi validado");
 					reader.close();
@@ -530,7 +525,7 @@ public class CatalogoUser {
 			
 		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | IllegalArgumentException e) {
 			if ( e instanceof IllegalArgumentException) {
-				System.out.println("erro ao criar ficheiro mac");
+				System.out.println("erro");
 				System.exit(-1);
 			}
 		}
