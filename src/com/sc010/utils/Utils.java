@@ -9,6 +9,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -38,31 +40,6 @@ public class Utils {
 		return true;
 	}
 
-	/**
-	 * Gera um random salt com um array de bytes randomizado de forma segura.
-	 * 
-	 * @param sr
-	 *            Gerador de numeros random seguro
-	 * @return byte[] ivBytes
-	 */
-	public byte[] saltGenerator(SecureRandom sr) {
-		byte[] salt = new byte[16];
-		sr.nextBytes(salt);
-		return salt;
-	}
-
-	/**
-	 * Gera um random IV com um array de bytes randomizado de forma segura.
-	 * 
-	 * @param sr
-	 *            Gerador de numeros random seguro
-	 * @return byte[] salt
-	 */
-	public byte[] ivGenerator(SecureRandom sr) {
-		byte[] ivBytes = new byte[16];
-		sr.nextBytes(ivBytes);
-		return ivBytes;
-	}
 
 	/**
 	 * Decifra a password dada utilizando o salt dado.
@@ -70,11 +47,61 @@ public class Utils {
 	 * @param password
 	 * @param salt
 	 * @return String of password decifrada
+	 * @throws IOException 
 	 */
-	public static String decifrar(String password, byte[] salt) {
-		// badajoz ver como passar o iv
-		byte[] ivBytes = null;
+	public static String decifrar(File ficheiro,String user) throws IOException {
+		BufferedReader UserReader = new BufferedReader(new FileReader(ficheiro));
+		String linha = ""; 
+		String[] User = null;
+		// User[0] = user User[1] = salt User[2] = password
+		int countUsers = 0; 
+		while ((linha = UserReader.readLine())!= null) {
+			countUsers++;
+			User = linha.split(":");
+			if (user.equals(User[0])) {
+				break;
+			}
+			
+		}
+		
+		UserReader.close();
+		
+		
+		//  le o iv de um ficheiro a parte 
+		int countiv = 0;
+		BufferedReader ivreader = new BufferedReader(new FileReader("Users/temp.txt"));
+		String line = "";
+		while ((line = ivreader.readLine())!= null) {
+			countiv++;
+			if (countiv == countUsers) {
+				break;
+			}
+		
+		}
+		
+		ivreader.close();
+		
+		System.out.println(line);
+		
+		
+		
+		String password = User[2];
+		byte[] salt = new byte[16];
+		salt =	User[1].getBytes();
+		//byte[] ivBytes = new byte[16];
+		
+		BigInteger bi = new BigInteger(line, 16);
+		byte[] a1 = bi.toByteArray();
+		byte[] ivBytes = new byte[16];
+		System.arraycopy(a1, 0, ivBytes, 16- a1.length, a1.length);
+		
+		
+		
+		
 		String decrypted = null;
+		
+		
+		
 		PBEKeySpec keySpec = new PBEKeySpec("Tree Math Water".toCharArray());
 		SecretKeyFactory kf;
 		try {
@@ -93,14 +120,14 @@ public class Utils {
 			decrypted = new String(c.doFinal(passwordBytes));
 
 		} catch (Exception e) {
-			System.out.println("houve algum erro ao decifrar");
+			e.printStackTrace();
 		}
 
 		return decrypted;
 
 	}
 
-	
+	/*
 	public static String[] decifrarFileText(File file, SecretKey key ) {
 		String [] ficheiro = null;
 		try {
@@ -124,6 +151,9 @@ public class Utils {
 	}
 	
 	
+*/
+	
+	
 	
 	/**
 	 * 
@@ -143,7 +173,7 @@ public class Utils {
 				ks.load(new FileInputStream(pathKS), password);
 
 			} else {
-				// Se não existe dar load com path a null e depois store para escrever no
+				// Se nï¿½o existe dar load com path a null e depois store para escrever no
 				// ficheiro.
 				ks.load(null, password);
 				ks.store(new FileOutputStream(keystore), password);

@@ -36,7 +36,7 @@ public class ManUsers {
 		System.out.println("Introduza password de acesso");
 		String pw = sc.nextLine();
 		catalogo = new CatalogoUser();
-		catalogo.verificaMac(pw);
+		catalogo.createMac("Users/users.mac", pw);
 		String argumentos[];
 		boolean end = false;
 		while (!end) {

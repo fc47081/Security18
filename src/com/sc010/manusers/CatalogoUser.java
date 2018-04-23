@@ -35,7 +35,10 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
+
+import com.sc010.utils.Utils;
 
 /**
  * @author sc010
@@ -219,8 +222,18 @@ public class CatalogoUser {
 			byte[] salt = saltGenerator(sr);
 			byte[] ivBytes = ivGenerator(sr);
 			String saltWord = DatatypeConverter.printHexBinary(salt);
-
+			String ivWord = DatatypeConverter.printHexBinary(ivBytes);
+							
+			
+			
+			
 			try {
+				File ivFile  = new File("Users/temp.txt");
+				ivFile.createNewFile();
+				FileWriter temp = new FileWriter(ivFile);
+				BufferedWriter tempWriter = new BufferedWriter(temp);
+				tempWriter.write(ivWord);
+				tempWriter.close();
 				FileWriter fw = new FileWriter(this.db, true);
 				BufferedWriter bw = new BufferedWriter(fw);
 				bw.write(user + ":" + saltWord + ":" + cypher(password, ivBytes, salt));
@@ -233,7 +246,7 @@ public class CatalogoUser {
 			}
 
 			System.out.println("cifrado : " + cypher(password, ivBytes, salt));
-			System.out.println("decifrado : " + decypher(cypher(password, ivBytes, salt), ivBytes, salt));
+			System.out.println("decifrado : " + Utils.decifrar(this.db,user));
 
 		}
 
@@ -358,7 +371,7 @@ public class CatalogoUser {
 				byte[] salt = saltGenerator(sr);
 				byte[] ivBytes = ivGenerator(sr);
 				String saltWord = DatatypeConverter.printHexBinary(salt);
-
+				
 				String userLine = u.getUserName() + ":" + saltWord + ":" + cypher(password, ivBytes, salt);
 
 				bw.write(userLine);
@@ -403,7 +416,6 @@ public class CatalogoUser {
 
 			byte[] encrypted = c.doFinal(password.getBytes());
 			encryptedtext = DatatypeConverter.printHexBinary(encrypted);
-
 		} catch (Exception e) {
 			System.out.println("houve algum erro ao cifrar");
 		}
@@ -446,47 +458,107 @@ public class CatalogoUser {
 		return decrypted;
 
 	}
-
-	public void decypherFile(SecretKey key, String filePath) {
-		// TODO
-	}
-
-	//cifar
-	//criar mac com a passAdmin
-	//output->ficheiro user.mac (NOVO)
-	//
 	
-	public void createMac(SecretKey key, String filePath) {
+	/**
+	 * cria o mac e verifica
+	 * @param filePath - caminho do ficheiro mac directoria Users/users.mac
+	 * @param pwdAdmin - password introduzida pelo administrador
+	 */
+	public void createMac(String filePath, String pwdAdmin) {
 		
-		byte [] ficheiro;
-		String pwAdmin = null;
 		
 		try {
+			
+			File Ficheiromac = new File(filePath);
+			BufferedReader users = new BufferedReader(new FileReader("Users/users.txt"));
+			byte[] password = pwdAdmin.getBytes();
+			SecretKey key = new SecretKeySpec(password,"HmacSHA256");
 			Mac mac = Mac.getInstance("HmacSHA256");
-			FileOutputStream fos = new FileOutputStream(filePath);
+			if (mac == null) {
+				System.err.println("erro ao criar ficheiro mac");
+				System.exit(-1);
+			}
+			
 			mac.init(key);
-			ObjectOutputStream oos = new ObjectOutputStream(fos);
-
-			BufferedReader br = new BufferedReader(new FileReader(filePath));
-
-			String data = "";
-
-			br.lines().collect(Collectors.joining(data));
-
-			byte buf[] = data.getBytes();
-			mac.update(buf);
-			oos.writeObject(mac.doFinal());
-			fos.close();
-			oos.close();
-		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException e) {
-			e.printStackTrace();
+			
+			if (!Ficheiromac.exists()) {
+				
+				Ficheiromac.createNewFile();
+				String linha = ""; 
+				while ((linha=users.readLine())!= null) {
+					byte[] ficheiroUsers = linha.getBytes(); 
+					mac.update(ficheiroUsers);
+				}
+				
+				users.close();
+				BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+				String macConverter =  DatatypeConverter.printHexBinary(mac.doFinal());
+				writer.write(macConverter);
+				writer.close();
+				System.out.println("Ficheiro mac foi criado");
+				
+			}else {
+				BufferedReader reader = new BufferedReader( new FileReader(Ficheiromac));
+				
+				String linha = "";
+				while ((linha=users.readLine())!= null) {
+					byte[] ficheiroUsers = linha.getBytes(); 
+					mac.update(ficheiroUsers);
+				}
+				users.close();
+				
+				String macConverter =  DatatypeConverter.printHexBinary(mac.doFinal());
+				
+				System.out.println(macConverter);
+				
+				
+				String  comparacao = reader.readLine();
+				System.out.println(comparacao);
+				if (macConverter.equals(comparacao)) {
+					System.out.println("mac foi validado");
+					reader.close();
+					
+				}else {
+					System.out.println("mac invalido");
+					reader.close();
+					System.exit(-1);
+					
+				}
+				
+				
+			}
+			
+		} catch (NoSuchAlgorithmException | InvalidKeyException | IOException | IllegalArgumentException e) {
+			if ( e instanceof IllegalArgumentException) {
+				System.out.println("erro ao criar ficheiro mac");
+				System.exit(-1);
+			}
 		}
 
 	}
 
-	public boolean verificaMac(String pw) {
 	
-		
-	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 }

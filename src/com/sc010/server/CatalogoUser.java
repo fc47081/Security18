@@ -20,7 +20,7 @@ public class CatalogoUser {
 		users = new ArrayList<User>();
 
 		db = new File("Users/users.txt");
-		populate(db);
+		//populate(db);
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class CatalogoUser {
 	 *            - ficheiro de users
 	 * @throws IOException
 	 */
-	public void populate(File utilizadores) {
+	/*public void populate(File utilizadores) {
 
 		try {
 			// Verificar o mac
@@ -116,7 +116,7 @@ public class CatalogoUser {
 			while ((line = reader.readLine()) != null) {
 				String[] split = line.split(":");
 				// Decifrar split[2] com split[1]
-				String password = Utils.decifrar(split[2], split[1]);
+				//String password = Utils.decifrar(split[2], split[1]);
 				user = new User(split[0], password);
 				users.add(user);
 			}
@@ -125,5 +125,5 @@ public class CatalogoUser {
 			e.printStackTrace();
 		}
 
-	}
+	}*/
 }
