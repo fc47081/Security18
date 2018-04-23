@@ -61,32 +61,33 @@ public class Utils {
 		
 		
 		//  le o iv de um ficheiro a parte 
-		int countiv = 0;
-		BufferedReader ivreader = new BufferedReader(new FileReader("Users/temp.txt"));
-		String line = "";
-		while ((line = ivreader.readLine())!= null) {
-			countiv++;
-			if (countiv == countUsers) {
-				break;
-			}
-		
-		}
-		
-		ivreader.close();
-		
-		System.out.println(line);
+//		int countiv = 0;
+//		BufferedReader ivreader = new BufferedReader(new FileReader("Users/temp.txt"));
+//		String line = "";
+//		while ((line = ivreader.readLine())!= null) {
+//			countiv++;
+//			if (countiv == countUsers) {
+//				break;
+//			}
+//		
+//		}
+//		
+//		ivreader.close();
+//		
+//		System.out.println(line);
 		
 		
 		
 		String password = User[2];
 		byte[] salt = new byte[16];
-		salt =	User[1].getBytes();
-		//byte[] ivBytes = new byte[16];
+		salt =	DatatypeConverter.parseHexBinary(User[1]);
+		byte[] ivBytes = {0x11,0x37,0x69,0x1F,0x3D,0x5A,0x04,0x18,0x23,0x6B,0x1F,0x03,0x1D,0x1E,0x1F,0x20};
 		
-		BigInteger bi = new BigInteger(line, 16);
-		byte[] a1 = bi.toByteArray();
-		byte[] ivBytes = new byte[16];
-		System.arraycopy(a1, 0, ivBytes, 16- a1.length, a1.length);
+		
+//		BigInteger bi = new BigInteger(line, 16);
+//		byte[] a1 = bi.toByteArray();
+//		byte[] ivBytes = new byte[16];
+//		System.arraycopy(a1, 0, ivBytes, 16- a1.length, a1.length);
 		
 		
 		
@@ -107,10 +108,15 @@ public class Utils {
 
 			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 			c.init(Cipher.DECRYPT_MODE, key, spec);
+			
 			byte[] passwordBytes;
 
 			passwordBytes = DatatypeConverter.parseHexBinary(password);
 			decrypted = new String(c.doFinal(passwordBytes));
+						
+			
+			//byte[] encrypted = c.doFinal(password.getBytes());
+			//encryptedtext = DatatypeConverter.printHexBinary(encrypted);
 
 		} catch (Exception e) {
 			e.printStackTrace();

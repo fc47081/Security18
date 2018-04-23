@@ -211,23 +211,17 @@ public class CatalogoUser {
 			SecureRandom sr = new SecureRandom();
 
 			byte[] salt = saltGenerator(sr);
-			byte[] ivBytes = ivGenerator(sr);
+			byte[] ivBytes = ivGenerator();
 			String saltWord = DatatypeConverter.printHexBinary(salt);
-			String ivWord = DatatypeConverter.printHexBinary(ivBytes);
+			//String ivWord = DatatypeConverter.printHexBinary(ivBytes);
 							
 			
 			
 			
 			try {
-				File ivFile  = new File("Users/temp.txt");
-				ivFile.createNewFile();
-				FileWriter temp = new FileWriter(ivFile);
-				BufferedWriter tempWriter = new BufferedWriter(temp);
-				tempWriter.write(ivWord);
-				tempWriter.close();
 				FileWriter fw = new FileWriter(this.db, true);
 				BufferedWriter bw = new BufferedWriter(fw);
-				bw.write(user + ":" + saltWord + ":" + cypher(password, ivBytes, salt));
+				bw.write(user + ":" + saltWord + ":" + cypher(password,ivBytes,salt));
 				bw.newLine();
 				bw.close();
 				fw.close();
@@ -236,8 +230,8 @@ public class CatalogoUser {
 				e.printStackTrace();
 			}
 
-			System.out.println("cifrado : " + cypher(password, ivBytes, salt));
-			System.out.println("decifrado : " + Utils.decifrar(this.db,user));
+			System.out.println("cifrado : " + cypher(password,ivBytes,salt));
+			System.out.println("decifrado : " +Utils.decifrar(this.db, user));
 
 		}
 
@@ -263,9 +257,8 @@ public class CatalogoUser {
 	 *            Gerador de numeros random seguro
 	 * @return byte[] salt
 	 */
-	public byte[] ivGenerator(SecureRandom sr) {
-		byte[] ivBytes = new byte[16];
-		sr.nextBytes(ivBytes);
+	public byte[] ivGenerator() {
+		byte[] ivBytes = {0x11,0x37,0x69,0x1F,0x3D,0x5A,0x04,0x18,0x23,0x6B,0x1F,0x03,0x1D,0x1E,0x1F,0x20};
 		return ivBytes;
 	}
 
@@ -360,10 +353,10 @@ public class CatalogoUser {
 				// Create salt
 				SecureRandom sr = new SecureRandom();
 				byte[] salt = saltGenerator(sr);
-				byte[] ivBytes = ivGenerator(sr);
+				byte[] ivBytes = ivGenerator();
 				String saltWord = DatatypeConverter.printHexBinary(salt);
 				
-				String userLine = u.getUserName() + ":" + saltWord + ":" + cypher(password, ivBytes, salt);
+				String userLine = u.getUserName() + ":" + saltWord + ":" + cypher(password,ivBytes, salt);
 
 				bw.write(userLine);
 				bw.newLine();
@@ -390,7 +383,7 @@ public class CatalogoUser {
 	 *            suposto array de bytes randomizados
 	 * @return password cifrarda numa String
 	 */
-	public String cypher(String password, byte[] ivBytes, byte[] salt) {
+	public String cypher(String password, byte[] ivBytes,byte[] salt) {
 		PBEKeySpec keySpec = new PBEKeySpec("Tree Math Water".toCharArray());
 		SecretKeyFactory kf;
 		// String cifra= "";
@@ -400,12 +393,13 @@ public class CatalogoUser {
 			SecretKey key = kf.generateSecret(keySpec);
 
 			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
-			PBEParameterSpec spec = new PBEParameterSpec(salt, 20, ivSpec);
+			PBEParameterSpec spec = new PBEParameterSpec(salt, 20,ivSpec);
 
 			Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
-			c.init(Cipher.ENCRYPT_MODE, key, spec);
+			c.init(Cipher.ENCRYPT_MODE, key,spec);
 
 			byte[] encrypted = c.doFinal(password.getBytes());
+
 			encryptedtext = DatatypeConverter.printHexBinary(encrypted);
 		} catch (Exception e) {
 			System.out.println("houve algum erro ao cifrar");
@@ -480,7 +474,7 @@ public class CatalogoUser {
 					byte[] ficheiroUsers = linha.getBytes(); 
 					mac.update(ficheiroUsers);
 				}
-				
+				mac.doFinal();
 				users.close();
 				BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
 				String macConverter =  DatatypeConverter.printHexBinary(mac.doFinal());
@@ -496,9 +490,11 @@ public class CatalogoUser {
 					byte[] ficheiroUsers = linha.getBytes(); 
 					mac.update(ficheiroUsers);
 				}
+				mac.doFinal();
 				users.close();
 				
-				String macConverter =  DatatypeConverter.printHexBinary(mac.doFinal());	
+				String macConverter =  DatatypeConverter.printHexBinary(mac.doFinal());
+				
 				String  comparacao = reader.readLine();
 				if (macConverter.equals(comparacao)) {
 					System.out.println("mac foi validado");
