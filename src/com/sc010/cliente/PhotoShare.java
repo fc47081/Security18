@@ -29,13 +29,19 @@ public class PhotoShare {
 		if (!pasta.exists()) {
 			pasta.mkdir();
 		}
+		// Setup keysure
+		System.setProperty("java.security.policy", "client.policy");
+		System.setSecurityManager(new SecurityManager());
+		System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
+		System.setProperty("javax.net.ssl.trustStorePassword", "paparuco");
+		
 		// socket, argumentos, arguments, serverAdress
 		Socket listeningSocket = null;
 		String[] argumentos = args;
 		Scanner input = new Scanner(System.in);
 		String[] arguments = verificaArgs(argumentos, input);
 		String[] serverAdress = arguments[2].split(":");
-		System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
+		
 		try {
 
 			sf = SSLSocketFactory.getDefault();
