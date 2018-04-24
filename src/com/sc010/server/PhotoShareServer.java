@@ -58,10 +58,12 @@ public class PhotoShareServer {
 		// Setup keysure
 		System.setProperty("java.security.policy", "server.policy");
 		System.setSecurityManager(new SecurityManager());
-		System.setProperty("javax.net.ssl.trustStore", "myServer.keyStore");
+		System.setProperty("javax.net.ssl.keyStore", "server");
+		System.setProperty("javax.net.ssl.keyStorePassword", "paparuco");
+		System.setProperty("javax.net.ssl.trustStore", "server");
 		System.setProperty("javax.net.ssl.trustStorePassword", "paparuco");
 
-		System.out.println("Ligado , a espera de ligacao");
+		System.out.println("Inicializando o servidor");
 		PhotoShareServer server = new PhotoShareServer();
 		server.startServer();
 	}
@@ -80,6 +82,9 @@ public class PhotoShareServer {
 			sc.close();
 			ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
 			ss = (SSLServerSocket) ssf.createServerSocket(23232);
+			//TODO ss.setNeedClientAuth(true);
+			//ss.setNeedClientAuth(true);
+			System.out.println("Servidor a espera de ligacoes no porto " + ss.getLocalPort());
 			// sSoc = new ServerSocket(23232);
 			// sSoc.getLocalPort();
 			// System.out.println(sSoc.getLocalPort());

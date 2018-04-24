@@ -32,7 +32,7 @@ public class PhotoShare {
 		// Setup keysure
 		System.setProperty("java.security.policy", "client.policy");
 		System.setSecurityManager(new SecurityManager());
-		System.setProperty("javax.net.ssl.trustStore", "myClient.keyStore");
+		System.setProperty("javax.net.ssl.trustStore", "client");
 		System.setProperty("javax.net.ssl.trustStorePassword", "paparuco");
 		
 		// socket, argumentos, arguments, serverAdress
