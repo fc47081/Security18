@@ -1,6 +1,5 @@
 package com.sc010.server;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,7 +11,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -24,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -41,7 +41,6 @@ import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 
-import com.sc010.server.CatalogoUser;
 import com.sc010.utils.Utils;
 
 //Servidor PhotoShareServer
@@ -294,7 +293,7 @@ public class PhotoShareServer {
 					Cipher c1 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 					c1.init(Cipher.ENCRYPT_MODE, key, spec);
 
-					FileOutputStream outStream2 = new FileOutputStream(new File(temp + ".key"));
+					FileOutputStream outStream2 = new FileOutputStream(new File(temp.substring(0, temp.lastIndexOf(".")) + ".key"));
 					CipherOutputStream cos2 = new CipherOutputStream(outStream2, c1);
 					byte[] fileKeyEnc = c1.doFinal(secretKey.getEncoded());
 						
@@ -775,7 +774,7 @@ public class PhotoShareServer {
 						c1.init(Cipher.DECRYPT_MODE, key, spec);
 						
 						//retirar a chave para decifrar a foto
-						File fich = new File("servidor/" + userG + "/" + listaDeFotos.get(i) + ".key");
+						File fich = new File("servidor/" + userG + "/" + listaDeFotos.get(i).substring(0, listaDeFotos.get(i).lastIndexOf(".")) + ".key");
 						FileInputStream os = new FileInputStream(fich);
 						CipherInputStream cin = new CipherInputStream(os,c1);
 						long k = fich.length();
@@ -862,9 +861,11 @@ public class PhotoShareServer {
 	 */
 	private static ArrayList<String> getPhotoFiles(String[] ficheiros) {
 		ArrayList<String> files = new ArrayList<String>();
+		
 		for (int i = 0; i < ficheiros.length; i++) {
-			if (ficheiros[i].endsWith(".jpeg") || ficheiros[i].endsWith(".jpg")
-					|| ficheiros[i].endsWith("Comments.txt")) {
+			Pattern p = Pattern.compile("(gif|jpg|jpeg|tiff|png)", Pattern.CASE_INSENSITIVE);
+			Matcher m = p.matcher(ficheiros[i]);
+			if (m.find() || ficheiros[i].endsWith("Comments.txt")) {
 				files.add(ficheiros[i]);
 			}
 
