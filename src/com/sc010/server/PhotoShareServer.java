@@ -27,6 +27,7 @@ import java.util.Scanner;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
@@ -254,7 +255,6 @@ public class PhotoShareServer {
 			Cipher c = Cipher.getInstance("AES");
 			c.init(Cipher.ENCRYPT_MODE, secretKey);
 
-
 			String dirName = "servidor/" + inUser;
 			File dir = new File(dirName);
 			String photo = (String) inStream.readObject();
@@ -276,7 +276,7 @@ public class PhotoShareServer {
 					size -= count;
 					cos.flush();
 				}
-				PBEKeySpec keySpec = new PBEKeySpec("Tree Math Water".toCharArray());
+				PBEKeySpec keySpec = new PBEKeySpec(pwdAdmin.toCharArray());
 				SecretKeyFactory kf;
 				try {
 					kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
@@ -288,10 +288,10 @@ public class PhotoShareServer {
 
 					Cipher c1 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 					c1.init(Cipher.ENCRYPT_MODE, key, spec);
-					
+
 					FileOutputStream outStream2 = new FileOutputStream(new File(temp + ".key"));
 					CipherOutputStream cos2 = new CipherOutputStream(outStream1, c);
-					
+
 					cos2.write(c1.doFinal(key.getEncoded()));
 					cos2.close();
 					outStream2.close();
@@ -345,7 +345,7 @@ public class PhotoShareServer {
 	}
 
 	/**
-	 * Operação -f
+	 * Operacao -f
 	 * 
 	 * @param inUser
 	 *            - user recebido na operacao
@@ -738,6 +738,8 @@ public class PhotoShareServer {
 			String inUser) {
 		try {
 
+
+
 			String userG = (String) inStream.readObject();
 			User u = catUser.getUser(userG);
 			if (catUser.find(userG) == true) {
@@ -747,18 +749,63 @@ public class PhotoShareServer {
 				if (u.existsFollower(inUser) == true) {
 					File folderDir = new File("servidor/" + userG);
 					String[] folderFiles = folderDir.list();
-					System.out.println(folderFiles + "FOLDER FILES!!!");
 					ArrayList<String> listaDeFotos = getPhotoFiles(folderFiles);
 					outStream.write(listaDeFotos.size());
-					// TA A ENVIAR 1 A MAIS!
-					System.out.println("tamanho da lista de fotos:" + listaDeFotos.size());
 					outStream.writeObject("Fotos enviadas");
 					for (int i = 0; i < listaDeFotos.size(); i++) {
 						outStream.writeObject(listaDeFotos.get(i));
 						File file = new File("servidor/" + userG + "/" + listaDeFotos.get(i));
+
+						//Decifrar foto antes de a enviar para o cliente
+						PBEKeySpec keySpec = new PBEKeySpec(pwdAdmin.toCharArray());
+						SecretKeyFactory kf;
+						kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+
+						SecretKey key = kf.generateSecret(keySpec);
+						IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+						PBEParameterSpec spec = new PBEParameterSpec(salt,20, ivSpec);
+						//decifrar ficheiro .key para obter a key para decifrar a foto
+						Cipher c1 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+						c1.init(Cipher.DECRYPT_MODE, key, spec);
+						
+						//retirar a chave para decifrar a foto
+						File fich = new File("servidor/" + userG + "/" + listaDeFotos.get(i) + ".key");
+						FileInputStream os = new FileInputStream(fich);
+						CipherInputStream cin = new CipherInputStream(os,c1);
+						long k = fich.length();
+						Integer chaveDec;
+						ArrayList<Byte> arrayByte= new ArrayList<>();
+						
+						while(k<=0) {
+							chaveDec = cin.read();
+							k = k-16;
+							arrayByte.add(chaveDec.byteValue());
+						}
+						//temos a chave encriptada
+						byte[] encripted = new byte[arrayByte.size()];
+						for (int j = 0; j < arrayByte.size(); j++) {
+							encripted[j] = arrayByte.get(j);
+						}
+						//deciframos a chave
+						c1.doFinal(encripted);
+						
+						//chave para string
+						String chave = new String(encripted);
+						
+						PBEKeySpec keySpec2 = new PBEKeySpec(chave.toCharArray());
+						SecretKeyFactory kf2;
+						kf2 = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+						SecretKey key2 = kf2.generateSecret(keySpec);
+						Cipher c2 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+						c2.init(Cipher.DECRYPT_MODE, key2, spec);
+						File fichFoto = new File("servidor/" + userG + "/" + listaDeFotos.get(i));
+						FileOutputStream os2 = new FileOutputStream(fichFoto);
+						CipherOutputStream cos = new CipherOutputStream(os2,c2);
+						
+						//falta ler o fichiero para terminar de decifrar
+						
 						long size = file.length();
 						FileInputStream inStream1 = new FileInputStream(file);
-						// InputStream inStream2 = new BufferedInputStream(inStream1);
 						byte buffer[] = new byte[1024];
 						int count = 1024;
 						outStream.writeObject(file.length());
@@ -768,6 +815,8 @@ public class PhotoShareServer {
 							outStream.flush();
 						}
 						inStream1.close();
+						os.close();
+						cin.close();		
 					}
 				} else {
 					outStream.writeObject("Nao Follower");
@@ -778,6 +827,22 @@ public class PhotoShareServer {
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+		} catch (InvalidAlgorithmParameterException e) {
+			e.printStackTrace();
+		} catch (IllegalBlockSizeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (BadPaddingException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
