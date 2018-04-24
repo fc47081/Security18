@@ -254,9 +254,9 @@ public class PhotoShareServer {
 		try {
 			//Gerar a chave aleatori k com AES
 			KeyGenerator k = KeyGenerator.getInstance("AES");
-			k.init(256); // for example
+			k.init(128); // for example
 			SecretKey secretKey = k.generateKey();
-
+			
 			Cipher c = Cipher.getInstance("AES");
 			c.init(Cipher.ENCRYPT_MODE, secretKey);
 
@@ -295,9 +295,10 @@ public class PhotoShareServer {
 					c1.init(Cipher.ENCRYPT_MODE, key, spec);
 
 					FileOutputStream outStream2 = new FileOutputStream(new File(temp + ".key"));
-					CipherOutputStream cos2 = new CipherOutputStream(outStream1, c);
-
-					cos2.write(c1.doFinal(key.getEncoded()));
+					CipherOutputStream cos2 = new CipherOutputStream(outStream2, c1);
+					byte[] fileKeyEnc = c1.doFinal(secretKey.getEncoded());
+						
+					cos2.write(fileKeyEnc);
 					cos2.close();
 					outStream2.close();
 				} catch (InvalidKeySpecException e) {
