@@ -53,7 +53,7 @@ public class CatalogoUser {
 				
 				// Init followers file
 				File userFollowers = new File("Servidor/" + user.getUserName() + "/followers.txt");
-				FileOutputStream followersOut = new FileOutputStream(userFollowers);
+				FileOutputStream followersOut = new FileOutputStream(userFollowers, true);
 				followersOut.close();
 			}
 			reader.close();
