@@ -499,12 +499,11 @@ public class PhotoShareServer {
 								cos2.close();
 								outStream2.close();
 
-
-								BufferedWriter writer = new BufferedWriter(								
-										new FileWriter("servidor/" + user + "/" + getNameFile(photoL) + "Likes.txt", true));
-								writer.write(inUser);
-								writer.newLine();
-								writer.close();
+								FileOutputStream outStream1 = new FileOutputStream(ficheiroLikes.getAbsolutePath());
+								CipherOutputStream cos = new CipherOutputStream(outStream1, c);
+								cos.write(fileKeyEnc);
+								cos.flush();
+								cos.close();
 								outStream.writeObject("LIKE");
 
 							} catch (InvalidKeySpecException e) {
