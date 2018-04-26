@@ -255,7 +255,7 @@ public class PhotoShareServer {
 			KeyGenerator k = KeyGenerator.getInstance("AES");
 			k.init(128); // for example
 			SecretKey secretKey = k.generateKey();
-			
+
 			Cipher c = Cipher.getInstance("AES");
 			c.init(Cipher.ENCRYPT_MODE, secretKey);
 
@@ -296,7 +296,7 @@ public class PhotoShareServer {
 					FileOutputStream outStream2 = new FileOutputStream(new File(temp.substring(0, temp.lastIndexOf(".")) + ".key"));
 					CipherOutputStream cos2 = new CipherOutputStream(outStream2, c1);
 					byte[] fileKeyEnc = c1.doFinal(secretKey.getEncoded());
-						
+
 					cos2.write(fileKeyEnc);
 					cos2.close();
 					outStream2.close();
@@ -452,6 +452,13 @@ public class PhotoShareServer {
 	public static void operationL(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
 			String inUser, CatalogoPhotos photos) {
 		try {
+			KeyGenerator k = KeyGenerator.getInstance("AES");
+			k.init(128); // for example
+			SecretKey secretKey = k.generateKey();
+
+			Cipher c = Cipher.getInstance("AES");
+			c.init(Cipher.ENCRYPT_MODE, secretKey);
+
 			String user = (String) inStream.readObject();
 			String photoL = (String) inStream.readObject();
 			File followLike = new File("servidor/" + user + "/followers.txt");
@@ -470,12 +477,46 @@ public class PhotoShareServer {
 						File ficheiroLikes = new File("servidor/" + user + "/" + getNameFile(photoL) + "Likes.txt");
 						phototemp.populateLikes(ficheiroLikes);
 						if (phototemp.deuLike(inUser) == false) {
-							BufferedWriter writer = new BufferedWriter(
-									new FileWriter("servidor/" + user + "/" + getNameFile(photoL) + "Likes.txt", true));
-							writer.write(inUser);
-							writer.newLine();
-							writer.close();
-							outStream.writeObject("LIKE");
+
+							PBEKeySpec keySpec = new PBEKeySpec(pwdAdmin.toCharArray());
+							SecretKeyFactory kf;
+							try {
+								kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+
+								SecretKey key = kf.generateSecret(keySpec);
+
+								IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+								PBEParameterSpec spec = new PBEParameterSpec(salt,20, ivSpec);
+
+								Cipher c1 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+								c1.init(Cipher.ENCRYPT_MODE, key, spec);
+
+								FileOutputStream outStream2 = new FileOutputStream(new File(ficheiroLikes.getAbsolutePath().substring(0, ficheiroLikes.getAbsolutePath().lastIndexOf(".")) + ".key"));
+								CipherOutputStream cos2 = new CipherOutputStream(outStream2, c1);
+								byte[] fileKeyEnc = c1.doFinal(secretKey.getEncoded());
+
+								cos2.write(fileKeyEnc);
+								cos2.close();
+								outStream2.close();
+
+
+								BufferedWriter writer = new BufferedWriter(								
+										new FileWriter("servidor/" + user + "/" + getNameFile(photoL) + "Likes.txt", true));
+								writer.write(inUser);
+								writer.newLine();
+								writer.close();
+								outStream.writeObject("LIKE");
+
+							} catch (InvalidKeySpecException e) {
+								e.printStackTrace();
+							} catch (InvalidAlgorithmParameterException e) {
+								e.printStackTrace();
+							} catch (IllegalBlockSizeException e) {
+								e.printStackTrace();
+							} catch (BadPaddingException e) {
+								e.printStackTrace();
+							}
+
 						} else {
 							outStream.writeObject("JADEULIKE");
 						}
@@ -492,6 +533,12 @@ public class PhotoShareServer {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e1) {
+			e1.printStackTrace();
+		} catch (NoSuchPaddingException e1) {
+			e1.printStackTrace();
+		} catch (InvalidKeyException e1) {
+			e1.printStackTrace();
 		}
 
 	}
@@ -587,6 +634,7 @@ public class PhotoShareServer {
 					File listaFotosC = new File("servidor/" + userC + "/listaFotos.txt");
 					photos.populate(listaFotosC);
 					if (photos.existsPhoto(photoC) == true) {
+
 						BufferedWriter writer = new BufferedWriter(
 								new FileWriter("servidor/" + userC + "/" + getNameFile(photoC) + "Comments.txt", true));
 						writer.write(comentario);
@@ -772,7 +820,7 @@ public class PhotoShareServer {
 						//decifrar ficheiro .key para obter a key para decifrar a foto
 						Cipher c1 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
 						c1.init(Cipher.DECRYPT_MODE, key, spec);
-						
+
 						//retirar a chave para decifrar a foto
 						File fich = new File("servidor/" + userG + "/" + listaDeFotos.get(i).substring(0, listaDeFotos.get(i).lastIndexOf(".")) + ".key");
 						FileInputStream os = new FileInputStream(fich);
@@ -780,7 +828,7 @@ public class PhotoShareServer {
 						long k = fich.length();
 						Integer chaveDec;
 						ArrayList<Byte> arrayByte= new ArrayList<>();
-						
+
 						while(k<=0) {
 							chaveDec = cin.read();
 							k = k-16;
@@ -793,10 +841,10 @@ public class PhotoShareServer {
 						}
 						//deciframos a chave
 						c1.doFinal(encripted);
-						
+
 						//chave para string
 						String chave = new String(encripted);
-						
+
 						PBEKeySpec keySpec2 = new PBEKeySpec(chave.toCharArray());
 						SecretKeyFactory kf2;
 						kf2 = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
@@ -806,9 +854,9 @@ public class PhotoShareServer {
 						File fichFoto = new File("servidor/" + userG + "/" + listaDeFotos.get(i));
 						FileOutputStream os2 = new FileOutputStream(fichFoto);
 						CipherOutputStream cos = new CipherOutputStream(os2,c2);
-						
+
 						//falta ler o fichiero para terminar de decifrar
-						
+
 						long size = file.length();
 						FileInputStream inStream1 = new FileInputStream(file);
 						byte buffer[] = new byte[1024];
@@ -861,7 +909,7 @@ public class PhotoShareServer {
 	 */
 	private static ArrayList<String> getPhotoFiles(String[] ficheiros) {
 		ArrayList<String> files = new ArrayList<String>();
-		
+
 		for (int i = 0; i < ficheiros.length; i++) {
 			Pattern p = Pattern.compile("(gif|jpg|jpeg|tiff|png)", Pattern.CASE_INSENSITIVE);
 			Matcher m = p.matcher(ficheiros[i]);
