@@ -23,7 +23,7 @@ public class User {
 		this.UserName = userName;
 		this.password = password;
 		followers = new ArrayList<String>();
-
+		this.populateFollowers(new File("Servidor/" + userName + "/followers.txt"));
 	}
 
 	/**

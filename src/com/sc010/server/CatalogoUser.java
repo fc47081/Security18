@@ -43,18 +43,20 @@ public class CatalogoUser {
 				String[] split = line.split(":");
 				// Decifrar split[2] com split[1]
 				String password = Utils.decifrar(new File("Users/users.txt"), split[0]);
-				user = new User(split[0], password);
-				users.add(user);
+				
 				
 				// Persist files
-				File userDir = new File("Servidor/" + user.getUserName());
+				File userDir = new File("Servidor/" + split[0]);
 				if(!userDir.exists())
 					userDir.mkdir();
 				
 				// Init followers file
-				File userFollowers = new File("Servidor/" + user.getUserName() + "/followers.txt");
+				File userFollowers = new File("Servidor/" + split[0] + "/followers.txt");
 				FileOutputStream followersOut = new FileOutputStream(userFollowers, true);
 				followersOut.close();
+				
+				user = new User(split[0], password);
+				users.add(user);
 			}
 			reader.close();
 		} catch (IOException e) {
