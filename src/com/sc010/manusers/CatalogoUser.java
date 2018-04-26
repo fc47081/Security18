@@ -215,12 +215,7 @@ public class CatalogoUser {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
-			// System.out.println("cifrado : " + cypher(password,ivBytes,salt));
-			// System.out.println("decifrado : " +Utils.decifrar(this.db, user));
-
 		}
-
 	}
 
 	/**

@@ -352,8 +352,10 @@ public class PhotoShareServer {
 		try {
 			String followerAdd = (String) inStream.readObject();
 			User uAdd = catUser.getUser(inUser);
+			System.out.println(inUser);
 			File follow = new File("servidor/" + inUser + "/followers.txt");
 			catUser.populate(follow);
+			//uAdd.populateFollowers(follow);
 			if (catUser.find(followerAdd) == true) {// encontrar se o user exist na lista users
 				if (uAdd.existsFollower(followerAdd) == true) {
 					outStream.writeObject("Follower ja existe");
@@ -444,13 +446,16 @@ public class PhotoShareServer {
 			// verificar se e user
 			if (catUser.find(user) == true) {
 				User userLike = catUser.getUser(user);
-				//userLike.populateFollowers(followLike);
+				
+				//userLike.populateFollowers(followLike); ISTO ERA A LINHA QUE TINHAMOS ANTES
 				catUser.populate(followLike); //ADICIONEI O POPULATE DO CATALOGO DE USERS PARA TESTAR
 				System.out.println(userLike.existsFollower(inUser));
+				
 				// verificamos se e follower
 				if (userLike.existsFollower(inUser) == true) {
 					photos.populate(listaFotos);
 					if (photos.existsPhoto(photoL) == true) {
+						//decrypt file para verificar se o user ja esta contido no ficheiro
 						PBEKeySpec keySpec1 = new PBEKeySpec(pwdAdmin.toCharArray());
 						SecretKeyFactory kf1;
 						Photo phototemp = photos.getPhoto(photoL);
@@ -473,13 +478,13 @@ public class PhotoShareServer {
 						byte [] fileKeyEnc1 = new byte [16];
 						fileKeyEnc1 = c2.doFinal(key1.getEncoded());
 						int count = 0; 
-
 						while ((count = inpS.read(fileKeyEnc1)) != -1 ) {
 							cos1.write(fileKeyEnc1,0,count);
 						}
 						cos1.close();
 						outS.close();
 						if (phototemp.deuLike(inUser) == false) {
+							//encrypt file
 							PBEKeySpec keySpec = new PBEKeySpec(pwdAdmin.toCharArray());
 							SecretKeyFactory kf;
 							try {
@@ -507,7 +512,6 @@ public class PhotoShareServer {
 								cos.flush();
 								cos.close();
 								outStream.writeObject("LIKE");
-								
 							} catch (InvalidKeySpecException e) {
 								e.printStackTrace();
 							} catch (InvalidAlgorithmParameterException e) {
@@ -549,7 +553,7 @@ public class PhotoShareServer {
 			e1.printStackTrace();
 		}
 	}
-		
+
 	/**
 	 * Operacao -D
 	 * 
@@ -850,7 +854,7 @@ public class PhotoShareServer {
 						File fichFoto = new File("servidor/" + userG + "/" + listaDeFotos.get(i));
 						FileOutputStream os2 = new FileOutputStream(fichFoto);
 						CipherOutputStream cos = new CipherOutputStream(os2,c2);
-						
+
 						//falta ler o fichiero para terminar de decifrar
 						long size = file.length();
 						FileInputStream inStream1 = new FileInputStream(file);
