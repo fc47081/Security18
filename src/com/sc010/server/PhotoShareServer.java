@@ -452,12 +452,7 @@ public class PhotoShareServer {
 	public static void operationL(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
 			String inUser, CatalogoPhotos photos) {
 		try {
-			KeyGenerator k = KeyGenerator.getInstance("AES");
-			k.init(128); // for example
-			SecretKey secretKey = k.generateKey();
 
-			Cipher c = Cipher.getInstance("AES");
-			c.init(Cipher.ENCRYPT_MODE, secretKey);
 
 			String user = (String) inStream.readObject();
 			String photoL = (String) inStream.readObject();
@@ -473,9 +468,34 @@ public class PhotoShareServer {
 
 					photos.populate(listaFotos);
 					if (photos.existsPhoto(photoL) == true) {
+						PBEKeySpec keySpec1 = new PBEKeySpec(pwdAdmin.toCharArray());
+						SecretKeyFactory kf1;
 						Photo phototemp = photos.getPhoto(photoL);
 						File ficheiroLikes = new File("servidor/" + user + "/" + getNameFile(photoL) + "Likes.txt");
 						phototemp.populateLikes(ficheiroLikes);
+
+						kf1 = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+
+						SecretKey key1 = kf1.generateSecret(keySpec1);
+
+						IvParameterSpec ivSpec1 = new IvParameterSpec(ivBytes);
+						PBEParameterSpec spec1 = new PBEParameterSpec(salt,20, ivSpec1);
+
+						Cipher c2 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+						c2.init(Cipher.DECRYPT_MODE, key1, spec1);
+
+						FileInputStream inpS = new FileInputStream(new File(ficheiroLikes.getAbsolutePath().substring(0, ficheiroLikes.getAbsolutePath().lastIndexOf(".")) + ".key"));
+						FileOutputStream outS = new FileOutputStream(new File("servidor/" + user + "/" + getNameFile(photoL) + "LikesNew.txt"));
+						CipherOutputStream cos1 = new CipherOutputStream(outS, c2);
+						byte [] fileKeyEnc1 = new byte [16];
+						fileKeyEnc1 = c2.doFinal(key1.getEncoded());
+						int count = 0; 
+
+						while ((count = inpS.read(fileKeyEnc1)) != -1 ) {
+							cos1.write(fileKeyEnc1,0,count);
+						}
+						cos1.close();
+						outS.close();
 						if (phototemp.deuLike(inUser) == false) {
 
 							PBEKeySpec keySpec = new PBEKeySpec(pwdAdmin.toCharArray());
@@ -493,15 +513,15 @@ public class PhotoShareServer {
 
 								FileOutputStream outStream2 = new FileOutputStream(new File(ficheiroLikes.getAbsolutePath().substring(0, ficheiroLikes.getAbsolutePath().lastIndexOf(".")) + ".key"));
 								CipherOutputStream cos2 = new CipherOutputStream(outStream2, c1);
-								byte[] fileKeyEnc = c1.doFinal(secretKey.getEncoded());
+								byte[] fileKeyEnc = c1.doFinal(key.getEncoded());
 
 								cos2.write(fileKeyEnc);
 								cos2.close();
 								outStream2.close();
 
 								FileOutputStream outStream1 = new FileOutputStream(ficheiroLikes.getAbsolutePath());
-								CipherOutputStream cos = new CipherOutputStream(outStream1, c);
-								cos.write(fileKeyEnc);
+								CipherOutputStream cos = new CipherOutputStream(outStream1, c1);
+								cos.write(fileKeyEnc); 	
 								cos.flush();
 								cos.close();
 								outStream.writeObject("LIKE");
@@ -537,6 +557,14 @@ public class PhotoShareServer {
 		} catch (NoSuchPaddingException e1) {
 			e1.printStackTrace();
 		} catch (InvalidKeyException e1) {
+			e1.printStackTrace();
+		} catch (InvalidKeySpecException e1) {
+			e1.printStackTrace();
+		} catch (InvalidAlgorithmParameterException e1) {
+			e1.printStackTrace();
+		} catch (IllegalBlockSizeException e1) {
+			e1.printStackTrace();
+		} catch (BadPaddingException e1) {
 			e1.printStackTrace();
 		}
 
