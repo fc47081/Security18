@@ -2,6 +2,7 @@ package com.sc010.server;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,6 +45,16 @@ public class CatalogoUser {
 				String password = Utils.decifrar(new File("Users/users.txt"), split[0]);
 				user = new User(split[0], password);
 				users.add(user);
+				
+				// Persist files
+				File userDir = new File("Servidor/" + user.getUserName());
+				if(!userDir.exists())
+					userDir.mkdir();
+				
+				// Init followers file
+				File userFollowers = new File("Servidor/" + user.getUserName() + "/followers.txt");
+				FileOutputStream followersOut = new FileOutputStream(userFollowers);
+				followersOut.close();
 			}
 			reader.close();
 		} catch (IOException e) {
