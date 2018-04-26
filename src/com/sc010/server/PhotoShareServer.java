@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -40,10 +39,8 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
-
 import com.sc010.utils.Utils;
 
-//Servidor PhotoShareServer
 public class PhotoShareServer {
 	private  static byte [] salt = new byte [16];
 	private static  byte [] ivBytes = { 0x11, 0x37, 0x69, 0x1F, 0x3D, 0x5A, 0x04, 0x18, 0x23, 0x6B, 0x1F, 0x03, 0x1D, 0x1E, 0x1F, 0x20 };
@@ -73,7 +70,6 @@ public class PhotoShareServer {
 	public void startServer() {
 		SSLServerSocket ss = null;
 		try {
-
 			Scanner sc = new Scanner(System.in);
 			System.out.println("Introduza password de acesso");
 			String pw = sc.nextLine();
@@ -109,9 +105,7 @@ public class PhotoShareServer {
 				}
 			}
 		}
-
 	}
-
 	// Threads utilizadas para comunicacao com os clientes
 	class ServerThread extends Thread {
 
@@ -121,7 +115,6 @@ public class PhotoShareServer {
 			socket = socket2;
 			System.out.println("Entrou novo cliente");
 		}
-
 		/**
 		 * Run do server
 		 */
@@ -129,10 +122,8 @@ public class PhotoShareServer {
 			try {
 				ObjectOutputStream outStream = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream inStream = new ObjectInputStream(socket.getInputStream());
-
 				String inUser = "";
 				String inPasswd = "";
-
 				try {
 					// Autenticacao do user + password que vem do cliente
 					inUser = (String) inStream.readObject();
@@ -140,7 +131,6 @@ public class PhotoShareServer {
 					CatalogoUser catUser = new CatalogoUser();
 					CatalogoPhotos photos = new CatalogoPhotos();
 					autenticarUser(catUser, inUser, inPasswd, outStream, inStream);
-
 					String operacao = (String) inStream.readObject();
 					switch (operacao) {
 					case "-a":
@@ -184,12 +174,10 @@ public class PhotoShareServer {
 				e.printStackTrace();
 			}
 		}
-
 	}
 
 	/**
-	 * Autenticacao do user
-	 * 
+	 * Autenticacao do user 
 	 * @param inUser
 	 *            - user name
 	 * @param inPasswd
@@ -236,7 +224,6 @@ public class PhotoShareServer {
 		} catch (Exception e) {
 			System.err.println("erro de autenticacao");
 		}
-
 	}
 
 	/**
@@ -255,10 +242,8 @@ public class PhotoShareServer {
 			KeyGenerator k = KeyGenerator.getInstance("AES");
 			k.init(128); // for example
 			SecretKey secretKey = k.generateKey();
-
 			Cipher c = Cipher.getInstance("AES");
 			c.init(Cipher.ENCRYPT_MODE, secretKey);
-
 			String dirName = "servidor/" + inUser;
 			File dir = new File(dirName);
 			if(!dir.exists())
@@ -348,7 +333,6 @@ public class PhotoShareServer {
 		} catch (InvalidKeyException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -369,7 +353,7 @@ public class PhotoShareServer {
 			String followerAdd = (String) inStream.readObject();
 			User uAdd = catUser.getUser(inUser);
 			File follow = new File("servidor/" + inUser + "/followers.txt");
-			uAdd.populateFollowers(follow);
+			catUser.populate(follow);
 			if (catUser.find(followerAdd) == true) {// encontrar se o user exist na lista users
 				if (uAdd.existsFollower(followerAdd) == true) {
 					outStream.writeObject("Follower ja existe");
@@ -389,7 +373,6 @@ public class PhotoShareServer {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -454,8 +437,6 @@ public class PhotoShareServer {
 	public static void operationL(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
 			String inUser, CatalogoPhotos photos) {
 		try {
-
-
 			String user = (String) inStream.readObject();
 			String photoL = (String) inStream.readObject();
 			File followLike = new File("servidor/" + user + "/followers.txt");
@@ -463,11 +444,11 @@ public class PhotoShareServer {
 			// verificar se e user
 			if (catUser.find(user) == true) {
 				User userLike = catUser.getUser(user);
-				userLike.populateFollowers(followLike);
+				//userLike.populateFollowers(followLike);
+				catUser.populate(followLike); //ADICIONEI O POPULATE DO CATALOGO DE USERS PARA TESTAR
 				System.out.println(userLike.existsFollower(inUser));
 				// verificamos se e follower
 				if (userLike.existsFollower(inUser) == true) {
-
 					photos.populate(listaFotos);
 					if (photos.existsPhoto(photoL) == true) {
 						PBEKeySpec keySpec1 = new PBEKeySpec(pwdAdmin.toCharArray());
@@ -499,7 +480,6 @@ public class PhotoShareServer {
 						cos1.close();
 						outS.close();
 						if (phototemp.deuLike(inUser) == false) {
-
 							PBEKeySpec keySpec = new PBEKeySpec(pwdAdmin.toCharArray());
 							SecretKeyFactory kf;
 							try {
@@ -527,7 +507,7 @@ public class PhotoShareServer {
 								cos.flush();
 								cos.close();
 								outStream.writeObject("LIKE");
-
+								
 							} catch (InvalidKeySpecException e) {
 								e.printStackTrace();
 							} catch (InvalidAlgorithmParameterException e) {
@@ -537,7 +517,6 @@ public class PhotoShareServer {
 							} catch (BadPaddingException e) {
 								e.printStackTrace();
 							}
-
 						} else {
 							outStream.writeObject("JADEULIKE");
 						}
@@ -569,9 +548,8 @@ public class PhotoShareServer {
 		} catch (BadPaddingException e1) {
 			e1.printStackTrace();
 		}
-
 	}
-
+		
 	/**
 	 * Operacao -D
 	 * 
@@ -629,7 +607,6 @@ public class PhotoShareServer {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -649,7 +626,6 @@ public class PhotoShareServer {
 	public static void operationC(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
 			String inUser, CatalogoPhotos photos) {
 		try {
-
 			String comentario = (String) inStream.readObject();
 			String userC = (String) inStream.readObject();
 			String photoC = (String) inStream.readObject();
@@ -684,7 +660,6 @@ public class PhotoShareServer {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -707,7 +682,6 @@ public class PhotoShareServer {
 			String userID = (String) inStream.readObject();
 			String foto = (String) inStream.readObject();
 			User userCatalog = catUser.getUser(userID);
-
 			if (catUser.find(userID) == true) {
 				File followC = new File("servidor/" + userID + "/followers.txt");
 				userCatalog.populateFollowers(followC);
@@ -738,7 +712,6 @@ public class PhotoShareServer {
 						}
 						outStream.writeObject(phototempL.tamanholistPhotoLikes());
 						outStream.writeObject(phototempD.tamanholistPhotoDislikes());
-
 					} else {
 						outStream.writeObject("NAO FOTO");
 					}
@@ -753,7 +726,6 @@ public class PhotoShareServer {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -795,13 +767,11 @@ public class PhotoShareServer {
 			} else {
 				outStream.writeObject("NAO EXISTE USER");
 			}
-
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
@@ -819,9 +789,6 @@ public class PhotoShareServer {
 	public static void operationG(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
 			String inUser) {
 		try {
-
-
-
 			String userG = (String) inStream.readObject();
 			User u = catUser.getUser(userG);
 			if (catUser.find(userG) == true) {
@@ -883,9 +850,8 @@ public class PhotoShareServer {
 						File fichFoto = new File("servidor/" + userG + "/" + listaDeFotos.get(i));
 						FileOutputStream os2 = new FileOutputStream(fichFoto);
 						CipherOutputStream cos = new CipherOutputStream(os2,c2);
-
+						
 						//falta ler o fichiero para terminar de decifrar
-
 						long size = file.length();
 						FileInputStream inStream1 = new FileInputStream(file);
 						byte buffer[] = new byte[1024];
@@ -895,9 +861,10 @@ public class PhotoShareServer {
 							outStream.write(buffer, 0, count);
 							size -= count;
 							outStream.flush();
-						}
+						}			
 						inStream1.close();
 						os.close();
+						cos.close();
 						cin.close();		
 					}
 				} else {
@@ -921,10 +888,8 @@ public class PhotoShareServer {
 		} catch (InvalidAlgorithmParameterException e) {
 			e.printStackTrace();
 		} catch (IllegalBlockSizeException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
