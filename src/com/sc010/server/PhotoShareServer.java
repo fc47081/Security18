@@ -24,6 +24,8 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -36,9 +38,12 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.xml.bind.DatatypeConverter;
+
 import com.sc010.utils.Utils;
 
 public class PhotoShareServer {
@@ -439,83 +444,94 @@ public class PhotoShareServer {
 	public static void operationL(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
 			String inUser, CatalogoPhotos photos) {
 		try {
+
 			String user = (String) inStream.readObject();
 			String photoL = (String) inStream.readObject();
-			File followLike = new File("servidor/" + user + "/followers.txt");
 			File listaFotos = new File("servidor/" + user + "/listaFotos.txt");
 			// verificar se e user
 			if (catUser.find(user) == true) {
 				User userLike = catUser.getUser(user);
-				
-				//userLike.populateFollowers(followLike); ISTO ERA A LINHA QUE TINHAMOS ANTES
-				catUser.populate(followLike); //ADICIONEI O POPULATE DO CATALOGO DE USERS PARA TESTAR
-				System.out.println(userLike.existsFollower(inUser));
-				
 				// verificamos se e follower
 				if (userLike.existsFollower(inUser) == true) {
 					photos.populate(listaFotos);
 					if (photos.existsPhoto(photoL) == true) {
-						//decrypt file para verificar se o user ja esta contido no ficheiro
-						PBEKeySpec keySpec1 = new PBEKeySpec(pwdAdmin.toCharArray());
-						SecretKeyFactory kf1;
-						Photo phototemp = photos.getPhoto(photoL);
+						//decrypt file.key para verificar se o user ja esta contido no ficheiro para nao repetir likes
 						File ficheiroLikes = new File("servidor/" + user + "/" + getNameFile(photoL) + "Likes.txt");
-						phototemp.populateLikes(ficheiroLikes);
+						Photo phototemp = photos.getPhoto(photoL);
 
-						kf1 = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+						PBEKeySpec keySpec = new PBEKeySpec(pwdAdmin.toCharArray());
+						SecretKeyFactory kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+						SecretKey key = kf.generateSecret(keySpec);
 
-						SecretKey key1 = kf1.generateSecret(keySpec1);
+						//Parameters
+						IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+						PBEParameterSpec spec = new PBEParameterSpec(salt,20, ivSpec);
 
-						IvParameterSpec ivSpec1 = new IvParameterSpec(ivBytes);
-						PBEParameterSpec spec1 = new PBEParameterSpec(salt,20, ivSpec1);
+						//decifrar ficheiro .key para obter a key para decifrar a foto
+						Cipher c = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
+						c.init(Cipher.DECRYPT_MODE, key, spec);
 
-						Cipher c2 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
-						c2.init(Cipher.DECRYPT_MODE, key1, spec1);
-
-						FileInputStream inpS = new FileInputStream(new File(ficheiroLikes.getAbsolutePath().substring(0, ficheiroLikes.getAbsolutePath().lastIndexOf(".")) + ".key"));
-						FileOutputStream outS = new FileOutputStream(new File("servidor/" + user + "/" + getNameFile(photoL) + "LikesNew.txt"));
-						CipherOutputStream cos1 = new CipherOutputStream(outS, c2);
-						byte [] fileKeyEnc1 = new byte [16];
-						fileKeyEnc1 = c2.doFinal(key1.getEncoded());
-						int count = 0; 
-						while ((count = inpS.read(fileKeyEnc1)) != -1 ) {
-							cos1.write(fileKeyEnc1,0,count);
-						}
-						cos1.close();
-						outS.close();
-						if (phototemp.deuLike(inUser) == false) {
-							//encrypt file
-							PBEKeySpec keySpec = new PBEKeySpec(pwdAdmin.toCharArray());
-							SecretKeyFactory kf;
+						//retirar a chave para decifrar 
+						File fichKey = new File("servidor/" + user + "/" + getNameFile(photoL) + ".key");
+						BufferedReader reader2 = new BufferedReader(new FileReader(fichKey));
+						byte[] b = null;
+						for (String s : reader2.lines().collect(Collectors.toList())) {
 							try {
-								kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
+								b = c.doFinal(s.getBytes());
+							} catch (IllegalBlockSizeException e) {
+								e.printStackTrace();
+							} catch (BadPaddingException e) {
+								e.printStackTrace();
+							}
+						}
+						
+						reader2.close();
+						byte [] encripted = b;
+						//deciframos a chave			
+						byte [] decrypted = c.doFinal(encripted);
 
-								SecretKey key = kf.generateSecret(keySpec);
+						//byte [] to SecretKey
+						SecretKey secretKey = new SecretKeySpec(decrypted, 0, decrypted.length, "AES");
 
-								IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
-								PBEParameterSpec spec = new PBEParameterSpec(salt,20, ivSpec);
+						Cipher c2 = Cipher.getInstance("AES");
+						c2.init(Cipher.DECRYPT_MODE, secretKey);
+						BufferedReader reader = new BufferedReader(new FileReader(ficheiroLikes));
+						ArrayList<String> as = new ArrayList<>();
+						reader.lines().forEach(s -> {
+							//string to byte array
+							//decifrar byte array com c2 -> doFinal
+							byte[] bt= null;
+							try {
+								bt = c2.doFinal(s.getBytes());
+							} catch (IllegalBlockSizeException e) {
+								e.printStackTrace();
+							} catch (BadPaddingException e) {
+								e.printStackTrace();
+							}
 
-								Cipher c1 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
-								c1.init(Cipher.ENCRYPT_MODE, key, spec);
+							//byte array decifrado toString
+							String d = new String(bt);
 
-								FileOutputStream outStream2 = new FileOutputStream(new File(ficheiroLikes.getAbsolutePath().substring(0, ficheiroLikes.getAbsolutePath().lastIndexOf(".")) + ".key"));
-								CipherOutputStream cos2 = new CipherOutputStream(outStream2, c1);
-								byte[] fileKeyEnc = c1.doFinal(key.getEncoded());
+							//toSring -> arrayList
+							for (int i = 0; i < as.size(); i++) {
+								as.add(d);					
+							}	
+						});
+						reader.close();	
+						if (as.contains(inUser) == false) {
+							//encrypt file
+							try {
+								c2.init(Cipher.ENCRYPT_MODE, secretKey);
+
+								FileOutputStream outStream2 = new FileOutputStream(ficheiroLikes, true);
+								CipherOutputStream cos2 = new CipherOutputStream(outStream2, c2);
+								byte[] fileKeyEnc = c2.doFinal(inUser.getBytes());
 
 								cos2.write(fileKeyEnc);
 								cos2.close();
 								outStream2.close();
-
-								FileOutputStream outStream1 = new FileOutputStream(ficheiroLikes.getAbsolutePath());
-								CipherOutputStream cos = new CipherOutputStream(outStream1, c1);
-								cos.write(fileKeyEnc); 	
-								cos.flush();
-								cos.close();
 								outStream.writeObject("LIKE");
-							} catch (InvalidKeySpecException e) {
-								e.printStackTrace();
-							} catch (InvalidAlgorithmParameterException e) {
-								e.printStackTrace();
+
 							} catch (IllegalBlockSizeException e) {
 								e.printStackTrace();
 							} catch (BadPaddingException e) {
@@ -829,9 +845,9 @@ public class PhotoShareServer {
 						Integer chaveDec;
 						ArrayList<Byte> arrayByte= new ArrayList<>();
 
-						while(k<=0) {
+						while(k>0) {
 							chaveDec = cin.read();
-							k = k-16;
+							k = k-1;
 							arrayByte.add(chaveDec.byteValue());
 						}
 						//temos a chave encriptada
@@ -840,10 +856,11 @@ public class PhotoShareServer {
 							encripted[j] = arrayByte.get(j);
 						}
 						//deciframos a chave
-						c1.doFinal(encripted);
+
+						byte [] decrypted = c1.doFinal(encripted);
 
 						//chave para string
-						String chave = new String(encripted);
+						String chave = new String(decrypted);
 
 						PBEKeySpec keySpec2 = new PBEKeySpec(chave.toCharArray());
 						SecretKeyFactory kf2;

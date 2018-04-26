@@ -40,7 +40,6 @@ public class Utils {
 
 	/**
 	 * Decifra a password dada utilizando o salt dado.
-	 * 
 	 * @param password
 	 * @param salt
 	 * @return String of password decifrada
@@ -87,9 +86,7 @@ public class Utils {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 		return decrypted;
-
 	}
 
 	// cifra o ficheiro com uma chave aleatoria

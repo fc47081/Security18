@@ -6,32 +6,32 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class CatalogoPhotos {
-	
+
 	private ArrayList<Photo> fotos;
-	
+
 	/**
 	 * Construtor
 	 */
 	public CatalogoPhotos() {
 		fotos = new ArrayList<Photo>();			
 	}
-	
+
 	/**
 	 * Get do nome da foto
 	 * @param foto - nome da foto
 	 * @return nome da foto
 	 */
 	public Photo getPhoto(String foto) {
-		
+
 		for (int i = 0; i < fotos.size(); i++) {
-			
+
 			if (fotos.get(i).getNome().equals(foto)) {
 				return fotos.get(i);
 			}
 		}
 		return null;	
 	}
-	
+
 	/**
 	 * Popular o ficheiro com o nome e data
 	 * @param photos - ficheiro de fotos
@@ -51,16 +51,15 @@ public class CatalogoPhotos {
 			e.printStackTrace();
 		}	
 	}
-	
+
 	/**
 	 * Retorna lista de fotos
 	 * @return fotos
 	 */
-	public ArrayList<Photo> listaFotos() {
-		
+	public ArrayList<Photo> listaFotos() {		
 		return fotos;
 	}
-	
+
 	/**
 	 * Existe foto
 	 * @param foto - nome da foto
@@ -75,5 +74,5 @@ public class CatalogoPhotos {
 		}
 		return false;
 	}
-	
+
 }
