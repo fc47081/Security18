@@ -261,6 +261,8 @@ public class PhotoShareServer {
 
 			String dirName = "servidor/" + inUser;
 			File dir = new File(dirName);
+			if(!dir.exists())
+				dir.mkdir();
 			String photo = (String) inStream.readObject();
 			String temp = dirName + "/" + photo;
 			boolean check = new File(temp).exists();
