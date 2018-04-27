@@ -169,7 +169,7 @@ public class PhotoShareServer {
 					default:
 
 					}
-				} catch (ClassNotFoundException e1) {
+				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 				outStream.close();
@@ -272,7 +272,7 @@ public class PhotoShareServer {
 				outStream1.close();
 				Utils.cifraFile(new File(temp));
 
-				
+
 				File like = new File("servidor/" + inUser + "/" + getNameFile(photo) + "Likes.txt");
 				like.createNewFile();
 				Utils.cifraFile(like);
@@ -283,9 +283,9 @@ public class PhotoShareServer {
 				comments.createNewFile();
 				Utils.cifraFile(comments);
 				outStream.writeObject("TRANSFERIDA");
-				
+
 				//TODO Append a foto na lista de fotos.
-				
+
 				// Data da publicacao da foto
 				DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 				Date today = Calendar.getInstance().getTime();
@@ -319,6 +319,7 @@ public class PhotoShareServer {
 		}
 	}
 
+	///TODO adiciona um follower ao ficheiro de followers
 	/**
 	 * Operacao -f
 	 * 
@@ -360,7 +361,8 @@ public class PhotoShareServer {
 			e.printStackTrace();
 		}
 	}
-
+	
+	///TODO remover um follower do ficheiro followers
 	/**
 	 * Operacao -r
 	 * 
@@ -438,7 +440,7 @@ public class PhotoShareServer {
 						File fichLikes = new File("servidor/" + user + "/" + photoL.substring(0, photoL.indexOf(".")) + "Likes.txt");
 						// Decifrar os likes
 						Utils.decifraFile(fichLikes.toString());
-						
+
 						// Likes decifrados vamos ver se ja existe um user
 						boolean found = false;
 						BufferedReader br = new BufferedReader(new FileReader(fichLikes + ".decif"));
@@ -454,7 +456,7 @@ public class PhotoShareServer {
 							bw.write(inUser);
 							bw.newLine();
 							bw.close();
-							
+
 							Utils.cifraOldFile(new File(fichLikes + ".decif"));
 							outStream.writeObject("LIKE");
 						} else {
@@ -484,7 +486,6 @@ public class PhotoShareServer {
 		} catch (InvalidAlgorithmParameterException e1) {
 			e1.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -502,39 +503,53 @@ public class PhotoShareServer {
 	 *            - user recebido na operacao
 	 * @param photos
 	 *            - catalogo de fotos
+	 * @throws Exception 
 	 */
 	public static void operationD(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
-			String inUser, CatalogoPhotos photos) {
+			String inUser, CatalogoPhotos photos) throws Exception {
 		try {
 			String userD = (String) inStream.readObject();
 			String photoD = (String) inStream.readObject();
-			File followDislike = new File("servidor/" + userD + "/followers.txt");
-			File listFotos = new File("servidor/" + userD + "/listaFotos.txt");
-			photos.populate(listFotos);
+			File listaFotos = new File("servidor/" + userD + "/listaFotos.txt");
+
 			// verificar se e user
 			if (catUser.find(userD) == true) {
 				User userDislike = catUser.getUser(userD);
-				userDislike.populateFollowers(followDislike);
 				// verificamos se e follower
 				if (userDislike.existsFollower(inUser) == true) {
-					if (photos.existsPhoto(photoD) == true) {
-						Photo phototemp = photos.getPhoto(photoD);
-						File ficheiroDislikes = new File(
-								"servidor/" + userD + "/" + getNameFile(photoD) + "Dislikes.txt");
-						phototemp.populateDislikes(ficheiroDislikes);
-						if (phototemp.deuDislike(inUser) == false) {
-							BufferedWriter writer = new BufferedWriter(new FileWriter(
-									"servidor/" + userD + "/" + getNameFile(photoD) + "Dislikes.txt", true));
-							writer.write(inUser);
-							writer.newLine();
-							writer.close();
-							outStream.writeObject("DISLIKE");
-						} else {
-							outStream.writeObject("JADEUDISLIKE");
-						}
-					} else {
-						outStream.writeObject("NAO FOTO");
+					photos.populate(listaFotos);
+				if (photos.existsPhoto(photoD) == true) {
+
+					// Se a foto existe, entao temos que a decifrar.
+					File fichDislikes = new File("servidor/" + userD + "/" + photoD.substring(0, photoD.indexOf(".")) + "Dislikes.txt");
+					// Decifrar os dislikes
+					Utils.decifraFile(fichDislikes.toString());
+
+					// Dislikes decifrados vamos ver se ja existe um user
+					boolean found = false;
+					BufferedReader br = new BufferedReader(new FileReader(fichDislikes + ".decif"));
+					for(String s : br.lines().collect(Collectors.toList()))
+					{
+						if(s.contains(inUser))
+							found = true;
 					}
+					br.close();
+
+					if(!found) {
+						//Escrever no ficheiro .decif uma nova linha com o nome do user
+						BufferedWriter bw = new BufferedWriter(new FileWriter(fichDislikes + ".decif"));
+						bw.write(inUser);
+						bw.newLine();
+						bw.close();
+
+						Utils.cifraOldFile(new File(fichDislikes + ".decif"));
+						outStream.writeObject("DISLIKE");
+					} else {
+						outStream.writeObject("JADEUDISLIKE");
+					}
+				} else {
+					outStream.writeObject("NAO FOTO");
+				}
 				} else {
 					outStream.writeObject("NAO DISLIKE");
 				}
@@ -601,6 +616,7 @@ public class PhotoShareServer {
 		}
 	}
 
+	///TODO devolve ao cliente o numero de likes , dislikes e os comentarios
 	/**
 	 * Operacao -i
 	 * 
@@ -667,6 +683,7 @@ public class PhotoShareServer {
 		}
 	}
 
+	///TODO devolver ao cliente o ficheiro listaFotos.txt
 	/**
 	 * Operacao -l
 	 * 
@@ -713,6 +730,7 @@ public class PhotoShareServer {
 		}
 	}
 
+	///TODO devolve para o cliente as fotos 
 	/**
 	 * Operacao -g
 	 * 

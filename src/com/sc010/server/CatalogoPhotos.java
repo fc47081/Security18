@@ -68,7 +68,7 @@ public class CatalogoPhotos {
 	 */
 	public boolean existsPhoto(String foto){
 		for (int i = 0; i < fotos.size(); i++) {
-			if (fotos.get(i).getNome().equals(foto)) {
+			if (fotos.get(i).getNome().contains(foto)) {
 				return true;
 			}
 		}
