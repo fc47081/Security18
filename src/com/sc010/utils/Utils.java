@@ -1,26 +1,37 @@
 package com.sc010.utils;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.math.BigInteger;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 
 import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
@@ -40,6 +51,7 @@ public class Utils {
 
 	/**
 	 * Decifra a password dada utilizando o salt dado.
+	 * 
 	 * @param password
 	 * @param salt
 	 * @return String of password decifrada
@@ -89,36 +101,160 @@ public class Utils {
 		return decrypted;
 	}
 
-	// cifra o ficheiro com uma chave aleatoria
-	public static void CifraFiles(File ficheiro) {
+	public static void cifraFile(File f) throws Exception {
+		// gerar uma chave aleat�ria para utilizar com o AES
+		KeyGenerator kg = KeyGenerator.getInstance("AES");
+		kg.init(128);
+		SecretKey key = kg.generateKey();
 
-		try {
-			KeyGenerator kg = KeyGenerator.getInstance("AES");
-			kg.init(128);
-			SecretKey key = kg.generateKey();
+		Cipher c = Cipher.getInstance("AES");
+		c.init(Cipher.ENCRYPT_MODE, key);
 
-			Cipher c = Cipher.getInstance("AES");
-			c.init(Cipher.ENCRYPT_MODE, key);
-			
-			FileInputStream fis;
-			FileOutputStream fos;
-			CipherOutputStream cos;
-			fis = new FileInputStream(ficheiro);
-			fos = new FileOutputStream(ficheiro + ".cif");
-			cos = new CipherOutputStream(fos, c);
-			byte[] b = new byte[16];
+		FileInputStream fis;
+		FileOutputStream fos;
 
-			int i;
-			while ((i = fis.read(b)) != -1) {
-				cos.write(b, 0, i);
-			}
-			cos.close();
-			fis.close();
-		} catch (Exception e) {
-			e.printStackTrace();
+		fis = new FileInputStream(f.getPath());
+		fos = new FileOutputStream(f + ".cif"); // Rescrever ficheiro cifrado.
+		CipherOutputStream cos = new CipherOutputStream(fos, c);
+		byte[] b = new byte[16];
+		int i = fis.read(b);
+		while (i > 0) {
+			cos.write(b, 0, i);
+			i = fis.read(b);
 		}
+		fis.close();
+		cos.close();
+
+		// Guardar key usada para cifrar
+		guardarKey(key, f + ".key");
+		if (f.delete())
+			System.out.println("Deu delete");
+
 	}
 
+	private static void guardarKey(SecretKey key, String path) throws IOException, NoSuchAlgorithmException,
+			NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, CertificateException {
+		FileOutputStream fichKey = new FileOutputStream(path);
+		ObjectOutputStream outKey = new ObjectOutputStream(fichKey);
+
+		PublicKey pk = getChavePublica();
+		Cipher c = Cipher.getInstance("RSA");
+		c.init(Cipher.WRAP_MODE, pk);
+
+		byte[] keyEncriptada = c.wrap(key);
+		outKey.writeObject(keyEncriptada);
+		outKey.close();
+	}
+
+	private static PublicKey getChavePublica() throws FileNotFoundException, CertificateException {
+		FileInputStream fis = new FileInputStream("certServer.cer");
+		BufferedInputStream bis = new BufferedInputStream(fis);
+
+		CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		return cf.generateCertificate(bis).getPublicKey();
+	}
+
+	private static PrivateKey getChavePrivada() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, UnrecoverableKeyException {
+		KeyStore ks = KeyStore.getInstance("JKS");
+		ks.load(new FileInputStream("server"), "paparuco".toCharArray());
+		return (PrivateKey) ks.getKey("myserver", "paparuco".toCharArray());
+	}
+
+	public static boolean decifraFile(String file) throws Exception {
+		FileInputStream fis = new FileInputStream(file);
+		FileOutputStream fos = new FileOutputStream(file + ".decif");
+
+		try {
+			// Buscar a key dentro do .cif
+
+			PrivateKey key = getChavePrivada();
+			fis = new FileInputStream(file + ".cif");
+			Cipher c = Cipher.getInstance("RSA");
+			c.init(Cipher.UNWRAP_MODE, key);
+			CipherInputStream cis = new CipherInputStream(fis, c);	
+			
+			Key cifKey = c.unwrap(wrappedKey, wrappedKeyAlgorithm, wrappedKeyType)
+			
+			// Temos a key do .cif
+
+			c = Cipher.getInstance("AES");
+			c.init(Cipher.DECRYPT_MODE, cifKey); // SecretKeySpec subclasse de secretKey
+
+			byte[] b = new byte[16];
+			byte[] j = new byte[16];
+			int i = fis.read(j);
+			int k;
+			while (i > 0) {
+				k = c.update(j, 0, i, b);
+				fos.write(b, 0, k);
+				i = fis.read(j);
+			}
+
+			b = c.doFinal();
+			fos.write(b);
+
+			fis.close();
+			fos.close();
+
+			return true;
+
+		} catch (IllegalBlockSizeException e) {
+			fis.close();
+			fos.close();
+			return false;
+		}
+
+	}
+
+	public static void cifraKeyServer(File f, byte[] key) throws Exception {
+		String name = f.getPath();
+
+		// cifrar chave secreta com a chave publica que est� na keystore
+		// 1) obter o certificado
+		FileInputStream kfile = new FileInputStream("server.keyStore"); // keystore
+		KeyStore kstore = KeyStore.getInstance("JKS");
+		kstore.load(kfile, "seguranca023".toCharArray()); // password
+		Certificate cert = kstore.getCertificate("server");
+
+		// 2) cifrar chave secreta com chave publica
+
+		Cipher cs = Cipher.getInstance("RSA");
+		cs.init(Cipher.WRAP_MODE, cert);
+		byte[] chaveCifrada = cs.wrap(new SecretKeySpec(key, "AES"));
+
+		FileOutputStream kos = new FileOutputStream(name);
+		ObjectOutputStream oos = new ObjectOutputStream(kos);
+		oos.write(chaveCifrada);
+		oos.close();
+
+	}
+
+	public static byte[] decifraKeyServer(File f) throws Exception {
+		try {
+			ObjectInputStream keyFile = new ObjectInputStream(new FileInputStream(f.getPath()));
+			// numero de bytes do a.key - 256
+			byte[] keyEncoded2 = new byte[256];
+
+			keyFile.read(keyEncoded2);
+			keyFile.close();
+
+			// decifra a chave
+			FileInputStream kfile = new FileInputStream("server.keyStore"); // keystore
+			KeyStore kstore = KeyStore.getInstance("JKS");
+			kstore.load(kfile, "seguranca023".toCharArray()); // password
+			Key myPrivatekey = kstore.getKey("server", "seguranca023".toCharArray());
+
+			Cipher c1 = Cipher.getInstance("RSA");
+			c1.init(Cipher.UNWRAP_MODE, myPrivatekey);
+			Key key = c1.unwrap(keyEncoded2, "AES", Cipher.SECRET_KEY);
+
+			return key.getEncoded();
+		} catch (StreamCorruptedException e) {
+			System.err.println("Ficheiro de cifraKeyServer foi corrommpido");
+			System.exit(-1);
+		}
+		return null;
+	}
 
 	/**
 	 * cria o mac e verifica
@@ -206,7 +342,7 @@ public class Utils {
 		KeyStore ks = null;
 		try {
 			// Cria uma keystore.
-			ks = KeyStore.getInstance("JCEKS");
+			ks = KeyStore.getInstance("JKS");
 			File keystore = new File(pathKS);
 
 			// Se a keystore existe, dar load desse path.
@@ -214,7 +350,7 @@ public class Utils {
 				ks.load(new FileInputStream(pathKS), password);
 
 			} else {
-				// Se n�o existe dar load com path a null e depois store para escrever no
+				// Se nï¿½o existe dar load com path a null e depois store para escrever no
 				// ficheiro.
 				ks.load(null, password);
 				ks.store(new FileOutputStream(keystore), password);
@@ -225,7 +361,7 @@ public class Utils {
 			// verifica se existe um mac
 			if (key == null) {
 				key = KeyGenerator.getInstance("HmacSHA256").generateKey();
-				Certificate cert = ks.getCertificate("decifraTudo");
+				Certificate cert = ks.getCertificate("myserver");
 				Certificate[] certarray = { cert };
 				ks.setKeyEntry("decifraTudo", key, password, certarray);
 				ks.store(new FileOutputStream("Users/users.keystore"), password);
