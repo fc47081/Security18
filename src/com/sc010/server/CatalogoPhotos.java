@@ -41,7 +41,7 @@ public class CatalogoPhotos {
 	public void populate(File photos) {	
 		try {
 			Utils.decifraFile(photos.toPath().toString());
-			BufferedReader reader = new BufferedReader(new FileReader(photos));
+			BufferedReader reader = new BufferedReader(new FileReader(photos + ".decif"));
 			String line="";
 			Photo photo;
 			while((line = reader.readLine()) != null){
@@ -75,7 +75,7 @@ public class CatalogoPhotos {
 	 */
 	public boolean existsPhoto(String foto){
 		for (int i = 0; i < fotos.size(); i++) {
-			if (fotos.get(i).getNome().contains(foto)) {
+			if (fotos.get(i).getNome().contains(foto + ".cif")) {
 				return true;
 			}
 		}

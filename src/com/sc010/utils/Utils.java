@@ -113,7 +113,7 @@ public class Utils {
 		FileInputStream fis;
 		FileOutputStream fos;
 
-		fis = new FileInputStream(f.getPath());
+		fis = new FileInputStream(f.getPath() + ".decif");
 		fos = new FileOutputStream(f + ".cif"); // Rescrever ficheiro cifrado.
 		CipherOutputStream cos = new CipherOutputStream(fos, c);
 		byte[] b = new byte[16];
@@ -190,6 +190,7 @@ public class Utils {
 		}
 		fos.close();
 		cis.close();
+		ois.close();
 		new File(file+".cif").delete();
 	}
 
