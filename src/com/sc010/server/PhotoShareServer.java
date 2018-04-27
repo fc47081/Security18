@@ -2,7 +2,6 @@ package com.sc010.server;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,20 +24,19 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -437,10 +435,27 @@ public class PhotoShareServer {
 					photos.populate(listaFotos);
 					if (photos.existsPhoto(photoL) == true) {
 						// Se a foto existe, entao temos que a decifrar.
+						File fichLikes = new File("servidor/" + user + "/" + photoL.substring(0, photoL.indexOf(".")) + "Likes.txt");
+						// Decifrar os likes
+						Utils.decifraFile(fichLikes.toString());
 						
-						Utils.decifraFile(rep, n, key)
-						
-						if (true) {
+						// Likes decifrados vamos ver se ja existe um user
+						boolean found = false;
+						BufferedReader br = new BufferedReader(new FileReader(fichLikes + ".decif"));
+						for(String s : br.lines().collect(Collectors.toList()))
+						{
+							if(s.contains(inUser))
+								found = true;
+						}
+						br.close();
+						if (!found) {
+							// Escrever no ficheiro .decif uma nova linha com o nome do user
+							BufferedWriter bw = new BufferedWriter(new FileWriter(fichLikes + ".decif"));
+							bw.write(inUser);
+							bw.newLine();
+							bw.close();
+							
+							Utils.cifraOldFile(new File(fichLikes + ".decif"));
 							outStream.writeObject("LIKE");
 						} else {
 							outStream.writeObject("JADEULIKE");
@@ -468,6 +483,9 @@ public class PhotoShareServer {
 			e1.printStackTrace();
 		} catch (InvalidAlgorithmParameterException e1) {
 			e1.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 

@@ -154,56 +154,42 @@ public class Utils {
 		return cf.generateCertificate(bis).getPublicKey();
 	}
 
-	private static PrivateKey getChavePrivada() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, UnrecoverableKeyException {
+	private static PrivateKey getChavePrivada() throws KeyStoreException, NoSuchAlgorithmException,
+			CertificateException, FileNotFoundException, IOException, UnrecoverableKeyException {
 		KeyStore ks = KeyStore.getInstance("JKS");
 		ks.load(new FileInputStream("server"), "paparuco".toCharArray());
 		return (PrivateKey) ks.getKey("myserver", "paparuco".toCharArray());
 	}
 
-	public static boolean decifraFile(String file) throws Exception {
-		FileInputStream fis = new FileInputStream(file);
+	public static void decifraFile(String file) throws Exception {
+		FileInputStream fis = new FileInputStream(file + ".cif");
 		FileOutputStream fos = new FileOutputStream(file + ".decif");
 
-		try {
-			// Buscar a key dentro do .cif
+		// Buscar a key dentro do .key
+		FileInputStream fiscif = new FileInputStream(file + ".key");
+		PrivateKey key = getChavePrivada();
+		Cipher c = Cipher.getInstance("RSA");
+		c.init(Cipher.UNWRAP_MODE, key);
+		ObjectInputStream ois = new ObjectInputStream(fiscif);
+		byte[] keyCif = (byte[]) ois.readObject();
+		Key cifKey = c.unwrap(keyCif, "AES", Cipher.SECRET_KEY);
+		
 
-			PrivateKey key = getChavePrivada();
-			fis = new FileInputStream(file + ".cif");
-			Cipher c = Cipher.getInstance("RSA");
-			c.init(Cipher.UNWRAP_MODE, key);
-			CipherInputStream cis = new CipherInputStream(fis, c);	
-			
-			Key cifKey = c.unwrap(wrappedKey, wrappedKeyAlgorithm, wrappedKeyType)
-			
-			// Temos a key do .cif
+		// Temos a key do .key
 
-			c = Cipher.getInstance("AES");
-			c.init(Cipher.DECRYPT_MODE, cifKey); // SecretKeySpec subclasse de secretKey
+		c = Cipher.getInstance("AES");
+		c.init(Cipher.DECRYPT_MODE, cifKey); // SecretKeySpec subclasse de secretKey
 
-			byte[] b = new byte[16];
-			byte[] j = new byte[16];
-			int i = fis.read(j);
-			int k;
-			while (i > 0) {
-				k = c.update(j, 0, i, b);
-				fos.write(b, 0, k);
-				i = fis.read(j);
-			}
+		CipherInputStream cis = new CipherInputStream(fis, c);
 
-			b = c.doFinal();
-			fos.write(b);
-
-			fis.close();
-			fos.close();
-
-			return true;
-
-		} catch (IllegalBlockSizeException e) {
-			fis.close();
-			fos.close();
-			return false;
+		byte[] input = new byte[16];
+		int i = cis.read(input);
+		while (i > 0) {
+			fos.write(input);
+			i = cis.read(input);
 		}
-
+		fos.close();
+		cis.close();
 	}
 
 	public static void cifraKeyServer(File f, byte[] key) throws Exception {
@@ -382,6 +368,37 @@ public class Utils {
 			e.printStackTrace();
 		}
 		return null;
+
+	}
+
+	public static void cifraOldFile(File file) throws InvalidKeyException, NoSuchAlgorithmException, IOException, NoSuchPaddingException, IllegalBlockSizeException, CertificateException {
+		// gerar uma chave aleat�ria para utilizar com o AES
+		KeyGenerator kg = KeyGenerator.getInstance("AES");
+		kg.init(128);
+		SecretKey key = kg.generateKey();
+
+		Cipher c = Cipher.getInstance("AES");
+		c.init(Cipher.ENCRYPT_MODE, key);
+
+		FileInputStream fis;
+		FileOutputStream fos;
+
+		fis = new FileInputStream(file);
+		fos = new FileOutputStream(file.toString().substring(0, file.toString().lastIndexOf(".")) + ".cif"); // Rescrever ficheiro cifrado.
+		CipherOutputStream cos = new CipherOutputStream(fos, c);
+		byte[] b = new byte[16];
+		int i = fis.read(b);
+		while (i > 0) {
+			cos.write(b, 0, i);
+			i = fis.read(b);
+		}
+		fis.close();
+		cos.close();
+
+		// Guardar key usada para cifrar
+		guardarKey(key, file.toString().substring(0, file.toString().lastIndexOf(".")) + ".key");
+		if (file.delete())
+			System.out.println("Deu delete");
 
 	}
 
