@@ -195,9 +195,6 @@ public class CatalogoUser {
 		} else {
 			// System.out.println("Utilizador nao existe");
 			this.lista().add(u);
-			String dirName = "Clientes/" + user;
-			File dir = new File(dirName);
-			dir.mkdir();
 			// Cypher and persist
 			// Create salt
 			SecureRandom sr = new SecureRandom();

@@ -575,327 +575,311 @@ public class PhotoShareServer {
 	public static void operationC(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
 			String inUser, CatalogoPhotos photos) {
 		try {
+			String comentario = (String) inStream.readObject();
+			String userC = (String) inStream.readObject();
+			String photoC = (String) inStream.readObject();
+			User userCcomment = catUser.getUser(userC);
+			// verificar se e user
+			if (catUser.find(userC) == true) {
+				Utils.decifraFile("servidor/" + userC + "/followers.txt");
+				File followC = new File("servidor/" + userC + "/followers.txt.decif");
+				userCcomment.populateFollowers(followC);
+				// verificamos se e follower
+				if (userCcomment.existsFollower(inUser) == true) {
+					Utils.decifraFile("servidor/" + userC + "/listaFotos.txt");
+					File listaFotosC = new File("servidor/" + userC + "/listaFotos.txt");
+					photos.populate(listaFotosC);
+					if (photos.existsPhoto(photoC) == true) {
 
-			try {
-				String comentario = (String) inStream.readObject();
-				String userC = (String) inStream.readObject();
-				String photoC = (String) inStream.readObject();
-				User userComment = catUser.getUser(userC);
-				File listaFotosC = new File("servidor/" + userC + "/listaFotos.txt");
-				// verificar se e user
-				if (catUser.find(userC) == true) {
-					userComment = catUser.getUser(userC);
-					// verificamos se e follower
-					if (userComment.existsFollower(inUser) == true) {
-						photos.populate(listaFotosC);
-						if (photos.existsPhoto(photoC) == true) {
-							File  fichC = new File("servidor/" + userC + "/" + photoC.substring(0, photoC.indexOf(".")) + "Comments.txt");
-
-							Utils.decifraFile(fichC.toString());
-
-							boolean found = false;
-							BufferedReader br = new BufferedReader(new FileReader(fichC + ".decif"));
-							for(String s : br.lines().collect(Collectors.toList()))
-							{
-								if(s.contains(inUser))
-									found = true;
-							}
-							br.close();
-
-							if(!found) {
-								BufferedWriter bw = new BufferedWriter(new FileWriter(fichC + ".decif"));
-								bw.write(comentario);
-								bw.newLine();
-								bw.close();
-							}
-							Utils.cifraOldFile(new File(fichC + ".decif"));
-							outStream.writeObject("COMMENT");
-						} else {
-							outStream.writeObject("NAO FOTO");
-						}
+						BufferedWriter writer = new BufferedWriter(
+								new FileWriter("servidor/" + userC + "/" + getNameFile(photoC) + "Comments.txt", true));
+						writer.write(comentario);
+						writer.newLine();
+						writer.close();
+						outStream.writeObject("COMMENT");
 					} else {
-						outStream.writeObject("NAO FOLLOWER");
+						outStream.writeObject("NAO FOTO");
 					}
-					Utils.cifraOldFile(new File("servidor/" + userC + "/followers.txt"));
-					Utils.cifraOldFile(new File("servidor/" + userC + "/listaFotos.txt"));
-
 				} else {
-					outStream.writeObject("NAO USER");
+					outStream.writeObject("NAO FOLLOWER");
 				}
-			
+				Utils.cifraOldFile(new File("servidor/" + userC + "/followers.txt"));
+				Utils.cifraOldFile(new File("servidor/" + userC + "/listaFotos.txt"));
+
+			} else {
+				outStream.writeObject("NAO USER");
+			}
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}finally {
-		
 	}
-}
 
-/// TODO devolve ao cliente o numero de likes , dislikes e os comentarios
-/**
- * Operacao -i
- * 
- * @param inStream
- *            - reader do cliente
- * @param outStream
- *            - writer para o cliente
- * @param catUser
- *            - catalogo de users
- * @param inUser
- *            - user recebido na operacao
- * @param photos
- *            - catalogo de fotos
- * @throws Exception
- */
-public static void operationI(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
-		String inUser, CatalogoPhotos photos) throws Exception {
-	try {
-		String userID = (String) inStream.readObject();
-		String foto = (String) inStream.readObject();
-		User userCatalog = catUser.getUser(userID);
-		if (catUser.find(userID) == true) {
-			File followC = new File("servidor/" + userID + "/followers.txt");
-			userCatalog.populateFollowers(followC);
-			if (userCatalog.existsFollower(inUser) == true) {
-				File listaFotosC = new File("servidor/" + userID + "/listaFotos.txt");
-				photos.populate(listaFotosC);
-				if (photos.existsPhoto(foto) == true) {
-					System.out.println("Mostra");
-					outStream.writeObject("MOSTRA");
-					// populate Likes
-					Photo phototempL = photos.getPhoto(foto);
-					File ficheiroLikes = new File("servidor/" + userID + "/" + getNameFile(foto) + "Likes.txt");
-					Utils.decifraFile(ficheiroLikes.toString());
-					phototempL.populateLikes(new File(ficheiroLikes + ".decif"));
-					// populate Dislikes
-					Photo phototempD = photos.getPhoto(foto);
-					File ficheiroDislikes = new File(
-							"servidor/" + userID + "/" + getNameFile(foto) + "Dislikes.txt");
-					Utils.decifraFile(ficheiroDislikes.toString());
-					phototempD.populateDislikes(new File(ficheiroDislikes + ".decif"));
-					// populate comentarios
-					Photo phototempC = photos.getPhoto(foto);
-					File ficheiroComments = new File(
-							"servidor/" + userID + "/" + getNameFile(foto) + "Comments.txt");
-					Utils.decifraFile(ficheiroComments.toString());
-					phototempC.populateComments(new File(ficheiroComments + ".decif"));
-					ArrayList<String> comentarios = phototempC.getlistPhotoComments();
-					outStream.writeObject(phototempC.tamanholistPhotoComments());
-					for (int i = 0; i < comentarios.size(); i++) {
-						outStream.writeObject(comentarios.get(i));
+	/// TODO devolve ao cliente o numero de likes , dislikes e os comentarios
+	/**
+	 * Operacao -i
+	 * 
+	 * @param inStream
+	 *            - reader do cliente
+	 * @param outStream
+	 *            - writer para o cliente
+	 * @param catUser
+	 *            - catalogo de users
+	 * @param inUser
+	 *            - user recebido na operacao
+	 * @param photos
+	 *            - catalogo de fotos
+	 * @throws Exception
+	 */
+	public static void operationI(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
+			String inUser, CatalogoPhotos photos) throws Exception {
+		try {
+			String userID = (String) inStream.readObject();
+			String foto = (String) inStream.readObject();
+			User userCatalog = catUser.getUser(userID);
+			if (catUser.find(userID) == true) {
+				File followC = new File("servidor/" + userID + "/followers.txt");
+				userCatalog.populateFollowers(followC);
+				if (userCatalog.existsFollower(inUser) == true) {
+					File listaFotosC = new File("servidor/" + userID + "/listaFotos.txt");
+					photos.populate(listaFotosC);
+					if (photos.existsPhoto(foto) == true) {
+						System.out.println("Mostra");
+						outStream.writeObject("MOSTRA");
+						// populate Likes
+						Photo phototempL = photos.getPhoto(foto);
+						File ficheiroLikes = new File("servidor/" + userID + "/" + getNameFile(foto) + "Likes.txt");
+						Utils.decifraFile(ficheiroLikes.toString());
+						phototempL.populateLikes(new File(ficheiroLikes + ".decif"));
+						// populate Dislikes
+						Photo phototempD = photos.getPhoto(foto);
+						File ficheiroDislikes = new File(
+								"servidor/" + userID + "/" + getNameFile(foto) + "Dislikes.txt");
+						Utils.decifraFile(ficheiroDislikes.toString());
+						phototempD.populateDislikes(new File(ficheiroDislikes + ".decif"));
+						// populate comentarios
+						Photo phototempC = photos.getPhoto(foto);
+						File ficheiroComments = new File(
+								"servidor/" + userID + "/" + getNameFile(foto) + "Comments.txt");
+						Utils.decifraFile(ficheiroComments.toString());
+						phototempC.populateComments(new File(ficheiroComments + ".decif"));
+						ArrayList<String> comentarios = phototempC.getlistPhotoComments();
+						outStream.writeObject(phototempC.tamanholistPhotoComments());
+						for (int i = 0; i < comentarios.size(); i++) {
+							outStream.writeObject(comentarios.get(i));
+						}
+						outStream.writeObject(phototempL.tamanholistPhotoLikes());
+						outStream.writeObject(phototempD.tamanholistPhotoDislikes());
+						Utils.cifraOldFile(new File(ficheiroLikes + ".decif"));
+						;
+						Utils.cifraOldFile(new File(ficheiroDislikes + ".decif"));
+						;
+						Utils.cifraOldFile(new File(ficheiroComments + ".decif"));
+
+					} else {
+						outStream.writeObject("NAO FOTO");
 					}
-					outStream.writeObject(phototempL.tamanholistPhotoLikes());
-					outStream.writeObject(phototempD.tamanholistPhotoDislikes());
-					Utils.cifraOldFile(new File(ficheiroLikes + ".decif"));
-					;
-					Utils.cifraOldFile(new File(ficheiroDislikes + ".decif"));
-					;
-					Utils.cifraOldFile(new File(ficheiroComments + ".decif"));
-
 				} else {
-					outStream.writeObject("NAO FOTO");
+					outStream.writeObject("NAO FOLLOWER");
 				}
 			} else {
-				outStream.writeObject("NAO FOLLOWER");
+				outStream.writeObject("NAO USER");
 			}
-		} else {
-			outStream.writeObject("NAO USER");
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
 		}
-	} catch (IOException e) {
-		System.err.println("erro de leitura");
-	} catch (ClassNotFoundException e) {
-		e.printStackTrace();
 	}
-}
 
-
-/**
- * Operacao -l
- * 
- * @param inStream
- *            - reader do cliente
- * @param outStream
- *            - writer para o cliente
- * @param catUser
- *            - catalogo de users
- * @param inUser
- *            - user recebido na operacao
- * @param photos
- *            - catalogo de fotos
- */
-public static void operationMiniL(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
-		String inUser, CatalogoPhotos photos) {
-	try {
-		String userPhotos = (String) inStream.readObject();
-		// catalogo para fotos
-		User userList = catUser.getUser(userPhotos);
-		if (catUser.find(userPhotos) == true) {
-			File followers = new File("servidor/" + userPhotos + "/followers.txt");
-			userList.populateFollowers(followers);
-			if (userList.existsFollower(inUser) == true) {
-				outStream.writeObject("EXISTE");
-				ArrayList<Photo> fotos = photos.listaFotos();
-				Utils.decifraFile("servidor/" + userPhotos + "/listaFotos.txt");
-				File photoList = new File("servidor/" + userPhotos + "/listaFotos.txt.cif");
-				photos.populate(photoList);
-				System.out.println("TAMANHO DO SIZE: " + photos.listaFotos().size());
-				outStream.writeObject(photos.listaFotos().size());
-				for (int i = 0; i < photos.listaFotos().size(); i++) {
-					outStream.writeObject(fotos.get(i).getNome() + " - " + fotos.get(i).getData());
-				}
-				Utils.cifraOldFile(new File("servidor/" + userPhotos + "/listaFotos.txt"));
-			} else {
-				outStream.writeObject("NAO EXISTE");
-			}
-		} else {
-			outStream.writeObject("NAO EXISTE USER");
-		}
-	} catch (IOException e) {
-		System.err.println("erro de leitura");
-	} catch (ClassNotFoundException e) {
-		e.printStackTrace();
-	} catch (Exception e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-}
-
-/// TODO devolve para o cliente as fotos
-/**
- * Operacao -g
- * 
- * @param inStream
- *            - reader do cliente
- * @param outStream
- *            - writer para o cliente
- * @param catUser
- *            - catalogo de users
- * @param inUser
- *            - user recebido na operacao
- */
-public static void operationG(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
-		String inUser) {
-	try {
-		String userG = (String) inStream.readObject();
-		User u = catUser.getUser(userG);
-		if (catUser.find(userG) == true) {
-			File followC = new File("servidor/" + userG + "/followers.txt");
-			u.populateFollowers(followC);
-			u.imprime();
-			if (u.existsFollower(inUser) == true) {
-				File folderDir = new File("servidor/" + userG);
-				String[] folderFiles = folderDir.list();
-				ArrayList<String> listaDeFotos = getPhotoFiles(folderFiles);
-				outStream.write(listaDeFotos.size());
-				outStream.writeObject("Fotos enviadas");
-				for (int i = 0; i < listaDeFotos.size(); i++) {
-					outStream.writeObject(listaDeFotos.get(i));
-					File file = new File("servidor/" + userG + "/" + listaDeFotos.get(i));
-					Utils.decifraFile(file.toString());
-
-					// falta ler o fichiero para terminar de decifrar
-					long size = file.length();
-					FileInputStream inStream1 = new FileInputStream(file + ".decif");
-					byte buffer[] = new byte[1024];
-					int count = 1024;
-					outStream.writeObject(file.length());
-					while ((count = inStream1.read(buffer, 0, (int) (size < 1024 ? size : 1024))) > 0) {
-						outStream.write(buffer, 0, count);
-						size -= count;
-						outStream.flush();
+	/// TODO devolver ao cliente o ficheiro listaFotos.txt
+	/**
+	 * Operacao -l
+	 * 
+	 * @param inStream
+	 *            - reader do cliente
+	 * @param outStream
+	 *            - writer para o cliente
+	 * @param catUser
+	 *            - catalogo de users
+	 * @param inUser
+	 *            - user recebido na operacao
+	 * @param photos
+	 *            - catalogo de fotos
+	 */
+	public static void operationMiniL(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
+			String inUser, CatalogoPhotos photos) {
+		try {
+			String userPhotos = (String) inStream.readObject();
+			// catalogo para fotos
+			User userList = catUser.getUser(userPhotos);
+			if (catUser.find(userPhotos) == true) {
+				File followers = new File("servidor/" + userPhotos + "/followers.txt");
+				userList.populateFollowers(followers);
+				if (userList.existsFollower(inUser) == true) {
+					outStream.writeObject("EXISTE");
+					ArrayList<Photo> fotos = photos.listaFotos();
+					Utils.decifraFile("servidor/" + userPhotos + "/listaFotos.txt");
+					File photoList = new File("servidor/" + userPhotos + "/listaFotos.txt.cif");
+					photos.populate(photoList);
+					System.out.println("TAMANHO DO SIZE: " + photos.listaFotos().size());
+					outStream.writeObject(photos.listaFotos().size());
+					for (int i = 0; i < photos.listaFotos().size(); i++) {
+						outStream.writeObject(fotos.get(i).getNome() + " - " + fotos.get(i).getData());
 					}
-					inStream1.close();
-					Utils.cifraOldFile(file);
+					Utils.cifraOldFile(new File("servidor/" + userPhotos + "/listaFotos.txt"));
+				} else {
+					outStream.writeObject("NAO EXISTE");
 				}
 			} else {
-				outStream.writeObject("Nao Follower");
+				outStream.writeObject("NAO EXISTE USER");
 			}
-		} else {
-			outStream.writeObject("Nao e user");
-		}
-	} catch (IOException e) {
-		System.err.println("erro de leitura");
-	} catch (ClassNotFoundException e) {
-		e.printStackTrace();
-	} catch (NoSuchAlgorithmException e) {
-		e.printStackTrace();
-	} catch (NoSuchPaddingException e) {
-		e.printStackTrace();
-	} catch (InvalidKeySpecException e) {
-		e.printStackTrace();
-	} catch (InvalidKeyException e) {
-		e.printStackTrace();
-	} catch (InvalidAlgorithmParameterException e) {
-		e.printStackTrace();
-	} catch (IllegalBlockSizeException e) {
-		e.printStackTrace();
-	} catch (BadPaddingException e) {
-		e.printStackTrace();
-	} catch (CertificateException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} catch (Exception e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-
-}
-
-/**
- * Adiciona ficheiros imagem para um arrayList
- * 
- * @param ficheiros
- * @return files
- */
-private static ArrayList<String> getPhotoFiles(String[] ficheiros) {
-	ArrayList<String> files = new ArrayList<String>();
-
-	for (int i = 0; i < ficheiros.length; i++) {
-		Pattern p = Pattern.compile("(gif|jpg|jpeg|tiff|png)", Pattern.CASE_INSENSITIVE);
-		Matcher m = p.matcher(ficheiros[i]);
-		if (m.find() || ficheiros[i].endsWith("Comments.txt")) {
-			files.add(ficheiros[i]);
-		}
-
-	}
-	return files;
-}
-
-/**
- * Verificar se o nome do ficheiro jah existe no Servidor
- * 
- * @param listOfFiles
- *            - lista de ficheiros existentes
- * @param nome
- *            - nome do ficheiros
- * @return true or false
- */
-private static boolean existsNameFile(File[] listOfFiles, String nome) {
-	for (int i = 0; i < listOfFiles.length; i++) {
-
-		if (listOfFiles[i].getName().endsWith(".png") || listOfFiles[i].getName().endsWith(".jpg")
-				|| listOfFiles[i].getName().endsWith(".jpeg") && listOfFiles[i].getName().equals(nome)) {
-
-			return true;
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
-	return false;
-}
 
-/**
- * Get nome do file
- * 
- * @param photo
- * @return str
- */
-private static String getNameFile(String photo) {
-	int ind = photo.indexOf(".");
-	String str = photo.substring(0, ind);
-	return str;
+	/// TODO devolve para o cliente as fotos
+	/**
+	 * Operacao -g
+	 * 
+	 * @param inStream
+	 *            - reader do cliente
+	 * @param outStream
+	 *            - writer para o cliente
+	 * @param catUser
+	 *            - catalogo de users
+	 * @param inUser
+	 *            - user recebido na operacao
+	 */
+	public static void operationG(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
+			String inUser) {
+		try {
+			String userG = (String) inStream.readObject();
+			User u = catUser.getUser(userG);
+			if (catUser.find(userG) == true) {
+				File followC = new File("servidor/" + userG + "/followers.txt");
+				u.populateFollowers(followC);
+				u.imprime();
+				if (u.existsFollower(inUser) == true) {
+					File folderDir = new File("servidor/" + userG);
+					String[] folderFiles = folderDir.list();
+					ArrayList<String> listaDeFotos = getPhotoFiles(folderFiles);
+					outStream.write(listaDeFotos.size());
+					outStream.writeObject("Fotos enviadas");
+					for (int i = 0; i < listaDeFotos.size(); i++) {
+						outStream.writeObject(listaDeFotos.get(i));
+						File file = new File("servidor/" + userG + "/" + listaDeFotos.get(i));
+						Utils.decifraFile(file.toString());
 
-}
+						// falta ler o fichiero para terminar de decifrar
+						long size = file.length();
+						FileInputStream inStream1 = new FileInputStream(file + ".decif");
+						byte buffer[] = new byte[1024];
+						int count = 1024;
+						outStream.writeObject(file.length());
+						while ((count = inStream1.read(buffer, 0, (int) (size < 1024 ? size : 1024))) > 0) {
+							outStream.write(buffer, 0, count);
+							size -= count;
+							outStream.flush();
+						}
+						inStream1.close();
+						Utils.cifraOldFile(file);
+					}
+				} else {
+					outStream.writeObject("Nao Follower");
+				}
+			} else {
+				outStream.writeObject("Nao e user");
+			}
+		} catch (IOException e) {
+			System.err.println("erro de leitura");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		} catch (InvalidKeySpecException e) {
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+		} catch (InvalidAlgorithmParameterException e) {
+			e.printStackTrace();
+		} catch (IllegalBlockSizeException e) {
+			e.printStackTrace();
+		} catch (BadPaddingException e) {
+			e.printStackTrace();
+		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * Adiciona ficheiros imagem para um arrayList
+	 * 
+	 * @param ficheiros
+	 * @return files
+	 */
+	private static ArrayList<String> getPhotoFiles(String[] ficheiros) {
+		ArrayList<String> files = new ArrayList<String>();
+
+		for (int i = 0; i < ficheiros.length; i++) {
+			Pattern p = Pattern.compile("(gif|jpg|jpeg|tiff|png)", Pattern.CASE_INSENSITIVE);
+			Matcher m = p.matcher(ficheiros[i]);
+			if (m.find() || ficheiros[i].endsWith("Comments.txt")) {
+				files.add(ficheiros[i]);
+			}
+
+		}
+		return files;
+	}
+
+	/**
+	 * Verificar se o nome do ficheiro jah existe no Servidor
+	 * 
+	 * @param listOfFiles
+	 *            - lista de ficheiros existentes
+	 * @param nome
+	 *            - nome do ficheiros
+	 * @return true or false
+	 */
+	private static boolean existsNameFile(File[] listOfFiles, String nome) {
+		for (int i = 0; i < listOfFiles.length; i++) {
+
+			if (listOfFiles[i].getName().endsWith(".png") || listOfFiles[i].getName().endsWith(".jpg")
+					|| listOfFiles[i].getName().endsWith(".jpeg") && listOfFiles[i].getName().equals(nome)) {
+
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Get nome do file
+	 * 
+	 * @param photo
+	 * @return str
+	 */
+	private static String getNameFile(String photo) {
+		int ind = photo.indexOf(".");
+		String str = photo.substring(0, ind);
+		return str;
+
+	}
 }
