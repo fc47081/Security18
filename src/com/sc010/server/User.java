@@ -91,7 +91,7 @@ public class User {
 			}
 			reader.close();
 			
-			Utils.cifraOldFile(new File(follow + ".cif"));
+			Utils.cifraOldFile(follow);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception e) {

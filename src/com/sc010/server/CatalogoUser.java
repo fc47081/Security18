@@ -43,26 +43,30 @@ public class CatalogoUser {
 				String[] split = line.split(":");
 				// Decifrar split[2] com split[1]
 				String password = Utils.decifrar(new File("users/users.txt"), split[0]);
-				
-				
+
 				// Persist files
 				File userDir = new File("servidor/" + split[0]);
-				if(!userDir.exists())
+				if (!userDir.exists())
 					userDir.mkdir();
-				
+
 				// Init followers file
 				File userFollowers = new File("servidor/" + split[0] + "/followers.txt");
-				FileOutputStream followersOut = new FileOutputStream(userFollowers, true);
-				followersOut.close();
-				
+				File userFollowersCif = new File("servidor/" + split[0] + "/followers.txt.cif");
+				if (!userFollowersCif.exists()) {
+					FileOutputStream followersOut = new FileOutputStream(userFollowers, true);
+					followersOut.close();
+					Utils.cifraFile(userFollowers);
+				}
+
 				// Init lista Fotos
 				File listaFotos = new File("servidor/" + split[0] + "/listaFotos.txt");
-				FileOutputStream listaFotosOut = new FileOutputStream(listaFotos, true);
-				listaFotosOut.close();
-				
-				Utils.cifraFile(userFollowers);
-				Utils.cifraFile(listaFotos);
-				
+				File listaFotosCif = new File("servidor/" + split[0] + "/listaFotos.txt.cif");
+				if (!listaFotosCif.exists()) {
+					FileOutputStream listaFotosOut = new FileOutputStream(listaFotos, true);
+					listaFotosOut.close();
+					Utils.cifraFile(listaFotos);
+				}
+
 				user = new User(split[0], password);
 				users.add(user);
 			}

@@ -190,6 +190,7 @@ public class Utils {
 		}
 		fos.close();
 		cis.close();
+		new File(file+".cif").delete();
 	}
 
 	public static void cifraKeyServer(File f, byte[] key) throws Exception {
@@ -383,21 +384,21 @@ public class Utils {
 		FileInputStream fis;
 		FileOutputStream fos;
 
-		fis = new FileInputStream(file);
-		fos = new FileOutputStream(file.toString().substring(0, file.toString().lastIndexOf(".")) + ".cif"); // Rescrever ficheiro cifrado.
+		fis = new FileInputStream(file + ".decif");
+		fos = new FileOutputStream(file + ".cif", true); // Rescrever ficheiro cifrado.
 		CipherOutputStream cos = new CipherOutputStream(fos, c);
 		byte[] b = new byte[16];
 		int i = fis.read(b);
 		while (i > 0) {
-			cos.write(b, 0, i);
+			cos.write(b, 0, b.length);
 			i = fis.read(b);
 		}
 		fis.close();
 		cos.close();
 
 		// Guardar key usada para cifrar
-		guardarKey(key, file.toString().substring(0, file.toString().lastIndexOf(".")) + ".key");
-		if (file.delete())
+		guardarKey(key, file + ".key");
+		if (new File(file+ ".decif").delete())
 			System.out.println("Deu delete");
 
 	}

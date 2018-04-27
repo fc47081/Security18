@@ -15,6 +15,7 @@ import java.net.Socket;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -180,7 +181,6 @@ public class PhotoShareServer {
 			}
 		}
 	}
-	
 
 	/**
 	 * Autenticacao do user
@@ -239,7 +239,7 @@ public class PhotoShareServer {
 				dir.mkdir();
 			String photo = (String) inStream.readObject();
 			String temp = dirName + "/" + photo;
-			boolean check = new File(temp).exists();
+			boolean check = new File(temp + ".cif").exists();
 			File[] listOfFiles = dir.listFiles();
 
 			if (check == false) {
@@ -261,7 +261,6 @@ public class PhotoShareServer {
 				outStream1.close();
 				Utils.cifraFile(new File(temp));
 
-
 				File like = new File("servidor/" + inUser + "/" + getNameFile(photo) + "Likes.txt");
 				like.createNewFile();
 				Utils.cifraFile(like);
@@ -273,12 +272,11 @@ public class PhotoShareServer {
 				Utils.cifraFile(comments);
 				outStream.writeObject("TRANSFERIDA");
 
-				//TODO Append a foto na lista de fotos.
-				
+				// TODO Append a foto na lista de fotos.
+
 				Utils.decifraFile("servidor/" + inUser + "/listaFotos.txt");
-				
-				
-				// Data da publicacao da foto
+
+				BufferedReader br = new BufferedReader(new FileReader("servidor/" + inUser + "/listaFotos.txt.decif"));
 				DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 				Date today = Calendar.getInstance().getTime();
 				String reportDate = df.format(today);
@@ -286,14 +284,14 @@ public class PhotoShareServer {
 				BufferedWriter writer = new BufferedWriter(
 						new FileWriter("servidor/" + inUser + "/listaFotos.txt.decif", true));
 				writer.write(photo + ":" + dateToPrintToFile);
+				writer.flush();
 				writer.newLine();
 				writer.close();
+
+				Utils.cifraOldFile(new File("servidor/" + inUser + "/listaFotos.txt"));
 			} else {
-				// Se ja existe , envia para o cliente que ja existe e da exit
-				if (existsNameFile(listOfFiles, photo)) {
-					System.out.println("existe o ficheiro");
-					outStream.writeObject("EXISTE");
-				}
+				System.out.println("existe o ficheiro");
+				outStream.writeObject("EXISTE");
 			}
 		} catch (IOException e) {
 			System.err.println("erro de leitura");
@@ -311,7 +309,7 @@ public class PhotoShareServer {
 		}
 	}
 
-	///TODO adiciona um follower ao ficheiro de followers
+	/// TODO adiciona um follower ao ficheiro de followers
 	/**
 	 * Operacao -f
 	 * 
@@ -331,18 +329,21 @@ public class PhotoShareServer {
 			User uAdd = catUser.getUser(inUser);
 			System.out.println(inUser);
 			File follow = new File("servidor/" + inUser + "/followers.txt");
-			catUser.populate(follow);
+			// catUser.populate(new File("users/users.txt"));
 			// uAdd.populateFollowers(follow);
 			if (catUser.find(followerAdd) == true) {// encontrar se o user exist na lista users
+
 				if (uAdd.existsFollower(followerAdd) == true) {
 					outStream.writeObject("Follower ja existe");
 				} else {
+					Utils.decifraFile("servidor/" + inUser + "/followers.txt");
 					BufferedWriter writer = new BufferedWriter(
-							new FileWriter("servidor/" + inUser + "/followers.txt", true));
+							new FileWriter("servidor/" + inUser + "/followers.txt.decif", true));
 					writer.write(followerAdd);
 					writer.newLine();
 					writer.close();
 					outStream.writeObject("Follower adicionado");
+					Utils.cifraOldFile(new File("servidor/" + inUser + "/followers.txt"));
 				}
 			} else {
 				outStream.writeObject("follower nao existe");
@@ -351,10 +352,13 @@ public class PhotoShareServer {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
-	
-	///TODO remover um follower do ficheiro followers
+
+	/// TODO remover um follower do ficheiro followers
 	/**
 	 * Operacao -r
 	 * 
@@ -374,7 +378,6 @@ public class PhotoShareServer {
 			System.out.println(followerRemove);
 			User uRemove = catUser.getUser(inUser);
 			File followRem = new File("servidor/" + inUser + "/followers.txt");
-			uRemove.populateFollowers(followRem);
 			if (catUser.find(followerRemove) == true) { // encontrar se o user exist na lista user
 				if (uRemove.existsFollower(followerRemove) == true) {
 					System.out.println("follow:");
@@ -429,16 +432,16 @@ public class PhotoShareServer {
 					photos.populate(listaFotos);
 					if (photos.existsPhoto(photoL) == true) {
 						// Se a foto existe, entao temos que a decifrar.
-						File fichLikes = new File("servidor/" + user + "/" + photoL.substring(0, photoL.indexOf(".")) + "Likes.txt");
+						File fichLikes = new File(
+								"servidor/" + user + "/" + photoL.substring(0, photoL.indexOf(".")) + "Likes.txt");
 						// Decifrar os likes
 						Utils.decifraFile(fichLikes.toString());
 
 						// Likes decifrados vamos ver se ja existe um user
 						boolean found = false;
 						BufferedReader br = new BufferedReader(new FileReader(fichLikes + ".decif"));
-						for(String s : br.lines().collect(Collectors.toList()))
-						{
-							if(s.contains(inUser))
+						for (String s : br.lines().collect(Collectors.toList())) {
+							if (s.contains(inUser))
 								found = true;
 						}
 						br.close();
@@ -495,7 +498,7 @@ public class PhotoShareServer {
 	 *            - user recebido na operacao
 	 * @param photos
 	 *            - catalogo de fotos
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	public static void operationD(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
 			String inUser, CatalogoPhotos photos) throws Exception {
@@ -510,38 +513,38 @@ public class PhotoShareServer {
 				// verificamos se e follower
 				if (userDislike.existsFollower(inUser) == true) {
 					photos.populate(listaFotos);
-				if (photos.existsPhoto(photoD) == true) {
+					if (photos.existsPhoto(photoD) == true) {
 
-					// Se a foto existe, entao temos que a decifrar.
-					File fichDislikes = new File("servidor/" + userD + "/" + photoD.substring(0, photoD.indexOf(".")) + "Dislikes.txt");
-					// Decifrar os dislikes
-					Utils.decifraFile(fichDislikes.toString());
+						// Se a foto existe, entao temos que a decifrar.
+						File fichDislikes = new File(
+								"servidor/" + userD + "/" + photoD.substring(0, photoD.indexOf(".")) + "Dislikes.txt");
+						// Decifrar os dislikes
+						Utils.decifraFile(fichDislikes.toString());
 
-					// Dislikes decifrados vamos ver se ja existe um user
-					boolean found = false;
-					BufferedReader br = new BufferedReader(new FileReader(fichDislikes + ".decif"));
-					for(String s : br.lines().collect(Collectors.toList()))
-					{
-						if(s.contains(inUser))
-							found = true;
-					}
-					br.close();
+						// Dislikes decifrados vamos ver se ja existe um user
+						boolean found = false;
+						BufferedReader br = new BufferedReader(new FileReader(fichDislikes + ".decif"));
+						for (String s : br.lines().collect(Collectors.toList())) {
+							if (s.contains(inUser))
+								found = true;
+						}
+						br.close();
 
-					if(!found) {
-						//Escrever no ficheiro .decif uma nova linha com o nome do user
-						BufferedWriter bw = new BufferedWriter(new FileWriter(fichDislikes + ".decif"));
-						bw.write(inUser);
-						bw.newLine();
-						bw.close();
+						if (!found) {
+							// Escrever no ficheiro .decif uma nova linha com o nome do user
+							BufferedWriter bw = new BufferedWriter(new FileWriter(fichDislikes + ".decif"));
+							bw.write(inUser);
+							bw.newLine();
+							bw.close();
 
-						Utils.cifraOldFile(new File(fichDislikes + ".decif"));
-						outStream.writeObject("DISLIKE");
+							Utils.cifraOldFile(new File(fichDislikes + ".decif"));
+							outStream.writeObject("DISLIKE");
+						} else {
+							outStream.writeObject("JADEUDISLIKE");
+						}
 					} else {
-						outStream.writeObject("JADEUDISLIKE");
+						outStream.writeObject("NAO FOTO");
 					}
-				} else {
-					outStream.writeObject("NAO FOTO");
-				}
 				} else {
 					outStream.writeObject("NAO DISLIKE");
 				}
@@ -578,10 +581,12 @@ public class PhotoShareServer {
 			User userCcomment = catUser.getUser(userC);
 			// verificar se e user
 			if (catUser.find(userC) == true) {
-				File followC = new File("servidor/" + userC + "/followers.txt");
+				Utils.decifraFile("servidor/" + userC + "/followers.txt");
+				File followC = new File("servidor/" + userC + "/followers.txt.decif");
 				userCcomment.populateFollowers(followC);
 				// verificamos se e follower
 				if (userCcomment.existsFollower(inUser) == true) {
+					Utils.decifraFile("servidor/" + userC + "/listaFotos.txt");
 					File listaFotosC = new File("servidor/" + userC + "/listaFotos.txt");
 					photos.populate(listaFotosC);
 					if (photos.existsPhoto(photoC) == true) {
@@ -598,6 +603,9 @@ public class PhotoShareServer {
 				} else {
 					outStream.writeObject("NAO FOLLOWER");
 				}
+				Utils.cifraOldFile(new File("servidor/" + userC + "/followers.txt"));
+				Utils.cifraOldFile(new File("servidor/" + userC + "/listaFotos.txt"));
+
 			} else {
 				outStream.writeObject("NAO USER");
 			}
@@ -605,10 +613,13 @@ public class PhotoShareServer {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
-	///TODO devolve ao cliente o numero de likes , dislikes e os comentarios
+	/// TODO devolve ao cliente o numero de likes , dislikes e os comentarios
 	/**
 	 * Operacao -i
 	 * 
@@ -622,9 +633,10 @@ public class PhotoShareServer {
 	 *            - user recebido na operacao
 	 * @param photos
 	 *            - catalogo de fotos
+	 * @throws Exception
 	 */
 	public static void operationI(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
-			String inUser, CatalogoPhotos photos) {
+			String inUser, CatalogoPhotos photos) throws Exception {
 		try {
 			String userID = (String) inStream.readObject();
 			String foto = (String) inStream.readObject();
@@ -641,17 +653,20 @@ public class PhotoShareServer {
 						// populate Likes
 						Photo phototempL = photos.getPhoto(foto);
 						File ficheiroLikes = new File("servidor/" + userID + "/" + getNameFile(foto) + "Likes.txt");
-						phototempL.populateLikes(ficheiroLikes);
+						Utils.decifraFile(ficheiroLikes.toString());
+						phototempL.populateLikes(new File(ficheiroLikes + ".decif"));
 						// populate Dislikes
 						Photo phototempD = photos.getPhoto(foto);
 						File ficheiroDislikes = new File(
 								"servidor/" + userID + "/" + getNameFile(foto) + "Dislikes.txt");
-						phototempD.populateDislikes(ficheiroDislikes);
+						Utils.decifraFile(ficheiroDislikes.toString());
+						phototempD.populateDislikes(new File(ficheiroDislikes + ".decif"));
 						// populate comentarios
 						Photo phototempC = photos.getPhoto(foto);
 						File ficheiroComments = new File(
 								"servidor/" + userID + "/" + getNameFile(foto) + "Comments.txt");
-						phototempC.populateComments(ficheiroComments);
+						Utils.decifraFile(ficheiroComments.toString());
+						phototempC.populateComments(new File(ficheiroComments + ".decif"));
 						ArrayList<String> comentarios = phototempC.getlistPhotoComments();
 						outStream.writeObject(phototempC.tamanholistPhotoComments());
 						for (int i = 0; i < comentarios.size(); i++) {
@@ -659,6 +674,12 @@ public class PhotoShareServer {
 						}
 						outStream.writeObject(phototempL.tamanholistPhotoLikes());
 						outStream.writeObject(phototempD.tamanholistPhotoDislikes());
+						Utils.cifraOldFile(new File(ficheiroLikes + ".decif"));
+						;
+						Utils.cifraOldFile(new File(ficheiroDislikes + ".decif"));
+						;
+						Utils.cifraOldFile(new File(ficheiroComments + ".decif"));
+
 					} else {
 						outStream.writeObject("NAO FOTO");
 					}
@@ -675,7 +696,7 @@ public class PhotoShareServer {
 		}
 	}
 
-	///TODO devolver ao cliente o ficheiro listaFotos.txt
+	/// TODO devolver ao cliente o ficheiro listaFotos.txt
 	/**
 	 * Operacao -l
 	 * 
@@ -702,13 +723,15 @@ public class PhotoShareServer {
 				if (userList.existsFollower(inUser) == true) {
 					outStream.writeObject("EXISTE");
 					ArrayList<Photo> fotos = photos.listaFotos();
-					File photoList = new File("servidor/" + userPhotos + "/listaFotos.txt");
+					Utils.decifraFile("servidor/" + userPhotos + "/listaFotos.txt");
+					File photoList = new File("servidor/" + userPhotos + "/listaFotos.txt.cif");
 					photos.populate(photoList);
 					System.out.println("TAMANHO DO SIZE: " + photos.listaFotos().size());
 					outStream.writeObject(photos.listaFotos().size());
 					for (int i = 0; i < photos.listaFotos().size(); i++) {
 						outStream.writeObject(fotos.get(i).getNome() + " - " + fotos.get(i).getData());
 					}
+					Utils.cifraOldFile(new File("servidor/" + userPhotos + "/listaFotos.txt"));
 				} else {
 					outStream.writeObject("NAO EXISTE");
 				}
@@ -719,10 +742,13 @@ public class PhotoShareServer {
 			System.err.println("erro de leitura");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
-	///TODO devolve para o cliente as fotos 
+	/// TODO devolve para o cliente as fotos
 	/**
 	 * Operacao -g
 	 * 
@@ -753,58 +779,11 @@ public class PhotoShareServer {
 					for (int i = 0; i < listaDeFotos.size(); i++) {
 						outStream.writeObject(listaDeFotos.get(i));
 						File file = new File("servidor/" + userG + "/" + listaDeFotos.get(i));
-
-						// Decifrar foto antes de a enviar para o cliente
-						PBEKeySpec keySpec = new PBEKeySpec(pwdAdmin.toCharArray());
-						SecretKeyFactory kf;
-						kf = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
-
-						SecretKey key = kf.generateSecret(keySpec);
-						IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
-						PBEParameterSpec spec = new PBEParameterSpec(salt, 20, ivSpec);
-						// decifrar ficheiro .key para obter a key para decifrar a foto
-						Cipher c1 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
-						c1.init(Cipher.DECRYPT_MODE, key, spec);
-
-						// retirar a chave para decifrar a foto
-						File fich = new File("servidor/" + userG + "/"
-								+ listaDeFotos.get(i).substring(0, listaDeFotos.get(i).lastIndexOf(".")) + ".key");
-						FileInputStream os = new FileInputStream(fich);
-						CipherInputStream cin = new CipherInputStream(os, c1);
-						long k = fich.length();
-						Integer chaveDec;
-						ArrayList<Byte> arrayByte = new ArrayList<>();
-
-						while (k > 0) {
-							chaveDec = cin.read();
-							k = k - 1;
-							arrayByte.add(chaveDec.byteValue());
-						}
-						// temos a chave encriptada
-						byte[] encripted = new byte[arrayByte.size()];
-						for (int j = 0; j < arrayByte.size(); j++) {
-							encripted[j] = arrayByte.get(j);
-						}
-						// deciframos a chave
-
-						byte[] decrypted = c1.doFinal(encripted);
-
-						// chave para string
-						String chave = new String(decrypted);
-
-						PBEKeySpec keySpec2 = new PBEKeySpec(chave.toCharArray());
-						SecretKeyFactory kf2;
-						kf2 = SecretKeyFactory.getInstance("PBEWithHmacSHA256AndAES_128");
-						SecretKey key2 = kf2.generateSecret(keySpec);
-						Cipher c2 = Cipher.getInstance("PBEWithHmacSHA256AndAES_128");
-						c2.init(Cipher.DECRYPT_MODE, key2, spec);
-						File fichFoto = new File("servidor/" + userG + "/" + listaDeFotos.get(i));
-						FileOutputStream os2 = new FileOutputStream(fichFoto);
-						CipherOutputStream cos = new CipherOutputStream(os2, c2);
+						Utils.decifraFile(file.toString());
 
 						// falta ler o fichiero para terminar de decifrar
 						long size = file.length();
-						FileInputStream inStream1 = new FileInputStream(file);
+						FileInputStream inStream1 = new FileInputStream(file + ".decif");
 						byte buffer[] = new byte[1024];
 						int count = 1024;
 						outStream.writeObject(file.length());
@@ -814,9 +793,7 @@ public class PhotoShareServer {
 							outStream.flush();
 						}
 						inStream1.close();
-						os.close();
-						cos.close();
-						cin.close();
+						Utils.cifraOldFile(file);
 					}
 				} else {
 					outStream.writeObject("Nao Follower");
@@ -841,6 +818,12 @@ public class PhotoShareServer {
 		} catch (IllegalBlockSizeException e) {
 			e.printStackTrace();
 		} catch (BadPaddingException e) {
+			e.printStackTrace();
+		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
