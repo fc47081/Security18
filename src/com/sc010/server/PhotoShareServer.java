@@ -283,7 +283,7 @@ public class PhotoShareServer {
 				String reportDate = df.format(today);
 				String dateToPrintToFile = reportDate;
 				BufferedWriter writer = new BufferedWriter(
-						new FileWriter("servidor/" + inUser + "/listaFotos.txt", true));
+						new FileWriter("servidor/" + inUser + "/listaFotos.txt.decif", true));
 				writer.write(photo + ":" + dateToPrintToFile);
 				writer.newLine();
 				writer.close();
