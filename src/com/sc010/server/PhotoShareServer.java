@@ -180,6 +180,7 @@ public class PhotoShareServer {
 			}
 		}
 	}
+	
 
 	/**
 	 * Autenticacao do user
