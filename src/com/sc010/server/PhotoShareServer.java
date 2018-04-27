@@ -81,12 +81,7 @@ public class PhotoShareServer {
 			sc.close();
 			ServerSocketFactory ssf = SSLServerSocketFactory.getDefault();
 			ss = (SSLServerSocket) ssf.createServerSocket(23232);
-			// TODO ss.setNeedClientAuth(true);
-			// ss.setNeedClientAuth(true);
 			System.out.println("Servidor a espera de ligacoes no porto " + ss.getLocalPort());
-			// sSoc = new ServerSocket(23232);
-			// sSoc.getLocalPort();
-			// System.out.println(sSoc.getLocalPort());
 
 		} catch (IOException e) {
 			System.out.println("O servidor PhotoShare so aceita ligacoes do porto : 23232");
@@ -271,9 +266,7 @@ public class PhotoShareServer {
 				comments.createNewFile();
 				Utils.cifraFile(comments);
 				outStream.writeObject("TRANSFERIDA");
-
-				// TODO Append a foto na lista de fotos.
-
+				
 				Utils.decifraFile("servidor/" + inUser + "/listaFotos.txt");
 
 				BufferedReader br = new BufferedReader(new FileReader("servidor/" + inUser + "/listaFotos.txt.decif"));
@@ -282,7 +275,7 @@ public class PhotoShareServer {
 				String reportDate = df.format(today);
 				String dateToPrintToFile = reportDate;
 				BufferedWriter writer = new BufferedWriter(
-						new FileWriter("servidor/" + inUser + "/listaFotos.txt.decif", true));
+						new FileWriter("servidor/" + inUser + "/listaFotos.txt", true)); //.decif
 				writer.write(photo + ":" + dateToPrintToFile);
 				writer.flush();
 				writer.newLine();
@@ -402,7 +395,7 @@ public class PhotoShareServer {
 			e.printStackTrace();
 		}
 	}
-
+	/// TODO
 	/**
 	 * Operacao -L
 	 * 
@@ -484,7 +477,7 @@ public class PhotoShareServer {
 			e.printStackTrace();
 		}
 	}
-
+	/// TODO
 	/**
 	 * Operacao -D
 	 * 
@@ -557,7 +550,7 @@ public class PhotoShareServer {
 			e.printStackTrace();
 		}
 	}
-
+	/// TODO
 	/**
 	 * Operacao -c
 	 * 
@@ -724,7 +717,7 @@ public class PhotoShareServer {
 					outStream.writeObject("EXISTE");
 					ArrayList<Photo> fotos = photos.listaFotos();
 					Utils.decifraFile("servidor/" + userPhotos + "/listaFotos.txt");
-					File photoList = new File("servidor/" + userPhotos + "/listaFotos.txt.cif");
+					File photoList = new File("servidor/" + userPhotos + "/listaFotos.txt");
 					photos.populate(photoList);
 					System.out.println("TAMANHO DO SIZE: " + photos.listaFotos().size());
 					outStream.writeObject(photos.listaFotos().size());
@@ -743,7 +736,6 @@ public class PhotoShareServer {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

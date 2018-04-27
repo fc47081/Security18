@@ -49,6 +49,7 @@ public class Utils {
 		return true;
 	}
 
+
 	/**
 	 * Decifra a password dada utilizando o salt dado.
 	 * 
@@ -133,7 +134,7 @@ public class Utils {
 	}
 
 	private static void guardarKey(SecretKey key, String path) throws IOException, NoSuchAlgorithmException,
-			NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, CertificateException {
+	NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, CertificateException {
 		FileOutputStream fichKey = new FileOutputStream(path);
 		ObjectOutputStream outKey = new ObjectOutputStream(fichKey);
 
@@ -155,7 +156,7 @@ public class Utils {
 	}
 
 	private static PrivateKey getChavePrivada() throws KeyStoreException, NoSuchAlgorithmException,
-			CertificateException, FileNotFoundException, IOException, UnrecoverableKeyException {
+	CertificateException, FileNotFoundException, IOException, UnrecoverableKeyException {
 		KeyStore ks = KeyStore.getInstance("JKS");
 		ks.load(new FileInputStream("server"), "paparuco".toCharArray());
 		return (PrivateKey) ks.getKey("myserver", "paparuco".toCharArray());
@@ -173,7 +174,7 @@ public class Utils {
 		ObjectInputStream ois = new ObjectInputStream(fiscif);
 		byte[] keyCif = (byte[]) ois.readObject();
 		Key cifKey = c.unwrap(keyCif, "AES", Cipher.SECRET_KEY);
-		
+
 
 		// Temos a key do .key
 
@@ -385,7 +386,7 @@ public class Utils {
 		FileOutputStream fos;
 
 		fis = new FileInputStream(file + ".decif");
-		fos = new FileOutputStream(file + ".cif", true); // Rescrever ficheiro cifrado.
+		fos = new FileOutputStream(file + ".cif"); // , true Rescrever ficheiro cifrado.
 		CipherOutputStream cos = new CipherOutputStream(fos, c);
 		byte[] b = new byte[16];
 		int i = fis.read(b);
@@ -398,9 +399,8 @@ public class Utils {
 
 		// Guardar key usada para cifrar
 		guardarKey(key, file + ".key");
-		if (new File(file+ ".decif").delete())
-			System.out.println("Deu delete");
-
+		new File(file+ ".decif").delete();
+		System.out.println("Deu delete");
 	}
 
 }
