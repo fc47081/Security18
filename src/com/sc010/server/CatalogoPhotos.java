@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import com.sc010.utils.Utils;
+
 public class CatalogoPhotos {
 
 	private ArrayList<Photo> fotos;
@@ -38,6 +40,7 @@ public class CatalogoPhotos {
 	 */
 	public void populate(File photos) {	
 		try {
+			Utils.decifraFile(photos.toPath().toString());
 			BufferedReader reader = new BufferedReader(new FileReader(photos));
 			String line="";
 			Photo photo;
@@ -47,7 +50,11 @@ public class CatalogoPhotos {
 				fotos.add(photo);		
 			}
 			reader.close();
+			Utils.cifraFile(photos);
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	
 	}

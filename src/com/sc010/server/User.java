@@ -7,6 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import com.sc010.utils.Utils;
+
 public class User {
 
 	private String UserName;
@@ -80,14 +82,20 @@ public class User {
 	 */
 	public void populateFollowers(File follow){
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(follow));
+			Utils.decifraFile(follow.toString());
+			BufferedReader reader = new BufferedReader(new FileReader(follow + ".decif"));
 			String line="";	
 			while((line = reader.readLine()) != null){
 				followers.add(line);
 				System.out.println("followers: " + line);
 			}
 			reader.close();
+			
+			Utils.cifraOldFile(new File(follow + ".cif"));
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

@@ -200,17 +200,6 @@ public class PhotoShareServer {
 			ObjectInputStream inStream) {
 		try {
 			String frase = "";
-			BufferedReader reader = null;
-			File utilizadores = new File("Users/users.txt");
-			if (!utilizadores.exists())
-				utilizadores.createNewFile();
-			else
-				catUser.populate(utilizadores);
-			try {
-				reader = new BufferedReader(new FileReader(utilizadores));
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
 			// user existe
 			if (catUser.find(inUser)) {
 				if (catUser.pwdCerta(inUser, inPasswd)) {
@@ -226,7 +215,6 @@ public class PhotoShareServer {
 					outStream.writeObject("LOGGED");
 				}
 			}
-			reader.close();
 		} catch (Exception e) {
 			System.err.println("erro de autenticacao");
 		}
@@ -285,7 +273,10 @@ public class PhotoShareServer {
 				outStream.writeObject("TRANSFERIDA");
 
 				//TODO Append a foto na lista de fotos.
-
+				
+				Utils.decifraFile("servidor/" + inUser + "/listaFotos.txt");
+				
+				
 				// Data da publicacao da foto
 				DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 				Date today = Calendar.getInstance().getTime();
