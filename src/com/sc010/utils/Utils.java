@@ -24,6 +24,8 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -191,7 +193,32 @@ public class Utils {
 		fos.close();
 		cis.close();
 		ois.close();
-		new File(file + ".cif").delete();
+		File cif = new File(file + ".cif");
+		cif.delete();
+
+		// Fix a babuja
+		BufferedReader br = new BufferedReader(new FileReader(file + ".decif"));
+
+		ArrayList<String> lines = br.lines().collect(Collectors.toCollection(ArrayList::new));
+		ArrayList<String> filtered = new ArrayList<>();
+		for (String s : lines) {
+			if (s.charAt(0) == 0) {
+				// Issue needs to be fixed
+				//filtered.add(s.substring(5));
+				// Done
+			} else {
+				filtered.add(s);
+			}
+		}
+
+		// Overwrite unfiltered decif file
+
+		br.close();
+		BufferedWriter bw = new BufferedWriter(new FileWriter(file + ".decif"));
+		for (String s : filtered) {
+			bw.write(s + System.lineSeparator());
+		}
+		bw.close();
 	}
 
 	public static void cifraKeyServer(File f, byte[] key) throws Exception {
