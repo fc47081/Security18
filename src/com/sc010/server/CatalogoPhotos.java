@@ -41,7 +41,7 @@ public class CatalogoPhotos {
 	public void populate(File photos) {	
 		try {
 			Utils.decifraFile(photos.toPath().toString());
-			BufferedReader reader = new BufferedReader(new FileReader(photos));
+			BufferedReader reader = new BufferedReader(new FileReader(photos + ".decif"));
 			String line="";
 			Photo photo;
 			while((line = reader.readLine()) != null){
@@ -50,7 +50,7 @@ public class CatalogoPhotos {
 				fotos.add(photo);		
 			}
 			reader.close();
-			Utils.cifraFile(photos);
+			Utils.cifraOldFile(photos.getPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception e) {

@@ -426,7 +426,7 @@ public class PhotoShareServer {
 							bw.newLine();
 							bw.close();
 
-							Utils.cifraOldFile(fichLikes + ".decif");
+							Utils.cifraOldFile(fichLikes.getPath());
 							outStream.writeObject("LIKE");
 						} else {
 							outStream.writeObject("JADEULIKE");
