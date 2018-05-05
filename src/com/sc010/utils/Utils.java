@@ -49,7 +49,6 @@ public class Utils {
 		return true;
 	}
 
-
 	/**
 	 * Decifra a password dada utilizando o salt dado.
 	 * 
@@ -134,7 +133,7 @@ public class Utils {
 	}
 
 	private static void guardarKey(SecretKey key, String path) throws IOException, NoSuchAlgorithmException,
-	NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, CertificateException {
+			NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, CertificateException {
 		FileOutputStream fichKey = new FileOutputStream(path);
 		ObjectOutputStream outKey = new ObjectOutputStream(fichKey);
 
@@ -156,7 +155,7 @@ public class Utils {
 	}
 
 	private static PrivateKey getChavePrivada() throws KeyStoreException, NoSuchAlgorithmException,
-	CertificateException, FileNotFoundException, IOException, UnrecoverableKeyException {
+			CertificateException, FileNotFoundException, IOException, UnrecoverableKeyException {
 		KeyStore ks = KeyStore.getInstance("JKS");
 		ks.load(new FileInputStream("server"), "paparuco".toCharArray());
 		return (PrivateKey) ks.getKey("myserver", "paparuco".toCharArray());
@@ -175,7 +174,6 @@ public class Utils {
 		byte[] keyCif = (byte[]) ois.readObject();
 		Key cifKey = c.unwrap(keyCif, "AES", Cipher.SECRET_KEY);
 
-
 		// Temos a key do .key
 
 		c = Cipher.getInstance("AES");
@@ -187,11 +185,13 @@ public class Utils {
 		int i = cis.read(input);
 		while (i > 0) {
 			fos.write(input);
+			input = new byte[16];
 			i = cis.read(input);
 		}
 		fos.close();
 		cis.close();
-		new File(file+".cif").delete();
+		ois.close();
+		new File(file + ".cif").delete();
 	}
 
 	public static void cifraKeyServer(File f, byte[] key) throws Exception {
@@ -373,7 +373,8 @@ public class Utils {
 
 	}
 
-	public static void cifraOldFile(File file) throws InvalidKeyException, NoSuchAlgorithmException, IOException, NoSuchPaddingException, IllegalBlockSizeException, CertificateException {
+	public static void cifraOldFile(String file) throws InvalidKeyException, NoSuchAlgorithmException, IOException,
+			NoSuchPaddingException, IllegalBlockSizeException, CertificateException {
 		// gerar uma chave aleat�ria para utilizar com o AES
 		KeyGenerator kg = KeyGenerator.getInstance("AES");
 		kg.init(128);
@@ -386,12 +387,12 @@ public class Utils {
 		FileOutputStream fos;
 
 		fis = new FileInputStream(file + ".decif");
-		fos = new FileOutputStream(file + ".cif"); // , true Rescrever ficheiro cifrado.
+		fos = new FileOutputStream(file + ".cif", true); // , true Rescrever ficheiro cifrado.
 		CipherOutputStream cos = new CipherOutputStream(fos, c);
 		byte[] b = new byte[16];
 		int i = fis.read(b);
 		while (i > 0) {
-			cos.write(b, 0, b.length);
+			cos.write(b, 0, i);
 			i = fis.read(b);
 		}
 		fis.close();
@@ -399,8 +400,9 @@ public class Utils {
 
 		// Guardar key usada para cifrar
 		guardarKey(key, file + ".key");
-		new File(file+ ".decif").delete();
-		System.out.println("Deu delete");
+		File decif = new File(file + ".decif");
+		if (decif.delete())
+			System.out.println("Deu delete");
 	}
 
 }

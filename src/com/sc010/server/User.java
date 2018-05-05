@@ -91,7 +91,7 @@ public class User {
 			}
 			reader.close();
 			
-			Utils.cifraOldFile(follow);
+			Utils.cifraOldFile(follow.getPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (Exception e) {

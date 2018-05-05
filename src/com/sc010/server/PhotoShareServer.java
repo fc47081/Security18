@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -28,16 +27,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -45,11 +36,6 @@ import javax.net.ssl.SSLServerSocketFactory;
 import com.sc010.utils.Utils;
 
 public class PhotoShareServer {
-	private static byte[] salt = new byte[16];
-	private static byte[] ivBytes = { 0x11, 0x37, 0x69, 0x1F, 0x3D, 0x5A, 0x04, 0x18, 0x23, 0x6B, 0x1F, 0x03, 0x1D,
-			0x1E, 0x1F, 0x20 };
-	private static final String pwdAdmin = "Tree Math Water";
-
 	public static void main(String[] args) throws java.net.SocketException {
 		File pasta = new File("servidor");
 		if (!pasta.exists()) {
@@ -235,7 +221,6 @@ public class PhotoShareServer {
 			String photo = (String) inStream.readObject();
 			String temp = dirName + "/" + photo;
 			boolean check = new File(temp + ".cif").exists();
-			File[] listOfFiles = dir.listFiles();
 
 			if (check == false) {
 				// Se nao existe, criar e guardar na pasta
@@ -275,13 +260,12 @@ public class PhotoShareServer {
 				String reportDate = df.format(today);
 				String dateToPrintToFile = reportDate;
 				BufferedWriter writer = new BufferedWriter(
-						new FileWriter("servidor/" + inUser + "/listaFotos.txt", true)); //.decif
-				writer.write(photo + ":" + dateToPrintToFile);
-				writer.flush();
-				writer.newLine();
+						new FileWriter("servidor/" + inUser + "/listaFotos.txt.decif", true));
+				writer.write(photo + ":" + dateToPrintToFile + System.getProperty("line.separator"));
 				writer.close();
+				br.close();
 
-				Utils.cifraOldFile(new File("servidor/" + inUser + "/listaFotos.txt"));
+				Utils.cifraOldFile("servidor/" + inUser + "/listaFotos.txt");
 			} else {
 				System.out.println("existe o ficheiro");
 				outStream.writeObject("EXISTE");
@@ -321,9 +305,6 @@ public class PhotoShareServer {
 			String followerAdd = (String) inStream.readObject();
 			User uAdd = catUser.getUser(inUser);
 			System.out.println(inUser);
-			File follow = new File("servidor/" + inUser + "/followers.txt");
-			// catUser.populate(new File("users/users.txt"));
-			// uAdd.populateFollowers(follow);
 			if (catUser.find(followerAdd) == true) {// encontrar se o user exist na lista users
 
 				if (uAdd.existsFollower(followerAdd) == true) {
@@ -336,7 +317,7 @@ public class PhotoShareServer {
 					writer.newLine();
 					writer.close();
 					outStream.writeObject("Follower adicionado");
-					Utils.cifraOldFile(new File("servidor/" + inUser + "/followers.txt"));
+					Utils.cifraOldFile("servidor/" + inUser + "/followers.txt");
 				}
 			} else {
 				outStream.writeObject("follower nao existe");
@@ -445,7 +426,7 @@ public class PhotoShareServer {
 							bw.newLine();
 							bw.close();
 
-							Utils.cifraOldFile(new File(fichLikes + ".decif"));
+							Utils.cifraOldFile(fichLikes + ".decif");
 							outStream.writeObject("LIKE");
 						} else {
 							outStream.writeObject("JADEULIKE");
@@ -530,7 +511,7 @@ public class PhotoShareServer {
 							bw.newLine();
 							bw.close();
 
-							Utils.cifraOldFile(new File(fichDislikes + ".decif"));
+							Utils.cifraOldFile(fichDislikes + ".decif");
 							outStream.writeObject("DISLIKE");
 						} else {
 							outStream.writeObject("JADEUDISLIKE");
@@ -596,8 +577,8 @@ public class PhotoShareServer {
 				} else {
 					outStream.writeObject("NAO FOLLOWER");
 				}
-				Utils.cifraOldFile(new File("servidor/" + userC + "/followers.txt"));
-				Utils.cifraOldFile(new File("servidor/" + userC + "/listaFotos.txt"));
+				Utils.cifraOldFile("servidor/" + userC + "/followers.txt");
+				Utils.cifraOldFile("servidor/" + userC + "/listaFotos.txt");
 
 			} else {
 				outStream.writeObject("NAO USER");
@@ -667,11 +648,11 @@ public class PhotoShareServer {
 						}
 						outStream.writeObject(phototempL.tamanholistPhotoLikes());
 						outStream.writeObject(phototempD.tamanholistPhotoDislikes());
-						Utils.cifraOldFile(new File(ficheiroLikes + ".decif"));
+						Utils.cifraOldFile(ficheiroLikes + ".decif");
 						;
-						Utils.cifraOldFile(new File(ficheiroDislikes + ".decif"));
+						Utils.cifraOldFile(ficheiroDislikes + ".decif");
 						;
-						Utils.cifraOldFile(new File(ficheiroComments + ".decif"));
+						Utils.cifraOldFile(ficheiroComments + ".decif");
 
 					} else {
 						outStream.writeObject("NAO FOTO");
@@ -724,7 +705,7 @@ public class PhotoShareServer {
 					for (int i = 0; i < photos.listaFotos().size(); i++) {
 						outStream.writeObject(fotos.get(i).getNome() + " - " + fotos.get(i).getData());
 					}
-					Utils.cifraOldFile(new File("servidor/" + userPhotos + "/listaFotos.txt"));
+					Utils.cifraOldFile("servidor/" + userPhotos + "/listaFotos.txt");
 				} else {
 					outStream.writeObject("NAO EXISTE");
 				}
@@ -785,7 +766,7 @@ public class PhotoShareServer {
 							outStream.flush();
 						}
 						inStream1.close();
-						Utils.cifraOldFile(file);
+						Utils.cifraOldFile(file.getPath());
 					}
 				} else {
 					outStream.writeObject("Nao Follower");
@@ -839,27 +820,6 @@ public class PhotoShareServer {
 
 		}
 		return files;
-	}
-
-	/**
-	 * Verificar se o nome do ficheiro jah existe no Servidor
-	 * 
-	 * @param listOfFiles
-	 *            - lista de ficheiros existentes
-	 * @param nome
-	 *            - nome do ficheiros
-	 * @return true or false
-	 */
-	private static boolean existsNameFile(File[] listOfFiles, String nome) {
-		for (int i = 0; i < listOfFiles.length; i++) {
-
-			if (listOfFiles[i].getName().endsWith(".png") || listOfFiles[i].getName().endsWith(".jpg")
-					|| listOfFiles[i].getName().endsWith(".jpeg") && listOfFiles[i].getName().equals(nome)) {
-
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
