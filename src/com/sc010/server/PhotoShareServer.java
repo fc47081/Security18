@@ -251,7 +251,7 @@ public class PhotoShareServer {
 				comments.createNewFile();
 				Utils.cifraFile(comments);
 				outStream.writeObject("TRANSFERIDA");
-				
+
 				Utils.decifraFile("servidor/" + inUser + "/listaFotos.txt");
 
 				BufferedReader br = new BufferedReader(new FileReader("servidor/" + inUser + "/listaFotos.txt.decif"));
@@ -281,12 +281,11 @@ public class PhotoShareServer {
 		} catch (InvalidKeyException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	/// TODO adiciona um follower ao ficheiro de followers
+
 	/**
 	 * Operacao -f
 	 * 
@@ -327,7 +326,6 @@ public class PhotoShareServer {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -376,7 +374,8 @@ public class PhotoShareServer {
 			e.printStackTrace();
 		}
 	}
-	/// TODO
+
+
 	/**
 	 * Operacao -L
 	 * 
@@ -458,7 +457,7 @@ public class PhotoShareServer {
 			e.printStackTrace();
 		}
 	}
-	/// TODO
+
 	/**
 	 * Operacao -D
 	 * 
@@ -484,6 +483,7 @@ public class PhotoShareServer {
 			// verificar se e user
 			if (catUser.find(userD) == true) {
 				User userDislike = catUser.getUser(userD);
+
 				// verificamos se e follower
 				if (userDislike.existsFollower(inUser) == true) {
 					photos.populate(listaFotos);
@@ -491,10 +491,11 @@ public class PhotoShareServer {
 
 						// Se a foto existe, entao temos que a decifrar.
 						File fichDislikes = new File(
-								"servidor/" + userD + "/" + photoD.substring(0, photoD.indexOf(".")) + "Dislikes.txt");
+								"servidor/" + userD + "/" + photoD.substring(0, photoD.indexOf(".")) + "Dislikes.txt");			
 						// Decifrar os dislikes
 						Utils.decifraFile(fichDislikes.toString());
 
+						
 						// Dislikes decifrados vamos ver se ja existe um user
 						boolean found = false;
 						BufferedReader br = new BufferedReader(new FileReader(fichDislikes + ".decif"));
@@ -510,8 +511,7 @@ public class PhotoShareServer {
 							bw.write(inUser);
 							bw.newLine();
 							bw.close();
-
-							Utils.cifraOldFile(fichDislikes + ".decif");
+							Utils.cifraOldFile(fichDislikes.getPath());
 							outStream.writeObject("DISLIKE");
 						} else {
 							outStream.writeObject("JADEUDISLIKE");
@@ -531,6 +531,8 @@ public class PhotoShareServer {
 			e.printStackTrace();
 		}
 	}
+	
+	
 	/// TODO
 	/**
 	 * Operacao -c
