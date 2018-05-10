@@ -558,7 +558,7 @@ public class PhotoShareServer {
 					File listaFotosC = new File("servidor/" + userC + "/listaFotos.txt");
 					photos.populate(listaFotosC);
 					if (photos.existsPhoto(photoC) == true) {
-
+						Utils.decifraFile("servidor/" + userC + "/" + getNameFile(photoC) + "Comments.txt");
 						BufferedWriter writer = new BufferedWriter(new FileWriter(
 								"servidor/" + userC + "/" + getNameFile(photoC) + "Comments.txt.decif", true));
 						writer.write(comentario);
@@ -783,10 +783,8 @@ public class PhotoShareServer {
 		} catch (BadPaddingException e) {
 			e.printStackTrace();
 		} catch (CertificateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
