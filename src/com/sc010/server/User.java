@@ -90,7 +90,7 @@ public class User {
 				System.out.println("followers: " + line);
 			}
 			reader.close();
-			
+
 			Utils.cifraOldFile(follow.getPath());
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -104,11 +104,13 @@ public class User {
 	 * RemoveFollowers
 	 * @param follow- ficheiro de followers
 	 * @param follower - follower a remover
+	 * @throws Exception 
 	 */
-	public void removeFollowers(File follow,String follower){
+	public void removeFollowers(File follow,String follower) throws Exception{
 
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(follow));
+			Utils.decifraFile(follow.getPath());
+			BufferedReader reader = new BufferedReader(new FileReader(follow + ".decif"));
 			String line="";
 
 			while((line = reader.readLine()) != null){
@@ -117,6 +119,7 @@ public class User {
 				}			
 			}
 			reader.close();
+			Utils.cifraOldFile(follow.getPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -126,9 +129,10 @@ public class User {
 	 * Criar ficheiro com follower removido
 	 * @param removed - ficheiro novo com follower removido
 	 * @param inUser - userAtual
+	 * @throws Exception 
 	 * @throws IOException
 	 */
-	public void CreateFileRemoved(File removed,String inUser){
+	public void CreateFileRemoved(File removed,String inUser) throws Exception{
 
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter("servidor/"+inUser+"/"+removed.getName(), true)); 
@@ -137,6 +141,7 @@ public class User {
 				writer.newLine();
 			}
 			writer.close();
+			Utils.cifraFile(new File ("servidor/"+inUser+"/"+removed.getName()));
 		}catch (IOException e) {
 			e.printStackTrace();
 		}

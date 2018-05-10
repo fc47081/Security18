@@ -202,12 +202,14 @@ public class Utils {
 		ArrayList<String> lines = br.lines().collect(Collectors.toCollection(ArrayList::new));
 		ArrayList<String> filtered = new ArrayList<>();
 		for (String s : lines) {
-			if (s.charAt(0) == 0) {
-				// Issue needs to be fixed
-				//filtered.add(s.substring(5));
-				// Done
-			} else {
-				filtered.add(s);
+			if (s != null) {
+				if (s.charAt(0) == 0) {
+					// Issue needs to be fixed
+					// filtered.add(s.substring(5));
+					// Done
+				} else {
+					filtered.add(s);
+				}
 			}
 		}
 
@@ -219,6 +221,40 @@ public class Utils {
 			bw.write(s + System.lineSeparator());
 		}
 		bw.close();
+	}
+
+	public static void decifraFoto(String file) throws Exception {
+		FileInputStream fis = new FileInputStream(file + ".cif");
+		FileOutputStream fos = new FileOutputStream(file + ".decif");
+
+		// Buscar a key dentro do .key
+		FileInputStream fiscif = new FileInputStream(file + ".key");
+		PrivateKey key = getChavePrivada();
+		Cipher c = Cipher.getInstance("RSA");
+		c.init(Cipher.UNWRAP_MODE, key);
+		ObjectInputStream ois = new ObjectInputStream(fiscif);
+		byte[] keyCif = (byte[]) ois.readObject();
+		Key cifKey = c.unwrap(keyCif, "AES", Cipher.SECRET_KEY);
+
+		// Temos a key do .key
+
+		c = Cipher.getInstance("AES");
+		c.init(Cipher.DECRYPT_MODE, cifKey); // SecretKeySpec subclasse de secretKey
+
+		CipherInputStream cis = new CipherInputStream(fis, c);
+
+		byte[] input = new byte[16];
+		int i = cis.read(input);
+		while (i > 0) {
+			fos.write(input);
+			input = new byte[16];
+			i = cis.read(input);
+		}
+		fos.close();
+		cis.close();
+		ois.close();
+		File cif = new File(file + ".cif");
+		cif.delete();
 	}
 
 	public static void cifraKeyServer(File f, byte[] key) throws Exception {

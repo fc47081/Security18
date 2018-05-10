@@ -285,7 +285,6 @@ public class PhotoShareServer {
 		}
 	}
 
-
 	/**
 	 * Operacao -f
 	 * 
@@ -330,7 +329,6 @@ public class PhotoShareServer {
 		}
 	}
 
-	/// TODO remover um follower do ficheiro followers
 	/**
 	 * Operacao -r
 	 * 
@@ -342,22 +340,22 @@ public class PhotoShareServer {
 	 *            catalogo de users
 	 * @param inUser-
 	 *            user recebido na operacao
+	 * @throws Exception
 	 */
 	public static void operatioR(ObjectInputStream inStream, ObjectOutputStream outStream, CatalogoUser catUser,
-			String inUser) {
+			String inUser) throws Exception {
 		try {
 			String followerRemove = (String) inStream.readObject();
-			System.out.println(followerRemove);
 			User uRemove = catUser.getUser(inUser);
 			File followRem = new File("servidor/" + inUser + "/followers.txt");
 			if (catUser.find(followerRemove) == true) { // encontrar se o user exist na lista user
 				if (uRemove.existsFollower(followerRemove) == true) {
-					System.out.println("follow:");
-					uRemove.imprime();
+
 					uRemove.removeFollowers(followRem, followerRemove);
 					System.out.println("removido:");
 					uRemove.imprime();
-					followRem.delete();
+					File followCif = new File("servidor/" + inUser + "/followers.txt.cif");
+					followCif.delete();
 					File removidos = new File("servidor/" + inUser + "/followers.txt");
 					removidos.createNewFile();
 					uRemove.CreateFileRemoved(removidos, inUser);
@@ -374,7 +372,6 @@ public class PhotoShareServer {
 			e.printStackTrace();
 		}
 	}
-
 
 	/**
 	 * Operacao -L
@@ -428,6 +425,7 @@ public class PhotoShareServer {
 							Utils.cifraOldFile(fichLikes.getPath());
 							outStream.writeObject("LIKE");
 						} else {
+							Utils.cifraOldFile(fichLikes.getPath());
 							outStream.writeObject("JADEULIKE");
 						}
 					} else {
@@ -491,11 +489,10 @@ public class PhotoShareServer {
 
 						// Se a foto existe, entao temos que a decifrar.
 						File fichDislikes = new File(
-								"servidor/" + userD + "/" + photoD.substring(0, photoD.indexOf(".")) + "Dislikes.txt");			
+								"servidor/" + userD + "/" + photoD.substring(0, photoD.indexOf(".")) + "Dislikes.txt");
 						// Decifrar os dislikes
 						Utils.decifraFile(fichDislikes.toString());
 
-						
 						// Dislikes decifrados vamos ver se ja existe um user
 						boolean found = false;
 						BufferedReader br = new BufferedReader(new FileReader(fichDislikes + ".decif"));
@@ -514,6 +511,7 @@ public class PhotoShareServer {
 							Utils.cifraOldFile(fichDislikes.getPath());
 							outStream.writeObject("DISLIKE");
 						} else {
+							Utils.cifraOldFile(fichDislikes.getPath());
 							outStream.writeObject("JADEUDISLIKE");
 						}
 					} else {
@@ -531,9 +529,7 @@ public class PhotoShareServer {
 			e.printStackTrace();
 		}
 	}
-	
-	
-	/// TODO
+
 	/**
 	 * Operacao -c
 	 * 
@@ -557,21 +553,19 @@ public class PhotoShareServer {
 			User userCcomment = catUser.getUser(userC);
 			// verificar se e user
 			if (catUser.find(userC) == true) {
-				Utils.decifraFile("servidor/" + userC + "/followers.txt");
-				File followC = new File("servidor/" + userC + "/followers.txt.decif");
-				userCcomment.populateFollowers(followC);
 				// verificamos se e follower
 				if (userCcomment.existsFollower(inUser) == true) {
-					Utils.decifraFile("servidor/" + userC + "/listaFotos.txt");
 					File listaFotosC = new File("servidor/" + userC + "/listaFotos.txt");
 					photos.populate(listaFotosC);
 					if (photos.existsPhoto(photoC) == true) {
 
-						BufferedWriter writer = new BufferedWriter(
-								new FileWriter("servidor/" + userC + "/" + getNameFile(photoC) + "Comments.txt", true));
+						BufferedWriter writer = new BufferedWriter(new FileWriter(
+								"servidor/" + userC + "/" + getNameFile(photoC) + "Comments.txt.decif", true));
 						writer.write(comentario);
 						writer.newLine();
 						writer.close();
+
+						Utils.cifraOldFile("servidor/" + userC + "/" + getNameFile(photoC) + "Comments.txt");
 						outStream.writeObject("COMMENT");
 					} else {
 						outStream.writeObject("NAO FOTO");
@@ -579,9 +573,6 @@ public class PhotoShareServer {
 				} else {
 					outStream.writeObject("NAO FOLLOWER");
 				}
-				Utils.cifraOldFile("servidor/" + userC + "/followers.txt");
-				Utils.cifraOldFile("servidor/" + userC + "/listaFotos.txt");
-
 			} else {
 				outStream.writeObject("NAO USER");
 			}
@@ -590,7 +581,6 @@ public class PhotoShareServer {
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -618,31 +608,28 @@ public class PhotoShareServer {
 			String foto = (String) inStream.readObject();
 			User userCatalog = catUser.getUser(userID);
 			if (catUser.find(userID) == true) {
-				File followC = new File("servidor/" + userID + "/followers.txt");
-				userCatalog.populateFollowers(followC);
 				if (userCatalog.existsFollower(inUser) == true) {
 					File listaFotosC = new File("servidor/" + userID + "/listaFotos.txt");
 					photos.populate(listaFotosC);
 					if (photos.existsPhoto(foto) == true) {
-						System.out.println("Mostra");
 						outStream.writeObject("MOSTRA");
 						// populate Likes
 						Photo phototempL = photos.getPhoto(foto);
 						File ficheiroLikes = new File("servidor/" + userID + "/" + getNameFile(foto) + "Likes.txt");
-						Utils.decifraFile(ficheiroLikes.toString());
-						phototempL.populateLikes(new File(ficheiroLikes + ".decif"));
+						phototempL.populateLikes(ficheiroLikes);
+
 						// populate Dislikes
 						Photo phototempD = photos.getPhoto(foto);
 						File ficheiroDislikes = new File(
 								"servidor/" + userID + "/" + getNameFile(foto) + "Dislikes.txt");
-						Utils.decifraFile(ficheiroDislikes.toString());
-						phototempD.populateDislikes(new File(ficheiroDislikes + ".decif"));
+
+						phototempD.populateDislikes(ficheiroDislikes);
+
 						// populate comentarios
 						Photo phototempC = photos.getPhoto(foto);
 						File ficheiroComments = new File(
 								"servidor/" + userID + "/" + getNameFile(foto) + "Comments.txt");
-						Utils.decifraFile(ficheiroComments.toString());
-						phototempC.populateComments(new File(ficheiroComments + ".decif"));
+						phototempC.populateComments(ficheiroComments);
 						ArrayList<String> comentarios = phototempC.getlistPhotoComments();
 						outStream.writeObject(phototempC.tamanholistPhotoComments());
 						for (int i = 0; i < comentarios.size(); i++) {
@@ -650,11 +637,6 @@ public class PhotoShareServer {
 						}
 						outStream.writeObject(phototempL.tamanholistPhotoLikes());
 						outStream.writeObject(phototempD.tamanholistPhotoDislikes());
-						Utils.cifraOldFile(ficheiroLikes + ".decif");
-						;
-						Utils.cifraOldFile(ficheiroDislikes + ".decif");
-						;
-						Utils.cifraOldFile(ficheiroComments + ".decif");
 
 					} else {
 						outStream.writeObject("NAO FOTO");
@@ -672,7 +654,6 @@ public class PhotoShareServer {
 		}
 	}
 
-	/// TODO devolver ao cliente o ficheiro listaFotos.txt
 	/**
 	 * Operacao -l
 	 * 
@@ -698,16 +679,14 @@ public class PhotoShareServer {
 				userList.populateFollowers(followers);
 				if (userList.existsFollower(inUser) == true) {
 					outStream.writeObject("EXISTE");
-					ArrayList<Photo> fotos = photos.listaFotos();
-					Utils.decifraFile("servidor/" + userPhotos + "/listaFotos.txt");
 					File photoList = new File("servidor/" + userPhotos + "/listaFotos.txt");
 					photos.populate(photoList);
+					ArrayList<Photo> fotos = photos.listaFotos();
 					System.out.println("TAMANHO DO SIZE: " + photos.listaFotos().size());
 					outStream.writeObject(photos.listaFotos().size());
 					for (int i = 0; i < photos.listaFotos().size(); i++) {
 						outStream.writeObject(fotos.get(i).getNome() + " - " + fotos.get(i).getData());
 					}
-					Utils.cifraOldFile("servidor/" + userPhotos + "/listaFotos.txt");
 				} else {
 					outStream.writeObject("NAO EXISTE");
 				}
@@ -745,23 +724,32 @@ public class PhotoShareServer {
 				File followC = new File("servidor/" + userG + "/followers.txt");
 				u.populateFollowers(followC);
 				u.imprime();
-				if (u.existsFollower(inUser) == true) {
+				if (u.existsFollower(inUser)) {
 					File folderDir = new File("servidor/" + userG);
 					String[] folderFiles = folderDir.list();
+
 					ArrayList<String> listaDeFotos = getPhotoFiles(folderFiles);
 					outStream.write(listaDeFotos.size());
 					outStream.writeObject("Fotos enviadas");
+
 					for (int i = 0; i < listaDeFotos.size(); i++) {
-						outStream.writeObject(listaDeFotos.get(i));
-						File file = new File("servidor/" + userG + "/" + listaDeFotos.get(i));
-						Utils.decifraFile(file.toString());
+						outStream.writeObject(listaDeFotos.get(i).substring(0, listaDeFotos.get(i).length() - 4));
+						File file = new File("servidor/" + userG + "/"
+								+ listaDeFotos.get(i).substring(0, listaDeFotos.get(i).length() - 4));
+						if (file.getPath().contains("Comments.txt")) {
+							Utils.decifraFile(file.getPath());
+						} else {
+							Utils.decifraFoto(file.getPath());
+						}
 
 						// falta ler o fichiero para terminar de decifrar
-						long size = file.length();
-						FileInputStream inStream1 = new FileInputStream(file + ".decif");
+						File fileDecif = new File("servidor/" + userG + "/"
+								+ listaDeFotos.get(i).substring(0, listaDeFotos.get(i).length() - 4) + ".decif");
+						long size = fileDecif.length();
+						FileInputStream inStream1 = new FileInputStream(fileDecif);
 						byte buffer[] = new byte[1024];
 						int count = 1024;
-						outStream.writeObject(file.length());
+						outStream.writeObject(size);
 						while ((count = inStream1.read(buffer, 0, (int) (size < 1024 ? size : 1024))) > 0) {
 							outStream.write(buffer, 0, count);
 							size -= count;
@@ -814,9 +802,9 @@ public class PhotoShareServer {
 		ArrayList<String> files = new ArrayList<String>();
 
 		for (int i = 0; i < ficheiros.length; i++) {
-			Pattern p = Pattern.compile("(gif|jpg|jpeg|tiff|png)", Pattern.CASE_INSENSITIVE);
+			Pattern p = Pattern.compile("(gif.cif|jpg.cif|jpeg.cif|tiff.cif|png.cif)", Pattern.CASE_INSENSITIVE);
 			Matcher m = p.matcher(ficheiros[i]);
-			if (m.find() || ficheiros[i].endsWith("Comments.txt")) {
+			if (m.find() || ficheiros[i].endsWith("Comments.txt.cif")) {
 				files.add(ficheiros[i]);
 			}
 

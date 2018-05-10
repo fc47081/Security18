@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import com.sc010.utils.Utils;
+
 public class Photo {
 
 	private String nome;
@@ -48,15 +50,18 @@ public class Photo {
 	/**
 	 * Popular ficheiro de likes
 	 * @param userLikes - ficheiros de likes
+	 * @throws Exception 
 	 */
-	public void populateLikes(File userLikes){
+	public void populateLikes(File userLikes) throws Exception{
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(userLikes));
+			Utils.decifraFile(userLikes.getPath());
+			BufferedReader reader = new BufferedReader(new FileReader(userLikes + ".decif"));
 			String line="";
 			while((line = reader.readLine()) != null){
 				likes.add(line);
 			}
 			reader.close();
+			Utils.cifraOldFile(userLikes.getPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -65,16 +70,19 @@ public class Photo {
 	/**
 	 * Popular ficheiro de dislikes
 	 * @param userLikes - ficheiros de likes
+	 * @throws Exception 
 	 */
-	public void populateDislikes(File userLikes){
+	public void populateDislikes(File userLikes) throws Exception{
 
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(userLikes));
+			Utils.decifraFile(userLikes.getPath());
+			BufferedReader reader = new BufferedReader(new FileReader(userLikes + ".decif"));
 			String line="";
 			while((line = reader.readLine()) != null){
 				dislikes.add(line);
 			}
 			reader.close();	
+			Utils.cifraOldFile(userLikes.getPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -83,16 +91,19 @@ public class Photo {
 	/**
 	 * Popular ficheiro de comentarios
 	 * @param userLikes
+	 * @throws Exception 
 	 */
-	public void populateComments(File userLikes){
+	public void populateComments(File userLikes) throws Exception{
 
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(userLikes));
+			Utils.decifraFile(userLikes.getPath());
+			BufferedReader reader = new BufferedReader(new FileReader(userLikes + ".decif"));
 			String line="";
 			while((line = reader.readLine()) != null){
 				comentarios.add(line);
 			}
 			reader.close();
+			Utils.cifraOldFile(userLikes.getPath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}		
