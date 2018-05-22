@@ -29,6 +29,11 @@ public class PhotoShare {
 		if (!pasta.exists()) {
 			pasta.mkdir();
 		}
+		
+		File userDir = new File(pasta + "/" + args[0]);
+		if(!userDir.exists()) {
+			userDir.mkdir();
+		}
 		// Setup keysure
 		System.setProperty("java.security.policy", "client.policy");
 		System.setSecurityManager(new SecurityManager());

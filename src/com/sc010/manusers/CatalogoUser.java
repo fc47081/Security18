@@ -274,6 +274,9 @@ public class CatalogoUser {
 					writer.close();
 					reader.close();
 					Files.move(tempFile.toPath(), this.db.toPath(), StandardCopyOption.REPLACE_EXISTING);
+					
+					//Remover na memoria
+					this.lista().remove(u);
 					System.out.printf("Removido %s\n", user);
 					exists = true;
 				} catch (IOException e) {
