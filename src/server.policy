@@ -1,9 +1,7 @@
 grant codeBase "file:${user.dir}${/}-"{
-	permission java.net.SocketPermission "127.0.0.1:1024-", "listen";	
-	permission java.net.SocketPermission "*:1024-", "accept,resolve";	
+	permission java.net.SocketPermission "*:1024-", "accept";	
+	permission java.net.SocketPermission "*:23232", "listen,resolve";	
 	permission java.io.FilePermission "${user.dir}${/}servidor${/}-","write,read,delete";
-	permission java.io.FilePermission "${user.dir}${/}servidor","write";
-	permission java.io.FilePermission "${user.dir}${/}info.txt" ,"write,read";
 	permission java.util.PropertyPermission "javax.net.ssl.keyStore", "read, write";
 	permission java.util.PropertyPermission "javax.net.ssl.keyStorePassword", "read, write";
 	permission java.util.PropertyPermission "javax.net.ssl.trustStore", "read, write";

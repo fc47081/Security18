@@ -3,7 +3,7 @@ permission java.security.AllPermission;
 }; 
 
 grant codeBase "file:${user.dir}${/}-"{
-	permission java.net.SocketPermission "127.0.0.1:1024-", "connect,resolve";
+	permission java.net.SocketPermission "*:23232", "connect";
 	permission java.io.FilePermission "${user.dir}${/}Clientes${/}-" ,"write,read";
 	permission java.io.FilePermission "${user.dir}${/}Clientes" ,"write";
 	permission java.util.PropertyPermission "javax.net.ssl.trustStore", "read, write";
